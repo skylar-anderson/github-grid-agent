@@ -1,8 +1,44 @@
 import { useState } from "react";
-import { Button } from "@primer/react";
+import { Button, Box, Spinner } from "@primer/react";
 import "./Grid.css";
 import "./Intro.css";
 import { useGridContext } from "./GridContext";
+
+function GridLoading() {
+  return (
+    <Box
+      sx={{
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          flexDirection: "column",
+        }}
+      >
+        <Box
+          sx={{
+            fontSize: 2,
+            fontWeight: "semibold",
+            textAlign: "center",
+            pb: 3,
+          }}
+        >
+          Starting grid...
+        </Box>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Spinner size="medium" />
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 export default function CreateIntroForm() {
   const [state, setState] = useState<"empty" | "loading" | "done">("empty");
@@ -10,12 +46,15 @@ export default function CreateIntroForm() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { inititializeGrid } = useGridContext();
 
+  if (state === "loading") {
+    return <GridLoading />;
+  }
+
   async function createGrid(inputValue: string) {
     if (!inputValue) {
       alert("Please enter a value");
       return;
     }
-
     setState("loading");
     try {
       const response = await inititializeGrid(inputValue);
@@ -23,10 +62,6 @@ export default function CreateIntroForm() {
       setErrorMessage(e.message);
     }
     setState("done");
-  }
-
-  if (state === "loading") {
-    return "Starting grid...";
   }
 
   const suggestions = [
@@ -67,12 +102,14 @@ export default function CreateIntroForm() {
           <h3>Try it</h3>
           {suggestions.map((s) => (
             <Button
+              sx={{ mb: 2 }}
               key={s}
+              variant="invisible"
               onClick={() => {
                 createGrid(s);
               }}
             >
-              ✨ {s}
+              <Box sx={{ color: "fg.default" }}>✨ {s}</Box>
             </Button>
           ))}
         </div>

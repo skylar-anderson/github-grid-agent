@@ -3,14 +3,12 @@
 import type {
   SuccessfulPrimaryColumnResponse,
   ErrorResponse,
-  GridState,
   GridCell,
-  GridCol,
 } from "../actions";
 import { GridProvider, useGridContext } from "./GridContext";
-import React, { useState } from "react";
+import { Box } from "@primer/react";
+import React from "react";
 import GridTable from "./GridTable";
-import SelectedContext from "./SelectedContext";
 import GridIntroForm from "./GridIntroForm";
 
 import "./Grid.css";
@@ -27,10 +25,18 @@ function GridContent() {
   return (
     <div className="grid-app">
       {gridState ? (
-        <div className="grid-layout">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            width: "100vw",
+            height: "100vh",
+            overflow: "hidden",
+            backgroundColor: "canvas.inset",
+          }}
+        >
           <GridTable />
-          <SelectedContext />
-        </div>
+        </Box>
       ) : (
         <div>
           <GridIntroForm />

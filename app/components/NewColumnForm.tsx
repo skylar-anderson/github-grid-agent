@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "@primer/react";
-import "./NewColumnForm.css";
+import { Box, Button, TextInput, Textarea, FormControl } from "@primer/react";
+import GridCell from "./GridCell";
 
 type Props = {
   addNewColumn: ({
@@ -35,33 +35,49 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   }
 
   return (
-    <div className="grid-col">
-      <div className="grid-cell grid-cell--add-new-column">
+    <Box>
+      <Box sx={{}}>
         {message && <div className="error-message">{message}</div>}
-        <form className="form" onSubmit={addNewHandler}>
-          <h3>New column</h3>
-          <div className="form-group">
-            <label>Column title</label>
-            <input
-              className="input"
+        <Box
+          as="form"
+          sx={{ gap: 3, display: "flex", flexDirection: "column" }}
+          onSubmit={addNewHandler}
+        >
+          <FormControl>
+            <FormControl.Label>Title</FormControl.Label>
+            <TextInput
               type="text"
-              placeholder="Column title..."
               value={title}
+              block={true}
               onChange={(e) => setTitle(e.target.value)}
             />
-          </div>
-          <div className="form-group">
-            <label>Instructions</label>
-            <textarea
-              className="input textarea"
+            <FormControl.Caption>
+              Will be included in prompt
+            </FormControl.Caption>
+          </FormControl>
+
+          <FormControl>
+            <FormControl.Label>Instructions</FormControl.Label>
+            <Textarea
               placeholder="Describe how this field should be populated..."
               value={instructions}
+              block={true}
               onChange={(e) => setInstructions(e.target.value)}
             />
-          </div>
-          <Button onClick={addNewHandler}>Add column</Button>
-        </form>
-      </div>
-    </div>
+            <FormControl.Caption>
+              Optional but recommended. Add detailed instructions about how the
+              column should render.
+            </FormControl.Caption>
+          </FormControl>
+
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+            <Button onClick={addNewHandler}>Cancel</Button>
+            <Button variant="primary" onClick={addNewHandler}>
+              Submit
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
