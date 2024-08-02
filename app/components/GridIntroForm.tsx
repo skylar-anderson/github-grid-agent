@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Box, Spinner } from "@primer/react";
+import { Button, Box, Spinner, TextInput} from "@primer/react";
 import "./Grid.css";
 import "./Intro.css";
 import { useGridContext } from "./GridContext";
@@ -65,17 +65,26 @@ export default function CreateIntroForm() {
   }
 
   const suggestions = [
-    "merged pull requests on primer/design",
-    "files related to the Action List component in primer/react",
-    "recently closed pull requests in the vercel/swr repository",
-    "the files changed in the most recently closed pull request in primer/react",
+    "Merged pull requests on primer/design",
+    "Files related to the Action List component in primer/react",
+    "Recently closed pull requests in the vercel/swr repository",
+    "The files changed in the most recently closed pull request in primer/react",
   ];
 
   return (
-    <div className="intro-layout">
-      <div className="intro">
-        <h1 className="title">Data Grid Agent</h1>
-        <p className="description">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100vw',
+        height: '100vh',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
+      <Box sx={{width: '640px'}}>
+        <Box as="h1" sx={{fontSize: 4, mb: 2, fontWeight: 'semibold', color: 'fg.default'}}>Data Grid Agent</Box>
+        <Box as="p" sx={{color: 'fg.muted'}}>
           Use natural language to easily populate the contents of a data grid
           with the Data Grid Agent. To get started, just describe the data you
           want to explore below. Once your grid is started, just add the columns
@@ -84,36 +93,53 @@ export default function CreateIntroForm() {
           <a href="https://github.com/skylar-anderson/openai-chat-playground/tree/main/app/grid">
             Source
           </a>
-        </p>
+        </Box>
 
-        <form onSubmit={() => createGrid(inputValue)} className="intro-form">
+        <Box as="form" sx={{ width: '100%', display: 'flex', gap: 2, pt:3, px: 0, pb: 2}} onSubmit={() => createGrid(inputValue)}>
           {errorMessage && <div className="error-message">{errorMessage}</div>}
-          <input
-            className="input"
+          <TextInput
             type="text"
             placeholder="Describe the data you want to see in the grid..."
             value={inputValue}
+            block
+            size="large"
             onChange={(e) => setInputValue(e.target.value)}
           />
-          <Button onClick={() => createGrid(inputValue)}>Submit</Button>
-        </form>
+          <Button size="large" variant="primary" onClick={() => createGrid(inputValue)}>Submit</Button>
+        </Box>
 
-        <div className="suggestions">
-          <h3>Try it</h3>
-          {suggestions.map((s) => (
-            <Button
-              sx={{ mb: 2 }}
-              key={s}
-              variant="invisible"
-              onClick={() => {
-                createGrid(s);
-              }}
-            >
-              <Box sx={{ color: "fg.default" }}>✨ {s}</Box>
-            </Button>
-          ))}
-        </div>
-      </div>
-    </div>
+        <Box>
+          <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
+            {suggestions.map((s) => (
+              <Box
+                sx={{
+                  p: 3,
+                  border: '1px solid',
+                  borderColor: 'border.default',
+                  borderRadius: 2,
+                  backgroundColor: 'canvas.default',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  '&:hover': {
+                    backgroundColor: 'canvas.inset',
+                    cursor: 'pointer',
+                    transition: 'background-color 300ms ease-in-out'
+                  }
+                }}
+                key={s}
+                as="button"
+                onClick={() => {
+                  createGrid(s);
+                }}
+              >
+                <Box sx={{ flex: 1, color: "fg.default" }}>{s}</Box>
+                <Box sx={{ flex: 0, }}>✨</Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

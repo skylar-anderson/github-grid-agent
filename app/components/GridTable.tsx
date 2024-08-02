@@ -198,7 +198,11 @@ export default function GridTable() {
 
       {showNewColumnForm ? (
         <Dialog title="Add new column" position="right" onClose={onDialogClose}>
-          <NewColumnForm addNewColumn={addNewColumn} />
+          <NewColumnForm addNewColumn={({title, instructions}) => {
+            addNewColumn({title, instructions})
+            setShowNewColumnForm(false)
+            return;
+          }} />
         </Dialog>
       ) : null}
     </Box>

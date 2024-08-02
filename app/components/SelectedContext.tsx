@@ -15,11 +15,12 @@ import "./SelectedContext.css";
 function Prompt({ prompt }: { prompt: string }) {
   const [open, setOpen] = useState<boolean>(false);
   return (
-    <Box sx={{
-      display: "flex",
-      flexDirection: "column",
-      backgroundColor: "canvas.inset",
-      borderRadius: 2,
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "canvas.inset",
+        borderRadius: 2,
       }}
     >
       <Box
@@ -29,10 +30,9 @@ function Prompt({ prompt }: { prompt: string }) {
           flexDirection: "row",
           alignItems: "center",
           gap: 1,
-          borderBottom: open ? '1px solid' : '0',
-          borderColor: 'border.default',
-          cursor: 'pointer',
-          
+          borderBottom: open ? "1px solid" : "0",
+          borderColor: "border.default",
+          cursor: "pointer",
         }}
         onClick={() => setOpen(!open)}
       >
@@ -45,20 +45,84 @@ function Prompt({ prompt }: { prompt: string }) {
         />
         <Box sx={{ fontSize: 0, color: "fg.muted" }}>Prompt</Box>
       </Box>
-      {open && <Box sx={{p: 2}}>
-        <Box as="pre" sx={{
-          wordWrap: 'break-word',
-          fontSize: 0,
-          p: 0,
-          m: 0,
-          fontFamily: 'mono',
-          whiteSpace: 'pre-wrap',
-          lineHeight: '22px',
-          }}
-        >
-          {prompt}
+      {open && (
+        <Box sx={{ p: 2 }}>
+          <Box
+            as="pre"
+            sx={{
+              wordWrap: "break-word",
+              fontSize: 0,
+              p: 0,
+              m: 0,
+              fontFamily: "mono",
+              whiteSpace: "pre-wrap",
+              lineHeight: "22px",
+            }}
+          >
+            {prompt}
+          </Box>
         </Box>
-      </Box>}
+      )}
+    </Box>
+  );
+}
+
+function ContextDetails({ context }: { context: any }) {
+  const [open, setOpen] = useState<boolean>(false);
+  return (
+    <Box
+      sx={{
+        borderRadius: 2,
+        flexShrink: 0,
+        overflow: "hidden",
+        border: "1px solid",
+        borderColor: "border.default",
+      }}
+    >
+      <Box
+        sx={{
+          m: 0,
+          px: 2,
+          py: 2,
+          gap: 2,
+          backgroundColor: "canvas.inset",
+          borderBottom: open ? "1px solid" : 0,
+          borderColor: "border.default",
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <IconButton
+          onClick={() => setOpen(!open)}
+          size="small"
+          variant="invisible"
+          aria-label={open ? "Close details" : "Open details"}
+          icon={open ? ChevronDownIcon : ChevronRightIcon}
+        />
+        
+        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>Details</Box>
+
+        <Box sx={{ color: "fg.muted", fontFamily: "mono", fontSize: 0 }}></Box>
+      </Box>
+
+      {open && (
+        <Box sx={{ p: 3 }}>
+          {Object.keys(context).map((key) => {
+            const value = context[key];
+            if (key === "type" || key === "value") return null;
+            return (
+              <Box sx={{ pb: 3, "&:last-child": { pb: 0 } }} key={key}>
+                <Box sx={{ fontSize: 0, fontWeight: "semibold", m: 0, pb: 0 }}>
+                  {key}
+                </Box>
+
+                <Box sx={{ fontSize: 0, color: "fg.muted" }}>{value}</Box>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
     </Box>
   );
 }
@@ -78,6 +142,7 @@ function CellValue({
     <Box
       sx={{
         borderRadius: 2,
+        flexShrink: 0,
         overflow: "hidden",
         border: "1px solid",
         borderColor: "border.default",
@@ -92,11 +157,11 @@ function CellValue({
           borderBottom: "1px solid",
           borderColor: "border.default",
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           alignItems: "baseline",
         }}
       >
-        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>
+        <Box sx={{ fontSize: 1, fontWeight: "semibold", pb: 1 }}>
           {column.title}
         </Box>
 
@@ -106,7 +171,7 @@ function CellValue({
         </Box>
       </Box>
 
-      <Box sx={{ p: 3, gap: 3}}>
+      <Box sx={{ p: 3, gap: 3 }}>
         <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
           {cell.displayValue || ""}
         </Markdown>
@@ -175,7 +240,6 @@ export default function SelectedContext() {
 
   const primaryColumn = gridState.primaryColumn;
   const primaryCell = primaryColumn[selectedIndex];
-  const [showDetails, setShowDetails] = useState<boolean>(false);
 
   function previousRow() {
     if (selectedIndex === null) {
@@ -213,11 +277,12 @@ export default function SelectedContext() {
       <Box
         sx={{
           flex: 1,
+          height: "100%",
+          overflow: "scroll",
           p: 3,
           gap: 3,
           display: "flex",
           flexDirection: "column",
-          overflow: "scroll",
         }}
       >
         {columns.map((c, i) => (
@@ -229,39 +294,7 @@ export default function SelectedContext() {
           />
         ))}
 
-        {showDetails ? (
-          <div className="details details--open">
-            {Object.keys(primaryCell.context).map((k) => {
-              const value = primaryCell.context[k];
-              return (
-                <div className="selected-context-section" key={k}>
-                  <Box
-                    sx={{ fontSize: 2, fontWeight: "semibold", m: 0, pb: 2 }}
-                  >
-                    {k}
-                  </Box>
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    className="markdownContainer"
-                  >
-                    {value ? value.toString() : ""}
-                  </Markdown>
-                </div>
-              );
-            })}
-            <Box sx={{ p: 3 }}>
-              <Button onClick={() => setShowDetails(false)}>
-                Hide details
-              </Button>
-            </Box>
-          </div>
-        ) : (
-          <Box sx={{ p: 3 }}>
-            <Button onClick={() => setShowDetails(true)}>
-              Show {primaryCell.context.type} details
-            </Button>
-          </Box>
-        )}
+        <ContextDetails context={primaryCell.context} />
       </Box>
     </Box>
   );

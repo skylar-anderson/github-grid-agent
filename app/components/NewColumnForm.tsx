@@ -62,6 +62,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
               placeholder="Describe how this field should be populated..."
               value={instructions}
               block={true}
+              rows={24}
               onChange={(e) => setInstructions(e.target.value)}
             />
             <FormControl.Caption>
