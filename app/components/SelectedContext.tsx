@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { IconButton, Box, Button } from "@primer/react";
+import { IconButton, Box, Label } from "@primer/react";
 import {
   XIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ChevronRightIcon,
 } from "@primer/octicons-react";
-import { GridCol, GridCell } from "../actions";
+import { GridCol, GridCell, ColumnType} from "../actions";
 import { useGridContext } from "./GridContext";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -138,6 +138,30 @@ function CellValue({
 }) {
   const sources = cell.hydrationSources;
 
+  const renderCellContent = (type: ColumnType, value: string | string[]) => {
+    switch (type) {
+      case "text":
+        return (
+          <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
+            {value as string}
+          </Markdown>
+        );
+      case "single-select":
+        return <Label>{value as string}</Label>;
+      case "multi-select":
+        return (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            {(value as string[]).map((option, index) => (
+              <Label key={index}>{option}</Label>
+            ))}
+          </Box>
+        );
+      default:
+        return String(value); // Fallback to string representation
+    }
+  };
+
+
   return (
     <Box
       sx={{
@@ -172,9 +196,7 @@ function CellValue({
       </Box>
 
       <Box sx={{ p: 3, gap: 3 }}>
-        <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
-          {cell.displayValue || ""}
-        </Markdown>
+        {renderCellContent(column.type, cell.displayValue)}
         <Prompt prompt={`${column.title}\n${column.instructions}`} />
       </Box>
     </Box>
