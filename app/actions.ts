@@ -75,9 +75,16 @@ function signatureFromArgs(args: Record<string, unknown>) {
 import { runFunction, availableFunctions, FunctionName } from "./functions";
 
 const MODEL = "gpt-4o";
-const openai = new OpenAI({
+const GH_MODELS_ENDPOINT = "https://models.inference.ai.azure.com";
+const shouldUseGitHubModels = !!process.env.GITHUB_MODELS
+
+const oaiParams = shouldUseGitHubModels ? {
+  baseURL: GH_MODELS_ENDPOINT,
+  apiKey: process.env.GITHUB_PAT,
+} : {
   apiKey: process.env.OPENAI_API_KEY,
-});
+}
+const openai = new OpenAI(oaiParams);
 
 const tools: Tool[] = Object.keys(availableFunctions).map((f) => {
   return {

@@ -7,28 +7,29 @@ First, install dependencies
 
 Next, setup appropriate values in your `.env.local` file:
 
-```
+```bash
 # Credentials if you want to use OpenAI as your LLM
 OPENAI_API_KEY=
 
-# Credentials if you want to use Azure OpenAI as your LLM
-AZURE_API_KEY=
-AZURE_MODEL_BASE_URL=https://copilot-chat-pool1-ide-westus.openai.azure.com/openai/v1/engines/copilot-gpt-4
+# GitHub personal access token
+GITHUB_PAT=
 
-# From Supabase (only necessary if you are creating embeddings)
+# Supabase credentials (only necessary when using semantic search skill)
 NEXT_PUBLIC_SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 DATABASE_PASSWORD=
 ANON_PUBLIC_KEY=
 SERVICE_ROLE_SECRET=
-
-# From GitHub
-GITHUB_PAT=
-
-# From Azure (only necessary if you are using Bing search)
-BING_SEARCH_ENDPOINT=https://api.bing.microsoft.com/v7.0/search
-BING_SEARCH_SUBSCRIPTION_KEY=
 ```
+
+Alternatively, you can use GitHub models instead of OpenAI directly. Just use the following `.env.local`:
+
+```bash
+GITHUB_PAT=
+GITHUB_MODELS=1
+```
+
+The rate limits for GitHub models, even with a Copilot Enterprise license (12 req/sec), are currently too restrictive to use this prototype. 
 
 Start your local dev server with
 
