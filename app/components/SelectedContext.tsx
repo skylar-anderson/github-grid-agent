@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IconButton, Box, Button } from "@primer/react";
+import { IconButton, Box, Tooltip } from "@primer/react";
 import {
   XIcon,
   ChevronDownIcon,
@@ -101,9 +101,7 @@ function ContextDetails({ context }: { context: any }) {
           icon={open ? ChevronDownIcon : ChevronRightIcon}
         />
         
-        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>Details</Box>
-
-        <Box sx={{ color: "fg.muted", fontFamily: "mono", fontSize: 0 }}></Box>
+        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>Original {context.type} details</Box>
       </Box>
 
       {open && (
@@ -215,7 +213,21 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
           onClick={next}
         />
       </Box>
-      <Box sx={{ flex: 1, fontSize: 1, fontWeight: "semibold" }}>{title}</Box>
+
+        <Box 
+          sx={{ 
+            flex: 1, 
+            fontSize: 1, 
+            fontWeight: "semibold",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}
+        >
+          {title}
+        </Box>
+
+      
       <IconButton
         icon={XIcon}
         size="small"
