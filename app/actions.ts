@@ -228,7 +228,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
 
   // pause to prevent rate limiting
   const shouldUseGitHubModels = !!process.env.GITHUB_MODELS
-  const TIMEOUT = shouldUseGitHubModels ? 5000 : 200;
+  const TIMEOUT = shouldUseGitHubModels ? 5050 : 200;
   await new Promise((resolve) => setTimeout(resolve, TIMEOUT));
 
   // https://www.youtube.com/watch?v=CDZg3maL9q0
