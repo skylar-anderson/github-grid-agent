@@ -29,7 +29,7 @@ GITHUB_PAT=
 GITHUB_MODELS=1
 ```
 
-The rate limits for GitHub models, even with a Copilot Enterprise license (12 req/sec), are currently too restrictive to use this prototype. 
+Note, when using GitHub Models, a 5 second timeout is added to cell hydration in order to prevent rate limit errors. 
 
 Start your local dev server with
 
