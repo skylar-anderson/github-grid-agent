@@ -204,7 +204,9 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   }
 
   // pause to prevent rate limiting
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  const shouldUseGitHubModels = !!process.env.GITHUB_MODELS
+  const TIMEOUT = shouldUseGitHubModels ? 5000 : 200;
+  await new Promise((resolve) => setTimeout(resolve, TIMEOUT));
 
   // https://www.youtube.com/watch?v=CDZg3maL9q0
   // this is a hack to allow this action to be called in parallel. Otherwise, each call would be sequential
