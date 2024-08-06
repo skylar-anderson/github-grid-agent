@@ -1,0 +1,6 @@
+// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
+{
+  "name": "Node.js",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
+  "postCreateCommand": "npm install"
+}
