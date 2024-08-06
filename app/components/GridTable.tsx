@@ -26,12 +26,12 @@ export function PrimaryColumn({
       <ColumnTitle title={title} />
       {primaryColumn.map((cell: GridPrimaryCell, cellIndex: number) => (
         <GridCell
+          key={cellIndex}
           isSelected={selectedIndex === cellIndex}
-          onClick={() => {
-            selectRow(cellIndex);
-          }}
+          onClick={() => selectRow(cellIndex)}
+          columnType="text" // Assuming primary column is always text
         >
-          <Box sx={{ fontWeight: "semibold" }}>{cell.displayValue}</Box>
+          {typeof cell.displayValue === 'string' ? cell.displayValue : JSON.stringify(cell.displayValue)}
         </GridCell>
       ))}
     </Column>
@@ -175,6 +175,7 @@ export default function GridTable() {
                 {column.cells.map((cell, cellIndex: number) => (
                   <GridCell
                     key={cellIndex}
+                    columnType={column.type}
                     isSelected={selectedIndex === cellIndex}
                   >
                     {cell.state === "done" ? (

@@ -7,21 +7,31 @@ const MAX_ROWS = 25;
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done";
 
+export type ColumnType = "text" | "single-select" | "multi-select";
+
+export type Option = {
+  title: string;
+  description: string;
+};
+
 export type GridCell = {
   state: GridCellState;
   columnTitle: string;
   columnInstructions: string;
-  displayValue: string;
+  displayValue: string | string[];
   context: any;
   hydrationSources: string[];
+  columnType: ColumnType;
+  options?: Option[];
 };
 
 export type GridCol = {
   title: string;
   instructions: string;
+  type: ColumnType;
+  options?: Option[];
   cells: GridCell[];
 };
-
 export type GridPrimaryCell = {
   context: any;
   displayValue: string;
@@ -141,11 +151,15 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   You will receive a user message that contains two things:\n
   1) Context: A JSON object representing some artifact from GitHub.com. It could be an issue, pull request, commit, file, etc
   2) Query: A user-provided query that describes a question that you should answer using the provided artifact\n
-  In some cases, the JSON object itself will contain the answer.  In other cases, you will need to use a single tool or a sequence of tools to find the answer.\
-  The user interface is not a conversational chat interface, so you should avoid introductions, goodbyes, or any other pleasentries. It's critical that you provide the answer as concisely as possible.
+  In some cases, the JSON object itself will contain the answer. In other cases, you will need to use a single tool or a sequence of tools to find the answer.\
+  The user interface is not a conversational chat interface, so you should avoid introductions, goodbyes, or any other pleasantries. It's critical that you provide the answer as concisely as possible.
 
-  Markdown rendering is supported, but use it lightly. Only use lists, bold, italics, links. Never use headings.\
-`;
+  If the column type is "text", provide your answer as a concise markdown string.
+  If the column type is "single-select", choose the most appropriate option from the provided list and return only its title.
+  If the column type is "multi-select", choose all appropriate options from the provided list and return an array of their titles.
+
+  Markdown rendering is supported for text columns, but use it lightly. Only use lists, bold, italics, links. Never use headings.\
+  `;
 
   async function hydrate(): Promise<GridCell> {
     let hydrationSources: string[] = [];
@@ -156,6 +170,8 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         content: `
         Context: ${JSON.stringify(cell.context)}
         Query: ${cell.columnTitle}\n${cell.columnInstructions}
+        Column Type: ${cell.columnType}
+        ${cell.options ? `Options: ${JSON.stringify(cell.options)}` : ''}
       `,
       },
     ];
@@ -194,12 +210,19 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     await run();
 
     const assistantResponse = context[context.length - 1].content as string;
-
+    let displayValue: string | string[];
+    if (cell.columnType === "single-select") {
+      displayValue = assistantResponse as string;
+    } else if (cell.columnType === "multi-select") {
+      displayValue = JSON.parse(assistantResponse as string) as string[];
+    } else {
+      displayValue = assistantResponse as string;
+    }
     return {
       ...cell,
       state: "done",
       hydrationSources,
-      displayValue: assistantResponse,
+      displayValue,
     };
   }
 
