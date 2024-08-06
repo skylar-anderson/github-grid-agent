@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { GridPrimaryCell, GridCol } from "../actions";
 import { Dialog } from "@primer/react/experimental";
-import { Spinner, Box, Button } from "@primer/react";
+import { Spinner, Box, Button, Label } from "@primer/react";
 import { useGridContext } from "./GridContext";
 import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
@@ -178,7 +178,17 @@ export default function GridTable() {
                     isSelected={selectedIndex === cellIndex}
                   >
                     {cell.state === "done" ? (
-                      <>{cell.displayValue}</>
+                      cell.type === "text" ? (
+                        <>{cell.displayValue}</>
+                      ) : (
+                        <Box>
+                          {cell.displayValue.split(",").map((value, index) => (
+                            <Label key={index} sx={{ mr: 1 }}>
+                              {value}
+                            </Label>
+                          ))}
+                        </Box>
+                      )
                     ) : (
                       <Spinner size="small" />
                     )}
@@ -198,8 +208,8 @@ export default function GridTable() {
 
       {showNewColumnForm ? (
         <Dialog title="Add new column" position="right" onClose={onDialogClose}>
-          <NewColumnForm addNewColumn={({title, instructions}) => {
-            addNewColumn({title, instructions})
+          <NewColumnForm addNewColumn={({title, instructions, type, options}) => {
+            addNewColumn({title, instructions, type, options})
             setShowNewColumnForm(false)
             return;
           }} />

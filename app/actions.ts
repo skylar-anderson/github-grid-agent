@@ -14,12 +14,15 @@ export type GridCell = {
   displayValue: string;
   context: any;
   hydrationSources: string[];
+  type: "text" | "single-select" | "multi-select";
 };
 
 export type GridCol = {
   title: string;
   instructions: string;
   cells: GridCell[];
+  type: "text" | "single-select" | "multi-select";
+  options?: { title: string; description: string }[];
 };
 
 export type GridPrimaryCell = {

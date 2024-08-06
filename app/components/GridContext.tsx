@@ -24,6 +24,8 @@ type GridContextType = {
 type NewColumnProps = {
   title: string;
   instructions: string;
+  type: "text" | "single-select" | "multi-select";
+  options?: { title: string; description: string }[];
 };
 
 const GridContext = createContext<GridContextType | undefined>(undefined);
@@ -69,7 +71,7 @@ export const GridProvider = ({
     setSelectedIndex(index);
   };
 
-  function addNewColumn({ title, instructions }: NewColumnProps) {
+  function addNewColumn({ title, instructions, type, options }: NewColumnProps) {
     if (!gridState) {
       alert("Can't add column without grid state!");
       return;
@@ -78,6 +80,8 @@ export const GridProvider = ({
     const newColumn: GridCol = {
       title,
       instructions,
+      type,
+      options,
       cells: gridState.primaryColumn.map((primaryCell) => {
         const staticValue = primaryCell.context[title];
         const emptyCellState: GridCell = {
@@ -87,6 +91,7 @@ export const GridProvider = ({
           columnInstructions: instructions,
           context: primaryCell.context,
           hydrationSources: [],
+          type,
         };
 
         return emptyCellState;
