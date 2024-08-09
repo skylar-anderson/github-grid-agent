@@ -1,15 +1,15 @@
 import { useCallback, useRef, useState } from "react";
-import type { GridPrimaryCell, GridCol } from "../actions";
+import type { GridCol, GridCell } from "../actions";
 import { Dialog } from "@primer/react/experimental";
 import { Spinner, Box, Button } from "@primer/react";
 import { useGridContext } from "./GridContext";
 import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
-import GridCell from "./GridCell";
+import Cell from "./Cell";
 import "./Grid.css";
 
 type PrimaryColumnProps = {
-  primaryColumn: GridPrimaryCell[];
+  primaryColumn: GridCell[];
   title: string;
   selectRow: (n: number) => void;
   selectedIndex: number | null;
@@ -24,15 +24,13 @@ export function PrimaryColumn({
   return (
     <Column>
       <ColumnTitle title={title} />
-      {primaryColumn.map((cell: GridPrimaryCell, cellIndex: number) => (
-        <GridCell
+      {primaryColumn.map((cell, cellIndex) => (
+        <Cell
           key={cellIndex}
+          cell={cell}
           isSelected={selectedIndex === cellIndex}
           onClick={() => selectRow(cellIndex)}
-          columnType="text" // Assuming primary column is always text
-        >
-          {typeof cell.displayValue === 'string' ? cell.displayValue : JSON.stringify(cell.displayValue)}
-        </GridCell>
+        />
       ))}
     </Column>
   );
@@ -173,17 +171,11 @@ export default function GridTable() {
               <Column key={rowIndex}>
                 <ColumnTitle title={column.title} />
                 {column.cells.map((cell, cellIndex: number) => (
-                  <GridCell
+                  <Cell
                     key={cellIndex}
-                    columnType={column.type}
+                    cell={cell}
                     isSelected={selectedIndex === cellIndex}
-                  >
-                    {cell.state === "done" ? (
-                      <>{cell.displayValue}</>
-                    ) : (
-                      <Spinner size="small" />
-                    )}
-                  </GridCell>
+                  />
                 ))}
               </Column>
             ))}
@@ -199,11 +191,13 @@ export default function GridTable() {
 
       {showNewColumnForm ? (
         <Dialog title="Add new column" position="right" onClose={onDialogClose}>
-          <NewColumnForm addNewColumn={({title, instructions}) => {
-            addNewColumn({title, instructions})
-            setShowNewColumnForm(false)
-            return;
-          }} />
+          <NewColumnForm
+            addNewColumn={({ title, instructions, type, options }) => {
+              addNewColumn({ title, instructions, type, options });
+              setShowNewColumnForm(false);
+              return;
+            }}
+          />
         </Dialog>
       ) : null}
     </Box>

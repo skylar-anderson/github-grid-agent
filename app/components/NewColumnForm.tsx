@@ -1,11 +1,21 @@
 import React, { useState } from "react";
-import { Box, Button, TextInput, Textarea, FormControl, Select, Label } from "@primer/react";
-
+import {
+  Box,
+  IconButton,
+  Button,
+  TextInput,
+  Textarea,
+  FormControl,
+  Select,
+  Label,
+} from "@primer/react";
+import { PlusIcon, XIcon } from "@primer/octicons-react";
 type ColumnType = "text" | "single-select" | "multi-select";
 
 type Option = {
   title: string;
   description: string;
+  color?: string;
 };
 
 type Props = {
@@ -31,7 +41,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   const [message, setMessage] = useState<string>(errorMessage || "");
 
   const addOption = () => {
-    setOptions([...options, { title: "", description: "" }]);
+    setOptions([...options, { title: "", description: "", color: "" }]);
   };
 
   const updateOption = (index: number, field: keyof Option, value: string) => {
@@ -44,6 +54,24 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
     setOptions(options.filter((_, i) => i !== index));
   };
 
+  function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const newType = e.target.value as ColumnType;
+    setType((currentType) => {
+      if (
+        currentType === "text" &&
+        (newType === "single-select" || newType === "multi-select")
+      ) {
+        setOptions([{ title: "", description: "" }]);
+      } else if (
+        (currentType === "single-select" || currentType === "multi-select") &&
+        newType === "text"
+      ) {
+        setOptions([]);
+      }
+      return newType;
+    });
+  }
+
   function addNewHandler(e: React.FormEvent) {
     e.preventDefault();
     setMessage("");
@@ -53,7 +81,10 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
       return;
     }
 
-    if ((type === "single-select" || type === "multi-select") && options.length === 0) {
+    if (
+      (type === "single-select" || type === "multi-select") &&
+      options.length === 0
+    ) {
       setMessage("Add at least one option for select types");
       return;
     }
@@ -66,9 +97,13 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   }
 
   return (
-    <Box as="form" sx={{ gap: 3, display: "flex", flexDirection: "column" }} onSubmit={addNewHandler}>
+    <Box
+      as="form"
+      sx={{ gap: 3, display: "flex", flexDirection: "column" }}
+      onSubmit={addNewHandler}
+    >
       {message && <Box sx={{ color: "danger.fg" }}>{message}</Box>}
-      
+
       <FormControl>
         <FormControl.Label>Title</FormControl.Label>
         <TextInput
@@ -81,32 +116,42 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
 
       <FormControl>
         <FormControl.Label>Type</FormControl.Label>
-        <Select value={type} onChange={(e) => setType(e.target.value as ColumnType)}>
+        <Select value={type} onChange={handleTypeChange}>
           <Select.Option value="text">Text</Select.Option>
-          <Select.Option value="single-select">Single Select</Select.Option>
-          <Select.Option value="multi-select">Multi Select</Select.Option>
+          <Select.Option value="single-select">Single-select</Select.Option>
+          <Select.Option value="multi-select">Multi-select</Select.Option>
         </Select>
       </FormControl>
 
       {(type === "single-select" || type === "multi-select") && (
         <Box>
           <FormControl.Label>Options</FormControl.Label>
-          {options.map((option, index) => (
-            <Box key={index} sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <TextInput
-                placeholder="Title"
-                value={option.title}
-                onChange={(e) => updateOption(index, "title", e.target.value)}
-              />
-              <TextInput
-                placeholder="Description"
-                value={option.description}
-                onChange={(e) => updateOption(index, "description", e.target.value)}
-              />
-              <Button onClick={() => removeOption(index)}>Remove</Button>
-            </Box>
-          ))}
-          <Button onClick={addOption}>Add Option</Button>
+          <Box sx={{ mt: 1 }}>
+            {options.map((option, index) => (
+              <Box key={index} sx={{ display: "flex", gap: 2, mb: 2 }}>
+                <TextInput
+                  sx={{ flex: 1 }}
+                  placeholder="Option"
+                  value={option.title}
+                  onChange={(e) => updateOption(index, "title", e.target.value)}
+                />
+                <TextInput
+                  sx={{ flex: 1 }}
+                  placeholder="Description"
+                  value={option.description}
+                  onChange={(e) =>
+                    updateOption(index, "description", e.target.value)
+                  }
+                />
+                <IconButton
+                  aria-labelledby="Remove icon"
+                  icon={XIcon}
+                  onClick={() => removeOption(index)}
+                />
+              </Box>
+            ))}
+            <Button onClick={addOption}>Add Option</Button>
+          </Box>
         </Box>
       )}
 
@@ -122,7 +167,9 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
       </FormControl>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button type="submit" variant="primary">Submit</Button>
+        <Button type="submit" variant="primary">
+          Submit
+        </Button>
       </Box>
     </Box>
   );

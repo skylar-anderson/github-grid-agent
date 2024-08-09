@@ -1,29 +1,58 @@
 "use server";
 import OpenAI from "openai";
 import type { Tool } from "ai";
-
+import { runFunction, availableFunctions, FunctionName } from "./functions";
+import { getResponseFormat } from "./utils/schemas";
 const MAX_ROWS = 25;
 
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
-type GridCellState = "empty" | "generating" | "done";
-
+type GridCellState = "empty" | "generating" | "done" | "error";
 export type ColumnType = "text" | "single-select" | "multi-select";
+type SingleSelectResponse = { option: string };
+type MultiSelectResponse = { options: string[] };
+type TextResponse = string;
 
 export type Option = {
   title: string;
   description: string;
 };
 
-export type GridCell = {
-  state: GridCellState;
+type TextCell = {
+  columnType: "text";
+  response: TextResponse;
+};
+
+type SingleSelectCell = {
+  columnType: "single-select";
+  response: SingleSelectResponse;
+};
+
+type MultiSelectCell = {
+  columnType: "multi-select";
+  response: MultiSelectResponse;
+};
+
+type CellTypes = TextCell | SingleSelectCell | MultiSelectCell;
+
+type GridCellBase = CellTypes & {
   columnTitle: string;
   columnInstructions: string;
-  displayValue: string | string[];
   context: any;
   hydrationSources: string[];
-  columnType: ColumnType;
   options?: Option[];
 };
+
+type GridCellWithError = GridCellBase & {
+  state: "error";
+  errorMessage: string;
+};
+
+type GridCellWithoutError = GridCellBase & {
+  state: Exclude<GridCellState, "error">;
+  errorMessage?: never;
+};
+
+export type GridCell = GridCellWithError | GridCellWithoutError;
 
 export type GridCol = {
   title: string;
@@ -32,14 +61,10 @@ export type GridCol = {
   options?: Option[];
   cells: GridCell[];
 };
-export type GridPrimaryCell = {
-  context: any;
-  displayValue: string;
-};
 
 export type GridState = {
   columns: GridCol[];
-  primaryColumn: GridPrimaryCell[];
+  primaryColumn: GridCell[];
   title: string;
   primaryColumnType: PrimaryDataType;
 };
@@ -59,10 +84,15 @@ export type ErrorResponse = {
   message: string;
 };
 
-function convertResultToPrimaryCell(result: any): GridPrimaryCell {
+function convertResultToPrimaryCell(result: any): GridCell {
   return {
     context: result,
-    displayValue: result.value || JSON.stringify(result),
+    state: "done",
+    columnType: "text",
+    columnInstructions: "",
+    columnTitle: result.type,
+    hydrationSources: [],
+    response: result.value as TextResponse,
   };
 }
 
@@ -72,18 +102,18 @@ function signatureFromArgs(args: Record<string, unknown>) {
     .join(", ");
 }
 
-import { runFunction, availableFunctions, FunctionName } from "./functions";
-
-const MODEL = "gpt-4o";
 const GH_MODELS_ENDPOINT = "https://models.inference.ai.azure.com";
-const shouldUseGitHubModels = !!process.env.GITHUB_MODELS
+const shouldUseGitHubModels = !!process.env.GITHUB_MODELS;
+const MODEL = shouldUseGitHubModels ? "gpt-4o" : "gpt-4o-2024-08-06";
 
-const oaiParams = shouldUseGitHubModels ? {
-  baseURL: GH_MODELS_ENDPOINT,
-  apiKey: process.env.GITHUB_PAT,
-} : {
-  apiKey: process.env.OPENAI_API_KEY,
-}
+const oaiParams = shouldUseGitHubModels
+  ? {
+      baseURL: GH_MODELS_ENDPOINT,
+      apiKey: process.env.GITHUB_PAT,
+    }
+  : {
+      apiKey: process.env.OPENAI_API_KEY,
+    };
 const openai = new OpenAI(oaiParams);
 
 const tools: Tool[] = Object.keys(availableFunctions).map((f) => {
@@ -147,15 +177,16 @@ type HydrateResponse = {
 export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   const SYSTEM = `\
   You have access to a number of tools that allow you to retrieve context from GitHub.com.\
-  You can optionally use multiple tools, either in sequence or parallel.
-  You will receive a user message that contains two things:\n
+  You can optionally use multiple tools, either in sequence or parallel. 
+  Your responses will be used to populate a data grid. You should generally avoid asking clarifying questions, or being overly conversational.\
+  You will receive a user message that contains three things:\n
   1) Context: A JSON object representing some artifact from GitHub.com. It could be an issue, pull request, commit, file, etc
-  2) Query: A user-provided query that describes a question that you should answer using the provided artifact\n
-  In some cases, the JSON object itself will contain the answer. In other cases, you will need to use a single tool or a sequence of tools to find the answer.\
+  2) Instructions: A user-provided query set of instructions for how you should populate a grid cell value based on the context provided. \n
+  In some cases, the context object will contain the answer. In other cases, you will need to use a single tool or a sequence of tools to find the answer.\
   The user interface is not a conversational chat interface, so you should avoid introductions, goodbyes, or any other pleasantries. It's critical that you provide the answer as concisely as possible.
 
-  If the column type is "text", provide your answer as a concise markdown string.
-  If the column type is "single-select", choose the most appropriate option from the provided list and return only its title.
+  If the column type is "text", return a markdown string that will be rendered in the grid cell.\
+  If the column type is "single-select", choose the most appropriate option from the provided list and return a responses matching the provided response format.
   If the column type is "multi-select", choose all appropriate options from the provided list and return an array of their titles.
 
   Markdown rendering is supported for text columns, but use it lightly. Only use lists, bold, italics, links. Never use headings.\
@@ -169,9 +200,9 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         role: "user",
         content: `
         Context: ${JSON.stringify(cell.context)}
-        Query: ${cell.columnTitle}\n${cell.columnInstructions}
+        Instructions: ${cell.columnTitle}\n${cell.columnInstructions}
         Column Type: ${cell.columnType}
-        ${cell.options ? `Options: ${JSON.stringify(cell.options)}` : ''}
+        ${cell.options && ["single-select", "multi-select"].includes(cell.columnType) ? `Options: ${cell.options.map((o) => [o.title, "-", o.description].join(" "))}` : ""}
       `,
       },
     ];
@@ -183,7 +214,9 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         messages: context,
         tools,
         tool_choice: "auto",
+        response_format: getResponseFormat(cell),
       });
+
       const responseChoice = response.choices[0];
       const toolCalls = responseChoice.message.tool_calls;
 
@@ -209,25 +242,48 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
 
     await run();
 
-    const assistantResponse = context[context.length - 1].content as string;
-    let displayValue: string | string[];
-    if (cell.columnType === "single-select") {
-      displayValue = assistantResponse as string;
-    } else if (cell.columnType === "multi-select") {
-      displayValue = JSON.parse(assistantResponse as string) as string[];
-    } else {
-      displayValue = assistantResponse as string;
+    const responseContent = context[context.length - 1].content as string;
+
+    if (!responseContent) {
+      return {
+        ...cell,
+        state: "error",
+        errorMessage: "Empty response. Weird, huh?",
+      };
     }
-    return {
-      ...cell,
-      state: "done",
-      hydrationSources,
-      displayValue,
-    };
+
+    if (cell.columnType === "single-select") {
+      return {
+        ...cell,
+        columnType: 'single-select',
+        response: JSON.parse(responseContent) as SingleSelectResponse,
+        state: "done",
+        hydrationSources,
+        errorMessage: undefined,
+      };
+    } else if (cell.columnType === "multi-select") {
+      return {
+        ...cell,
+        columnType: 'multi-select',
+        response: JSON.parse(responseContent) as MultiSelectResponse,
+        state: "done",
+        hydrationSources,
+        errorMessage: undefined,
+      };
+    } else {
+      return {
+        ...cell,
+        columnType: 'text',
+        response: responseContent as TextResponse,
+        state: "done",
+        hydrationSources,
+        errorMessage: undefined,
+      };
+    }
   }
 
   // pause to prevent rate limiting
-  const shouldUseGitHubModels = !!process.env.GITHUB_MODELS
+  const shouldUseGitHubModels = !!process.env.GITHUB_MODELS;
   const TIMEOUT = shouldUseGitHubModels ? 5050 : 200;
   await new Promise((resolve) => setTimeout(resolve, TIMEOUT));
 

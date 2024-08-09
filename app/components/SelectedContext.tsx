@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { IconButton, Box, Label } from "@primer/react";
+import { IconButton, Box } from "@primer/react";
 import {
   XIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ChevronRightIcon,
 } from "@primer/octicons-react";
-import { GridCol, GridCell, ColumnType} from "../actions";
+import { GridCol, GridCell } from "../actions";
 import { useGridContext } from "./GridContext";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import "./SelectedContext.css";
+import { GridCellContent } from "./Cell";
 
 function Prompt({ prompt }: { prompt: string }) {
   const [open, setOpen] = useState<boolean>(false);
@@ -100,8 +99,10 @@ function ContextDetails({ context }: { context: any }) {
           aria-label={open ? "Close details" : "Open details"}
           icon={open ? ChevronDownIcon : ChevronRightIcon}
         />
-        
-        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>Original {context.type} details</Box>
+
+        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>
+          Original {context.type} details
+        </Box>
       </Box>
 
       {open && (
@@ -136,30 +137,6 @@ function CellValue({
 }) {
   const sources = cell.hydrationSources;
 
-  const renderCellContent = (type: ColumnType, value: string | string[]) => {
-    switch (type) {
-      case "text":
-        return (
-          <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
-            {value as string}
-          </Markdown>
-        );
-      case "single-select":
-        return <Label>{value as string}</Label>;
-      case "multi-select":
-        return (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-            {(value as string[]).map((option, index) => (
-              <Label key={index}>{option}</Label>
-            ))}
-          </Box>
-        );
-      default:
-        return String(value); // Fallback to string representation
-    }
-  };
-
-
   return (
     <Box
       sx={{
@@ -193,8 +170,8 @@ function CellValue({
         </Box>
       </Box>
 
-      <Box sx={{ p: 3, gap: 3 }}>
-        {renderCellContent(column.type, cell.displayValue)}
+      <Box sx={{ flexDirection: 'column', display: 'flex', p: 3, gap: 3 }}>
+        <GridCellContent cell={cell} />
         <Prompt prompt={`${column.title}\n${column.instructions}`} />
       </Box>
     </Box>
@@ -236,20 +213,19 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
         />
       </Box>
 
-        <Box 
-          sx={{ 
-            flex: 1, 
-            fontSize: 1, 
-            fontWeight: "semibold",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis"
-          }}
-        >
-          {title}
-        </Box>
+      <Box
+        sx={{
+          flex: 1,
+          fontSize: 1,
+          fontWeight: "semibold",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {title}
+      </Box>
 
-      
       <IconButton
         icon={XIcon}
         size="small"
@@ -302,7 +278,7 @@ export default function SelectedContext() {
       }}
     >
       <ContextHeader
-        title={primaryCell.displayValue}
+        title={primaryCell.response as string}
         next={nextRow}
         previous={previousRow}
         close={() => selectRow(null)}
