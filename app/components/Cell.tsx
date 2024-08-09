@@ -1,24 +1,22 @@
 import React from "react";
-import { Box, Label } from "@primer/react";
+import { Spinner, Box, Label } from "@primer/react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ColumnType } from "../actions";
+import type { GridCell } from "../actions";
 
-type GridCellProps = {
+type CellProps = {
   sx?: any;
-  children: React.ReactNode;
+  cell: GridCell;
   onClick?: () => void;
   isSelected?: boolean;
-  columnType: ColumnType;
 };
 
-export default function GridCell({
+export default function Cell({
   sx,
-  children,
+  cell,
   onClick,
   isSelected = false,
-  columnType,
-}: GridCellProps) {
+}: CellProps) {
   const hoverProps = onClick
     ? {
         ":hover": {
@@ -30,26 +28,6 @@ export default function GridCell({
     : {};
   const selectedProps = {
     backgroundColor: "canvas.inset",
-  };
-
-  const renderContent = () => {
-    if (columnType === "text") {
-      return (
-        <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
-          {children as string}
-        </Markdown>
-      );
-    } else if (columnType === "single-select") {
-      return <Label>{children as string}</Label>;
-    } else if (columnType === "multi-select") {
-      return (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {(children as string[]).map((option, index) => (
-            <Label key={index}>{option}</Label>
-          ))}
-        </Box>
-      );
-    }
   };
 
   return (
@@ -78,7 +56,36 @@ export default function GridCell({
       }}
       onClick={onClick}
     >
-      {renderContent()}
+      <GridCellContent cell={cell} />
     </Box>
   );
+}
+
+export function GridCellContent({ cell }: { cell: GridCell }) {
+  if (cell.state === "error") {
+    return cell.errorMessage;
+  }
+  if (cell.state === "empty") {
+    return <Spinner size="small" />;
+  }
+
+  if (cell.columnType === "text") {
+    return (
+      <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
+        {cell.response as string}
+      </Markdown>
+    );
+  }
+  if (cell.columnType === "single-select") {
+    return <Box><Label>{cell.response.option}</Label></Box>;
+  }
+  if (cell.columnType === "multi-select") {
+    return (
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        {cell.response.options.map((option: string, index: number) => (
+          <Label key={index}>{option}</Label>
+        ))}
+      </Box>
+    );
+  }
 }

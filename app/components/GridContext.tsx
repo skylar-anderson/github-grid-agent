@@ -5,7 +5,7 @@ import {
   GridState,
   GridCell,
 } from "../actions";
-import type { GridCol } from "../actions";
+import type { ColumnType, GridCol, Option } from "../actions";
 
 type GridContextType = {
   gridState: GridState | null;
@@ -24,6 +24,8 @@ type GridContextType = {
 type NewColumnProps = {
   title: string;
   instructions: string;
+  type: ColumnType;
+  options: Option[];
 };
 
 const GridContext = createContext<GridContextType | undefined>(undefined);
@@ -69,7 +71,12 @@ export const GridProvider = ({
     setSelectedIndex(index);
   };
 
-  function addNewColumn({ title, instructions }: NewColumnProps) {
+  function addNewColumn({
+    title,
+    instructions,
+    type,
+    options,
+  }: NewColumnProps) {
     if (!gridState) {
       alert("Can't add column without grid state!");
       return;
@@ -77,13 +84,17 @@ export const GridProvider = ({
 
     const newColumn: GridCol = {
       title,
+      type,
+      options,
       instructions,
       cells: gridState.primaryColumn.map((primaryCell) => {
         const staticValue = primaryCell.context[title];
         const emptyCellState: GridCell = {
           state: staticValue ? "done" : "empty",
-          displayValue: staticValue || "",
           columnTitle: title,
+          columnType: type,
+          options,
+          response: staticValue,
           columnInstructions: instructions,
           context: primaryCell.context,
           hydrationSources: [],
