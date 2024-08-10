@@ -129,10 +129,7 @@ export async function createPrimaryColumn(
   const SYSTEM = `\
   You have access to a number of tools that allow you to retrieve context from GitHub.com.\
   When asked by users, utilize the correct tool to retrieve the data that the user is requesting.\
-  You are only able to call one tool per user message. When a tool is used, the result of the tool use will be provided directly to the user.\
-  If you are unclear which tool to use, ask the user for clarification. If the user is missing a required argument, ask the user to provide the missing information.\
-  \
-  `;
+  You are only able to call one tool per user message. When a tool is used, the result of the tool use will be provided directly to the user.`;
   const response = await openai.chat.completions.create({
     model: MODEL,
     stream: false,
@@ -174,37 +171,55 @@ type HydrateResponse = {
   promise: Promise<GridCell>;
 };
 
+const optionString = (option:Option) => `-  ${option.title}: ${option.description}`;
+const buildHydrationPrompt = (cell: GridCell):OpenAI.Chat.Completions.ChatCompletionMessageParam => {
+  const options = cell.options ? cell.options.map(optionString).join("\n") : 'No options provided'
+  let cellType = 'Text: reply with a markdown string containing the answer';
+  
+  if (cell.columnType === 'single-select') {
+    cellType = 'Single select: reply with the most appropriate option from the provided list of options';
+  } else if (cell.columnType === 'multi-select') {
+    cellType = 'Multi select: reply with the most appropriate options from the provided list of options';
+  }
+
+  return {
+    role: "user",
+    content: `Context: ${JSON.stringify(cell.context)}
+    - Cell Type: ${cellType}
+    - Cell title: ${cell.columnTitle}
+    - Instructions for generating cell contents: \n${cell.columnInstructions || "No instructions provided"}
+    - Options:
+    ${options}`,
+  }
+}
+
 export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   const SYSTEM = `\
   You have access to a number of tools that allow you to retrieve context from GitHub.com.\
-  You can optionally use multiple tools, either in sequence or parallel. 
-  Your responses will be used to populate a data grid. You should generally avoid asking clarifying questions, or being overly conversational.\
-  You will receive a user message that contains three things:\n
+  You may use multiple tools in sequence or parallel. 
+  Your responsess will be used to populate a data grid. You should avoid asking clarifying questions, or being overly conversational.\
+  You will receive a user message that contains two things:\n
   1) Context: A JSON object representing some artifact from GitHub.com. It could be an issue, pull request, commit, file, etc
-  2) Instructions: A user-provided query set of instructions for how you should populate a grid cell value based on the context provided. \n
-  In some cases, the context object will contain the answer. In other cases, you will need to use a single tool or a sequence of tools to find the answer.\
-  The user interface is not a conversational chat interface, so you should avoid introductions, goodbyes, or any other pleasantries. It's critical that you provide the answer as concisely as possible.
+  2) Instructions: A user-provided set of instructions that describe how you should populate a cell value based on the context provided. \n
+  In some cases, the context object will contain the answer. In other cases, you will need to use tools to find the answer.\
+  The user interface is not a chat interface, so you should avoid introductions, goodbyes, or any other pleasantries.\
+  It's critical that you provide the answer to the user's question as concisely as possible.
 
-  If the column type is "text", return a markdown string that will be rendered in the grid cell.\
-  If the column type is "single-select", choose the most appropriate option from the provided list and return a responses matching the provided response format.
-  If the column type is "multi-select", choose all appropriate options from the provided list and return an array of their titles.
+  Grid cells have different types. The type dictates the format for how you should respond.  Here are the types:
+  - Text: return a markdown string containing the answer
+  - Single select: return the most appropriate option from the provided list of options
+  - Multi select: return the most approriate options from the provided
 
   Markdown rendering is supported for text columns, but use it lightly. Only use lists, bold, italics, links. Never use headings.\
   `;
 
   async function hydrate(): Promise<GridCell> {
     let hydrationSources: string[] = [];
+    const prompt = buildHydrationPrompt(cell)
+
     let context: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: "system", content: SYSTEM },
-      {
-        role: "user",
-        content: `
-        Context: ${JSON.stringify(cell.context)}
-        Instructions: ${cell.columnTitle}\n${cell.columnInstructions}
-        Column Type: ${cell.columnType}
-        ${cell.options && ["single-select", "multi-select"].includes(cell.columnType) ? `Options: ${cell.options.map((o) => [o.title, "-", o.description].join(" "))}` : ""}
-      `,
-      },
+      prompt
     ];
 
     async function run() {
