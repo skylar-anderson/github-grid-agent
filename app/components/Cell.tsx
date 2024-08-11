@@ -44,7 +44,7 @@ export default function Cell({
         boxSizing: "border-box",
         minWidth: "var(--cell-width)",
         height: "var(--cell-height)",
-        borderBottom: "1px solid",
+        borderRight: "1px solid",
         borderColor: "border.default",
         overflow: "hidden",
         "&:last-child": {

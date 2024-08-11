@@ -1,3 +1,4 @@
+"use client"
 import { useCallback, useRef, useState } from "react";
 import type { GridCol, GridCell } from "../actions";
 import { Dialog } from "@primer/react/experimental";
@@ -7,35 +8,51 @@ import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
 import Cell from "./Cell";
 import "./Grid.css";
-import ColumnTitle
-from "./ColumnTitle";
-type PrimaryColumnProps = {
-  primaryColumn: GridCell[];
-  title: string;
+import ColumnTitle from "./ColumnTitle";
+
+type RowProps = {
+  rowIndex: number;
+  primaryCell: GridCell;
+  columns: GridCol[];
   selectRow: (n: number) => void;
   selectedIndex: number | null;
 };
 
-export function PrimaryColumn({
-  primaryColumn,
-  title,
-  selectRow,
-  selectedIndex,
-}: PrimaryColumnProps) {
+function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowProps) {
   return (
-    <Column>
-      <ColumnTitle title={title} />
-      {primaryColumn.map((cell, cellIndex) => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        borderBottom: "1px solid",
+        borderColor: "border.default",
+        "&:last-child": {
+          borderBottom: 0,
+        },
+        '&:hover': {
+          backgroundColor: 'canvas.inset',
+          cursor: 'pointer'
+        }
+      }}
+      onClick={() => selectRow(rowIndex)}
+    >
+      <Cell
+        cell={primaryCell}
+        isSelected={selectedIndex === rowIndex}
+        sx={{ flex: 1 }}
+      />
+      {columns.map((column, colIndex) => (
         <Cell
-          key={cellIndex}
-          cell={cell}
-          isSelected={selectedIndex === cellIndex}
-          onClick={() => selectRow(cellIndex)}
+          key={colIndex}
+          cell={column.cells[rowIndex]}
+          isSelected={selectedIndex === rowIndex}
+          sx={{ flex: 1 }}
         />
       ))}
-    </Column>
+    </Box>
   );
 }
+
 function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   return (
     <Box
@@ -55,49 +72,16 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   );
 }
 
-
-function Columns({ children }: { children: React.ReactNode }) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-      }}
-    >
-      {children}
-    </Box>
-  );
-}
-
-function Column({ children }: { children: React.ReactNode }) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        flex: 1,
-        borderRight: "1px solid",
-        borderColor: "border.default",
-        "&:last-child": {
-          border: 0,
-        },
-      }}
-    >
-      {children}
-    </Box>
-  );
-}
-
 export default function GridTable() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
-  const { gridState, addNewColumn, selectRow, selectedIndex } =
-    useGridContext();
+  const { gridState, addNewColumn, selectRow, selectedIndex } = useGridContext();
+
   if (!gridState) {
     return null;
   }
+
   const { columns, title, primaryColumn, primaryColumnType } = gridState;
 
   return (
@@ -141,26 +125,29 @@ export default function GridTable() {
         }}
       >
         <Panel sx={{ flex: 1, height: "100%" }}>
-          <Columns>
-            <PrimaryColumn
-              primaryColumn={primaryColumn}
-              title={primaryColumnType}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              borderBottom: "1px solid",
+              borderColor: "border.default",
+            }}
+          >
+            <ColumnTitle title={primaryColumnType} />
+            {columns.map((column: GridCol, index: number) => (
+              <ColumnTitle key={index} title={column.title} index={index} />
+            ))}
+          </Box>
+          {primaryColumn.map((primaryCell, rowIndex) => (
+            <Row
+              key={rowIndex}
+              rowIndex={rowIndex}
+              primaryCell={primaryCell}
+              columns={columns}
               selectRow={selectRow}
               selectedIndex={selectedIndex}
             />
-            {columns.map((column: GridCol, rowIndex: number) => (
-              <Column key={rowIndex}>
-                <ColumnTitle title={column.title} index={rowIndex} />
-                {column.cells.map((cell, cellIndex: number) => (
-                  <Cell
-                    key={cellIndex}
-                    cell={cell}
-                    isSelected={selectedIndex === cellIndex}
-                  />
-                ))}
-              </Column>
-            ))}
-          </Columns>
+          ))}
         </Panel>
 
         {selectedIndex !== null && (
