@@ -71,9 +71,44 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
     </Box>
   );
 }
+type GridHeaderProps = {
+  title: string;
+  setShowNewColumnForm: (b:boolean) => void;
+}
+function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
+  return (
+    <Box
+      sx={{
+        pb: 2,
+        display: "flex",
+        flexDirection: "row",
+        gap: 2,
+        justifyContent: "center",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          flex: 1,
+          fontWeight: "semibold",
+          fontSize: 1,
+          color: "fg.default",
+        }}
+      >
+        {title}
+      </Box>
+      <Button
+        variant="primary"
+        onClick={() => setShowNewColumnForm(true)}
+      >
+        Add column
+      </Button>
+    </Box>
+  )
+}
 
 export default function GridTable() {
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
   const { gridState, addNewColumn, selectRow, selectedIndex } = useGridContext();
@@ -86,36 +121,7 @@ export default function GridTable() {
 
   return (
     <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column" }}>
-      <Box
-        sx={{
-          pb: 2,
-          display: "flex",
-          flexDirection: "row",
-          gap: 2,
-          justifyContent: "center",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            flex: 1,
-            fontWeight: "semibold",
-            fontSize: 1,
-            color: "fg.default",
-          }}
-        >
-          {title}
-          {showNewColumnForm}
-        </Box>
-        <Button
-          ref={buttonRef}
-          variant="primary"
-          onClick={() => setShowNewColumnForm(true)}
-        >
-          Add column
-        </Button>
-      </Box>
+      <GridHeader title={title} setShowNewColumnForm={setShowNewColumnForm}/>
       <Box
         sx={{
           display: "flex",
