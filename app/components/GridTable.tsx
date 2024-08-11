@@ -7,7 +7,8 @@ import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
 import Cell from "./Cell";
 import "./Grid.css";
-
+import ColumnTitle
+from "./ColumnTitle";
 type PrimaryColumnProps = {
   primaryColumn: GridCell[];
   title: string;
@@ -53,27 +54,7 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
     </Box>
   );
 }
-function ColumnTitle({ title }: { title: string }) {
-  return (
-    <Box
-      sx={{
-        py: "12px",
-        px: 3,
-        zIndex: 1,
-        position: "sticky",
-        top: 0,
-        fontSize: 1,
-        backgroundColor: "white",
-        color: "fg.default",
-        fontWeight: "semibold",
-        borderBottom: "1px solid",
-        borderColor: "border.default",
-      }}
-    >
-      {title}
-    </Box>
-  );
-}
+
 
 function Columns({ children }: { children: React.ReactNode }) {
   return (
@@ -169,7 +150,7 @@ export default function GridTable() {
             />
             {columns.map((column: GridCol, rowIndex: number) => (
               <Column key={rowIndex}>
-                <ColumnTitle title={column.title} />
+                <ColumnTitle title={column.title} index={rowIndex} />
                 {column.cells.map((cell, cellIndex: number) => (
                   <Cell
                     key={cellIndex}

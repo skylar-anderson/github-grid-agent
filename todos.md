@@ -1,0 +1,9 @@
+- [ ] add group by button
+- [ ] allow saving multiple grids
+- [ ] list saved grids on home page
+- [ ] grid delete
+- [x] column delete
+- [ ] column edit
+- [ ] auto paginate rows. sync rows
+- [ ] file list column type
+- [ ] user file type

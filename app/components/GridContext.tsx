@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState } from "react";
+import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import {
   SuccessfulPrimaryColumnResponse,
   ErrorResponse,
@@ -6,6 +6,7 @@ import {
   GridCell,
 } from "../actions";
 import type { ColumnType, GridCol, Option } from "../actions";
+import useLocalStorage from "../utils/local-storage";
 
 type GridContextType = {
   gridState: GridState | null;
@@ -19,6 +20,7 @@ type GridContextType = {
   addNewColumn: (props: NewColumnProps) => void;
   inititializeGrid: (s: string) => Promise<void>;
   selectedIndex: number | null;
+  deleteColumnByIndex: (index: number) => void;
 };
 
 type NewColumnProps = {
@@ -51,8 +53,16 @@ export const GridProvider = ({
   hydrateCell,
   children,
 }: ProviderProps) => {
-  const [gridState, setGridState] = useState<GridState | null>(null);
+
+  const [gridState, setGridState] = useLocalStorage<GridState | null>("gridState", null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Optionally, you can add an effect to save the state to localStorage whenever it changes
+    if (gridState) {
+      localStorage.setItem('gridState', JSON.stringify(gridState));
+    }
+  }, [gridState]);
 
   async function inititializeGrid(title: string) {
     const result = await createPrimaryColumn(title);
@@ -121,6 +131,18 @@ export const GridProvider = ({
     });
   }
 
+  const deleteColumnByIndex = (index: number) => {
+    setGridState((prevState) => {
+      if (prevState === null) {
+        return null;
+      }
+      return {
+        ...prevState,
+        columns: prevState.columns.filter((_, colIndex) => colIndex !== index),
+      };
+    });
+  };
+
   const updateCellState = (
     columnTitle: string,
     cellIndex: number,
@@ -160,6 +182,7 @@ export const GridProvider = ({
         selectRow,
         updateCellState,
         addNewColumn,
+        deleteColumnByIndex
       }}
     >
       {children}
