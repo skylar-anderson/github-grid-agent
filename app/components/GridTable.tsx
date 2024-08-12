@@ -1,15 +1,17 @@
 "use client"
-import { useCallback, useRef, useState } from "react";
-import type { GridCol, GridCell } from "../actions";
+import { useMemo, useCallback, useState } from "react";
+import type { SingleSelectResponse, MultiSelectResponse, GridCol, GridCell } from "../actions";
 import { Dialog } from "@primer/react/experimental";
-import { Text, ActionMenu, ActionList, Box, Button } from "@primer/react";
+import { IconButton, TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from "@primer/react";
+import { SearchIcon, XCircleFillIcon } from "@primer/octicons-react";
 import { useGridContext } from "./GridContext";
 import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
 import Cell from "./Cell";
 import "./Grid.css";
 import ColumnTitle from "./ColumnTitle";
-
+import { pluralize } from "../utils/pluralize";
+import { capitalize } from "../utils/capitalize";
 type RowProps = {
   rowIndex: number;
   primaryCell: GridCell;
@@ -26,9 +28,6 @@ function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowPr
         flexDirection: "row",
         borderBottom: "1px solid",
         borderColor: "border.default",
-        "&:last-child": {
-          borderBottom: 0,
-        },
         '&:hover': {
           backgroundColor: 'canvas.inset',
           cursor: 'pointer'
@@ -97,6 +96,7 @@ function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
         {title}
       </Box>
       <Box sx={{display: 'flex', gap: 2}}>
+        <Search />
         <GroupBy />
         <FilterBy />
         <Button
@@ -107,6 +107,16 @@ function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
         </Button>
       </Box>
     </Box>
+  )
+}
+
+function Search() {
+  return (
+    <TextInput
+      leadingVisual={SearchIcon}
+      /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
+      placeholder="Search.."
+    />
   )
 }
 
@@ -173,6 +183,27 @@ function FilterBy() {
   )
 }
 
+function GroupHeader({ groupName, count }: { groupName: string, count: number }) {
+  return (
+    <Box
+      sx={{
+        backgroundColor: "canvas.subtle",
+        fontSize: 1,
+        p: 2,
+        px: 3,
+        color: 'fg.muted',
+        fontWeight: "bold",
+        borderBottom: "1px solid",
+        flex: 2,
+        borderColor: "border.default",
+      }}
+    >
+      <Text sx={{mr: 2}}>{count === 1 ? groupName : pluralize(groupName)}</Text>
+      <CounterLabel>{count}</CounterLabel>
+    </Box>
+  );
+}
+
 export default function GridTable() {
   const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
@@ -182,7 +213,34 @@ export default function GridTable() {
     return null;
   }
 
-  const { columns, title, primaryColumn, primaryColumnType } = gridState;
+  const { columns, title, primaryColumn, primaryColumnType, groupBy } = gridState;
+
+  const groupedRows = useMemo(() => {
+    if (!groupBy) {
+      return [{ groupName: '', rows: primaryColumn.map((cell, index) => ({ cell, index })) }];
+    }
+
+    const groupColumn = columns.find(col => col.title === groupBy);
+    if (!groupColumn) {
+      return [{ groupName: '', rows: primaryColumn.map((cell, index) => ({ cell, index })) }];
+    }
+
+    const groups: { [key: string]: { cell: GridCell, index: number }[] } = {};
+
+    primaryColumn.forEach((cell, index) => {
+      const groupCell = groupColumn.cells[index];
+      const groupValue = groupColumn.type === 'single-select' 
+        ? (groupCell.response as SingleSelectResponse).option
+        : (groupCell.response as MultiSelectResponse).options.join(', ');
+
+      if (!groups[groupValue]) {
+        groups[groupValue] = [];
+      }
+      groups[groupValue].push({ cell, index });
+    });
+
+    return Object.entries(groups).map(([groupName, rows]) => ({ groupName, rows }));
+  }, [groupBy, columns, primaryColumn]);
 
   return (
     <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column", width: '100%'}}>
@@ -210,20 +268,25 @@ export default function GridTable() {
                 zIndex: 1,
               }}
             >
-              <ColumnTitle title={primaryColumnType} />
+              <ColumnTitle title={capitalize(primaryColumnType)} />
               {columns.map((column: GridCol, index: number) => (
                 <ColumnTitle key={index} title={column.title} index={index} />
               ))}
             </Box>
-            {primaryColumn.map((primaryCell, rowIndex) => (
-              <Row
-                key={rowIndex}
-                rowIndex={rowIndex}
-                primaryCell={primaryCell}
-                columns={columns}
-                selectRow={selectRow}
-                selectedIndex={selectedIndex}
-              />
+            {groupedRows.map((group, groupIndex) => (
+              <Box key={groupIndex}>
+                {group.groupName && <GroupHeader groupName={group.groupName} count={group.rows.length} />}
+                {group.rows.map(({ cell, index }) => (
+                  <Row
+                    key={index}
+                    rowIndex={index}
+                    primaryCell={cell}
+                    columns={columns}
+                    selectRow={selectRow}
+                    selectedIndex={selectedIndex}
+                  />
+                ))}
+              </Box>
             ))}
           </Box>
         </Panel>

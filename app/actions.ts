@@ -8,8 +8,8 @@ const MAX_ROWS = 25;
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done" | "error";
 export type ColumnType = "text" | "single-select" | "multi-select";
-type SingleSelectResponse = { option: string };
-type MultiSelectResponse = { options: string[] };
+export type SingleSelectResponse = { option: string };
+export type MultiSelectResponse = { options: string[] };
 type TextResponse = string;
 
 export type Option = {
