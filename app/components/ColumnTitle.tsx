@@ -9,6 +9,7 @@ export default function ColumnTitle({ title, index }: { title: string, index?: n
       sx={{
         p:2,
         pl: 3,
+        flex: 1,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
@@ -19,8 +20,12 @@ export default function ColumnTitle({ title, index }: { title: string, index?: n
         backgroundColor: "white",
         color: "fg.default",
         fontWeight: "semibold",
-        borderBottom: "1px solid",
+        borderRight: "1px solid",
         borderColor: "border.default",
+        minWidth: "260px",
+        '&:last-child': {
+          border: 0
+        }
       }}
     >
       <Box sx={{flex: 1}}>{title}</Box>
