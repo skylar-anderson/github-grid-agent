@@ -32,7 +32,7 @@ export async function searchIssues<T>(q: string, page: number = 1): Promise<T> {
   const response = await octokit.rest.search.issuesAndPullRequests({
     q,
     page,
-    per_page: 25,
+    per_page: 50,
   });
 
   if (!response) {

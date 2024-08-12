@@ -1,6 +1,13 @@
 "use client"
 import { useMemo, useCallback, useState } from "react";
-import type { SingleSelectResponse, MultiSelectResponse, GridCol, GridCell } from "../actions";
+import type {
+  SingleSelectResponse,
+  MultiSelectResponse,
+  SingleSelectUserResponse,
+  MultiSelectUserResponse,
+  GridCol,
+  GridCell
+} from "../actions";
 import { Dialog } from "@primer/react/experimental";
 import { Text, Box, CounterLabel } from "@primer/react";
 import { GridHeader } from "./GridHeader";
@@ -27,9 +34,11 @@ function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowPr
         display: "flex",
         flexDirection: "row",
         borderBottom: "1px solid",
-        borderColor: "border.default",
+        borderColor: "#f0f0f0",
+        transition: 'background-color 300ms ease-in-out',
         '&:hover': {
           backgroundColor: 'canvas.inset',
+          borderColor: 'border.default',
           cursor: 'pointer'
         }
       }}
@@ -116,9 +125,24 @@ export default function GridTable() {
 
     primaryColumn.forEach((cell, index) => {
       const groupCell = groupColumn.cells[index];
-      const groupValue = groupColumn.type === 'single-select' 
-        ? (groupCell.response as SingleSelectResponse).option
-        : (groupCell.response as MultiSelectResponse).options.join(', ');
+      let groupValue: string;
+      switch (groupColumn.type) {
+        case 'single-select':
+          groupValue = (groupCell.response as SingleSelectResponse).option;
+          break;
+        case 'multi-select':
+          groupValue = (groupCell.response as MultiSelectResponse).options.join(', ');
+          break;
+        case 'multi-select-user':
+          groupValue = (groupCell.response as MultiSelectUserResponse).users.join(', ');
+          break;
+        case 'single-select-user':
+          groupValue = (groupCell.response as SingleSelectUserResponse).user;
+          break;
+        default:
+          groupValue = '';
+          break;
+      }
 
       if (!groups[groupValue]) {
         groups[groupValue] = [];
@@ -131,7 +155,11 @@ export default function GridTable() {
 
   return (
     <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column", width: '100%'}}>
-      <GridHeader title={title} setShowNewColumnForm={setShowNewColumnForm}/>
+      <GridHeader
+        title={title}
+        setShowNewColumnForm={setShowNewColumnForm}
+        count={primaryColumn.length}
+        />
       <Box
         sx={{
           display: "flex",

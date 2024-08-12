@@ -7,9 +7,11 @@ const MAX_ROWS = 25;
 
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done" | "error";
-export type ColumnType = "text" | "single-select" | "multi-select";
+export type ColumnType = "text" | "single-select" | "multi-select" | "single-select-user" | "multi-select-user";
 export type SingleSelectResponse = { option: string };
 export type MultiSelectResponse = { options: string[] };
+export type SingleSelectUserResponse = { user: string };
+export type MultiSelectUserResponse = { users: string[] };
 type TextResponse = string;
 
 export type Option = {
@@ -32,7 +34,17 @@ type MultiSelectCell = {
   response: MultiSelectResponse;
 };
 
-type CellTypes = TextCell | SingleSelectCell | MultiSelectCell;
+type SingleSelectUserCell = {
+  columnType: "single-select-user";
+  response: SingleSelectUserResponse;
+};
+
+type MultiSelectUserCell = {
+  columnType: "multi-select-user";
+  response: MultiSelectUserResponse;
+};
+
+type CellTypes = TextCell | SingleSelectCell | MultiSelectCell | SingleSelectUserCell | MultiSelectUserCell;
 
 type GridCellBase = CellTypes & {
   columnTitle: string;
@@ -40,6 +52,7 @@ type GridCellBase = CellTypes & {
   context: any;
   hydrationSources: string[];
   options?: Option[];
+  prompt?: string;
 };
 
 type GridCellWithError = GridCellBase & {
@@ -176,22 +189,38 @@ type HydrateResponse = {
 
 const optionString = (option:Option) => `-  ${option.title}: ${option.description}`;
 const buildHydrationPrompt = (cell: GridCell):OpenAI.Chat.Completions.ChatCompletionMessageParam => {
-  const options = cell.options ? cell.options.map(optionString).join("\n") : 'No options provided'
-  let cellType = 'Text: reply with a markdown string containing the answer';
-  
-  if (cell.columnType === 'single-select') {
-    cellType = 'Single select: reply with the most appropriate option from the provided list of options';
-  } else if (cell.columnType === 'multi-select') {
-    cellType = 'Multi select: reply with the most appropriate options from the provided list of options';
+  const hasOptions = cell.options && cell.options.length > 0
+  const options = hasOptions ? `User-provided options:\n${cell?.options?.map(optionString).join("\n")}` : 'No options provided'
+  let cellTypeFormatInstructions: string;
+  switch (cell.columnType) {
+    case 'single-select':
+      cellTypeFormatInstructions = hasOptions
+      ? 'Single select: Select a single option from the user-provided options below. Your selection should satisfy the provided cell data description. '
+      : 'Single select. The user provided no options to choose from, so you must define your own. Define an option that is not overly specific but satisfies the cell data descripton for this cell. Your selection will be used to group cells thematically';
+      
+      break;
+    case 'multi-select':
+      cellTypeFormatInstructions = hasOptions
+      ? 'Multi select: Select one or more options from the user-provided options below. Your selection should satisfy the provided cell data description.'
+      : 'Multi select. The user provided no options to choose from, so you must define your own. Define one or more options that are not overly specific but satisfy the cell data descripton for this cell. Your selection will be used to group cells thematically'
+      break;
+    case 'single-select-user':
+      cellTypeFormatInstructions = 'Select a user: Select a user and reply only with their handle';
+      break;
+    case 'multi-select-user':
+      cellTypeFormatInstructions = 'Select users: Select multiple users and reply only with their handles';
+      break;
+    default:
+      cellTypeFormatInstructions = 'Text: reply with a markdown string containing the answer. Avoid using markdown headings.';
+      break;
   }
 
   return {
     role: "user",
     content: `Context: ${JSON.stringify(cell.context)}
-    - Cell Type: ${cellType}
-    - Cell title: ${cell.columnTitle}
-    - Instructions for generating cell contents: \n${cell.columnInstructions || "No instructions provided"}
-    - Options:
+    - Cell format instructions: ${cellTypeFormatInstructions}
+    - Cell data description (use this to determine relevant data for the cell): ${cell.columnTitle}
+    ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ``}
     ${options}`,
   }
 }
@@ -206,14 +235,9 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   2) Instructions: A user-provided set of instructions that describe how you should populate a cell value based on the context provided. \n
   In some cases, the context object will contain the answer. In other cases, you will need to use tools to find the answer.\
   The user interface is not a chat interface, so you should avoid introductions, goodbyes, or any other pleasantries.\
-  It's critical that you provide the answer to the user's question as concisely as possible.
+  You must provide the answer to the user's question as concisely as possible.
 
-  Grid cells have different types. The type dictates the format for how you should respond.  Here are the types:
-  - Text: return a markdown string containing the answer
-  - Single select: return the most appropriate option from the provided list of options
-  - Multi select: return the most approriate options from the provided
-
-  Markdown rendering is supported for text columns, but use it lightly. Only use lists, bold, italics, links. Never use headings.\
+  Cells will have different format instructions based on the expected data type of the column. It's critical that you adhere to the format instructions.\
   `;
 
   async function hydrate(): Promise<GridCell> {
@@ -224,7 +248,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
       { role: "system", content: SYSTEM },
       prompt
     ];
-
+    let response_format = getResponseFormat(cell);
     async function run() {
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -232,7 +256,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         messages: context,
         tools,
         tool_choice: "auto",
-        response_format: getResponseFormat(cell),
+        response_format,
       });
 
       const responseChoice = response.choices[0];
@@ -273,6 +297,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     if (cell.columnType === "single-select") {
       return {
         ...cell,
+        prompt: prompt.content as string,
         columnType: 'single-select',
         response: JSON.parse(responseContent) as SingleSelectResponse,
         state: "done",
@@ -282,8 +307,29 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     } else if (cell.columnType === "multi-select") {
       return {
         ...cell,
+        prompt: prompt.content as string,
         columnType: 'multi-select',
         response: JSON.parse(responseContent) as MultiSelectResponse,
+        state: "done",
+        hydrationSources,
+        errorMessage: undefined,
+      };
+    } else if (cell.columnType === "multi-select-user") {
+      return {
+        ...cell,
+        prompt: prompt.content as string,
+        columnType: 'multi-select-user',
+        response: JSON.parse(responseContent) as MultiSelectUserResponse,
+        state: "done",
+        hydrationSources,
+        errorMessage: undefined,
+      };
+    } else if (cell.columnType === "single-select-user") {
+      return {
+        ...cell,
+        prompt: prompt.content as string,
+        columnType: 'single-select-user',
+        response: JSON.parse(responseContent) as SingleSelectUserResponse,
         state: "done",
         hydrationSources,
         errorMessage: undefined,
@@ -291,6 +337,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     } else {
       return {
         ...cell,
+        prompt: prompt.content as string,
         columnType: 'text',
         response: responseContent as TextResponse,
         state: "done",
