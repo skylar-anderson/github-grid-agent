@@ -2,7 +2,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { GridCol, GridCell } from "../actions";
 import { Dialog } from "@primer/react/experimental";
-import { Spinner, Box, Button } from "@primer/react";
+import { ActionMenu, ActionList, Box, Button } from "@primer/react";
 import { useGridContext } from "./GridContext";
 import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
@@ -39,14 +39,12 @@ function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowPr
       <Cell
         cell={primaryCell}
         isSelected={selectedIndex === rowIndex}
-        sx={{ flex: 1 }}
       />
       {columns.map((column, colIndex) => (
         <Cell
           key={colIndex}
           cell={column.cells[rowIndex]}
           isSelected={selectedIndex === rowIndex}
-          sx={{ flex: 1 }}
         />
       ))}
     </Box>
@@ -98,13 +96,67 @@ function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
       >
         {title}
       </Box>
-      <Button
-        variant="primary"
-        onClick={() => setShowNewColumnForm(true)}
-      >
-        Add column
-      </Button>
+      <Box sx={{display: 'flex', gap: 2}}>
+        <GroupBy />
+        <FilterBy />
+        <Button
+          variant="primary"
+          onClick={() => setShowNewColumnForm(true)}
+        >
+          Add column
+        </Button>
+      </Box>
     </Box>
+  )
+}
+
+function GroupBy() {
+  const { gridState } = useGridContext();
+  if (!gridState) { return null }
+
+  const groupableColumnTypes = ['multi-select', 'single-select'];
+  const groupableColumns = gridState.columns.filter(column => groupableColumnTypes.includes(column.type));
+  if (gridState && groupableColumns.length === 0) { return null }
+  return (
+    <ActionMenu>
+        <ActionMenu.Button>
+          Group by
+        </ActionMenu.Button>
+        <ActionMenu.Overlay width="medium">
+          <ActionList>
+            {groupableColumns.map((column, index) => (
+              <ActionList.Item key={index} onSelect={() => alert(`Group by ${column.title}`)}>
+                {column.title}
+              </ActionList.Item>
+            ))}
+          </ActionList>
+        </ActionMenu.Overlay>
+      </ActionMenu>
+  )
+}
+
+function FilterBy() {
+  const { gridState } = useGridContext();
+  if (!gridState) { return null }
+
+  const filterableColumnTypes = ['multi-select', 'single-select'];
+  const filterableColumns = gridState.columns.filter(column => filterableColumnTypes.includes(column.type));
+  if (gridState && filterableColumns.length === 0) { return null }
+  return (
+    <ActionMenu>
+        <ActionMenu.Button>
+          Filter
+        </ActionMenu.Button>
+        <ActionMenu.Overlay width="medium">
+          <ActionList>
+            {filterableColumns.map((column, index) => (
+              <ActionList.Item key={index} onSelect={() => alert(`Group by ${column.title}`)}>
+                {column.title}
+              </ActionList.Item>
+            ))}
+          </ActionList>
+        </ActionMenu.Overlay>
+      </ActionMenu>
   )
 }
 
@@ -120,7 +172,7 @@ export default function GridTable() {
   const { columns, title, primaryColumn, primaryColumnType } = gridState;
 
   return (
-    <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column" }}>
+    <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column", width: '100%'}}>
       <GridHeader title={title} setShowNewColumnForm={setShowNewColumnForm}/>
       <Box
         sx={{
@@ -130,30 +182,37 @@ export default function GridTable() {
           gap: 2,
         }}
       >
-        <Panel sx={{ flex: 1, height: "100%" }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              borderBottom: "1px solid",
-              borderColor: "border.default",
-            }}
-          >
-            <ColumnTitle title={primaryColumnType} />
-            {columns.map((column: GridCol, index: number) => (
-              <ColumnTitle key={index} title={column.title} index={index} />
+        <Panel sx={{ flex: 1, height: "100%", overflowX: 'scroll' }}>
+          <Box sx={{ minWidth: '100%', display: 'flex', flex: 1, flexDirection: 'column'}}>
+            <Box
+              sx={{
+                display: "flex",
+                position: 'sticky',
+                top: 0,
+                flexDirection: "row",
+                borderBottom: "1px solid",
+                borderColor: "border.default",
+                background: 'canvas.default',
+                flex: 1,
+                zIndex: 1,
+              }}
+            >
+              <ColumnTitle title={primaryColumnType} />
+              {columns.map((column: GridCol, index: number) => (
+                <ColumnTitle key={index} title={column.title} index={index} />
+              ))}
+            </Box>
+            {primaryColumn.map((primaryCell, rowIndex) => (
+              <Row
+                key={rowIndex}
+                rowIndex={rowIndex}
+                primaryCell={primaryCell}
+                columns={columns}
+                selectRow={selectRow}
+                selectedIndex={selectedIndex}
+              />
             ))}
           </Box>
-          {primaryColumn.map((primaryCell, rowIndex) => (
-            <Row
-              key={rowIndex}
-              rowIndex={rowIndex}
-              primaryCell={primaryCell}
-              columns={columns}
-              selectRow={selectRow}
-              selectedIndex={selectedIndex}
-            />
-          ))}
         </Panel>
 
         {selectedIndex !== null && (

@@ -19,7 +19,13 @@ export default function ColumnTitle({ title, index }: { title: string, index?: n
         fontSize: 1,
         backgroundColor: "white",
         color: "fg.default",
-        fontWeight: "semibold"
+        fontWeight: "semibold",
+        borderRight: "1px solid",
+        borderColor: "border.default",
+        minWidth: "260px",
+        '&:last-child': {
+          border: 0
+        }
       }}
     >
       <Box sx={{flex: 1}}>{title}</Box>
