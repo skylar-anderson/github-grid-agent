@@ -21,6 +21,8 @@ type GridContextType = {
   inititializeGrid: (s: string) => Promise<void>;
   selectedIndex: number | null;
   deleteColumnByIndex: (index: number) => void;
+  setGroupBy: (columnTitle:string|undefined) => void;
+  setFilterBy: (columnTitle:string|undefined, filterValue:string|undefined) => void;
 };
 
 type NewColumnProps = {
@@ -143,6 +145,33 @@ export const GridProvider = ({
     });
   };
 
+  const setGroupBy = (columnTitle:string|undefined) => {
+    setGridState((prevState) => {
+      if (prevState === null) {
+        return null;
+      }
+      return {
+        ...prevState,
+        groupBy: columnTitle
+      };
+    })
+  }
+
+  const setFilterBy = (columnTitle:string|undefined, filterValue:string|undefined) => {
+    setGridState((prevState) => {
+      if (prevState === null) {
+        return null;
+      }
+      return {
+        ...prevState,
+        filterBy: {
+          columnTitle,
+          filterValue
+        }
+      };
+    })
+  }
+
   const updateCellState = (
     columnTitle: string,
     cellIndex: number,
@@ -182,7 +211,9 @@ export const GridProvider = ({
         selectRow,
         updateCellState,
         addNewColumn,
-        deleteColumnByIndex
+        deleteColumnByIndex,
+        setGroupBy,
+        setFilterBy,
       }}
     >
       {children}
