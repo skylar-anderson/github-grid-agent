@@ -2,8 +2,8 @@
 import { useMemo, useCallback, useState } from "react";
 import type { SingleSelectResponse, MultiSelectResponse, GridCol, GridCell } from "../actions";
 import { Dialog } from "@primer/react/experimental";
-import { IconButton, TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from "@primer/react";
-import { SearchIcon, XCircleFillIcon } from "@primer/octicons-react";
+import { Text, Box, CounterLabel } from "@primer/react";
+import { GridHeader } from "./GridHeader";
 import { useGridContext } from "./GridContext";
 import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
@@ -68,120 +68,7 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
     </Box>
   );
 }
-type GridHeaderProps = {
-  title: string;
-  setShowNewColumnForm: (b:boolean) => void;
-}
-function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
-  return (
-    <Box
-      sx={{
-        pb: 2,
-        display: "flex",
-        flexDirection: "row",
-        gap: 2,
-        justifyContent: "center",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          flex: 1,
-          fontWeight: "semibold",
-          fontSize: 1,
-          color: "fg.default",
-        }}
-      >
-        {title}
-      </Box>
-      <Box sx={{display: 'flex', gap: 2}}>
-        <Search />
-        <GroupBy />
-        <FilterBy />
-        <Button
-          variant="primary"
-          onClick={() => setShowNewColumnForm(true)}
-        >
-          Add column
-        </Button>
-      </Box>
-    </Box>
-  )
-}
 
-function Search() {
-  return (
-    <TextInput
-      leadingVisual={SearchIcon}
-      /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
-      placeholder="Search.."
-    />
-  )
-}
-
-function GroupBy() {
-  const { gridState, setGroupBy } = useGridContext();
-  if (!gridState) { return null }
-  const { groupBy } = gridState;
-  const groupableColumnTypes = ['multi-select', 'single-select'];
-  const groupableColumns = gridState.columns.filter(column => groupableColumnTypes.includes(column.type));
-  if (gridState && groupableColumns.length === 0) { return null }
-
-  return (
-    <ActionMenu>
-        <ActionMenu.Button>
-          {groupBy ? (
-            <>
-              <Text sx={{color: 'fg.muted', fontWeight: 'semibold'}}>Group by:</Text>&nbsp;
-              <Text>{groupBy}</Text>
-            </>
-          ) : (
-            <Text>Group by</Text>
-          )}
-        </ActionMenu.Button>
-        <ActionMenu.Overlay width="medium">
-          <ActionList>
-            {groupableColumns.map((column, index) => (
-              <ActionList.Item key={index} onSelect={() => setGroupBy(column.title)}>
-                {column.title}
-              </ActionList.Item>
-            ))}
-            {groupBy && (
-              <ActionList.Item  onSelect={() => setGroupBy(undefined)}>
-                Remove grouping
-              </ActionList.Item>
-            )}
-          </ActionList>
-        </ActionMenu.Overlay>
-      </ActionMenu>
-  )
-}
-
-function FilterBy() {
-  const { gridState } = useGridContext();
-  if (!gridState) { return null }
-
-  const filterableColumnTypes = ['multi-select', 'single-select'];
-  const filterableColumns = gridState.columns.filter(column => filterableColumnTypes.includes(column.type));
-  if (gridState && filterableColumns.length === 0) { return null }
-  return (
-    <ActionMenu>
-        <ActionMenu.Button>
-          Filter
-        </ActionMenu.Button>
-        <ActionMenu.Overlay width="medium">
-          <ActionList>
-            {filterableColumns.map((column, index) => (
-              <ActionList.Item key={index} onSelect={() => alert(`Group by ${column.title}`)}>
-                {column.title}
-              </ActionList.Item>
-            ))}
-          </ActionList>
-        </ActionMenu.Overlay>
-      </ActionMenu>
-  )
-}
 
 function GroupHeader({ groupName, count }: { groupName: string, count: number }) {
   return (
