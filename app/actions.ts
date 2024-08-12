@@ -67,6 +67,9 @@ export type GridState = {
   primaryColumn: GridCell[];
   title: string;
   primaryColumnType: PrimaryDataType;
+  groupBy?: string;
+  filterByKey?: string;
+  filterByValue?: string;
 };
 
 export type ActionResponse = {

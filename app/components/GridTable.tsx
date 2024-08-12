@@ -2,7 +2,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { GridCol, GridCell } from "../actions";
 import { Dialog } from "@primer/react/experimental";
-import { ActionMenu, ActionList, Box, Button } from "@primer/react";
+import { Text, ActionMenu, ActionList, Box, Button } from "@primer/react";
 import { useGridContext } from "./GridContext";
 import SelectedContext from "./SelectedContext";
 import NewColumnForm from "./NewColumnForm";
@@ -111,24 +111,37 @@ function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
 }
 
 function GroupBy() {
-  const { gridState } = useGridContext();
+  const { gridState, setGroupBy } = useGridContext();
   if (!gridState) { return null }
-
+  const { groupBy } = gridState;
   const groupableColumnTypes = ['multi-select', 'single-select'];
   const groupableColumns = gridState.columns.filter(column => groupableColumnTypes.includes(column.type));
   if (gridState && groupableColumns.length === 0) { return null }
+
   return (
     <ActionMenu>
         <ActionMenu.Button>
-          Group by
+          {groupBy ? (
+            <>
+              <Text sx={{color: 'fg.muted', fontWeight: 'semibold'}}>Group by:</Text>&nbsp;
+              <Text>{groupBy}</Text>
+            </>
+          ) : (
+            <Text>Group by</Text>
+          )}
         </ActionMenu.Button>
         <ActionMenu.Overlay width="medium">
           <ActionList>
             {groupableColumns.map((column, index) => (
-              <ActionList.Item key={index} onSelect={() => alert(`Group by ${column.title}`)}>
+              <ActionList.Item key={index} onSelect={() => setGroupBy(column.title)}>
                 {column.title}
               </ActionList.Item>
             ))}
+            {groupBy && (
+              <ActionList.Item  onSelect={() => setGroupBy(undefined)}>
+                Remove grouping
+              </ActionList.Item>
+            )}
           </ActionList>
         </ActionMenu.Overlay>
       </ActionMenu>
