@@ -66,12 +66,15 @@ export function singleSelectSchema(
 ): OpenAI.ChatCompletionCreateParams["response_format"] {
   const option = options && options.length ? {
     type: "string",
+    description: 'The title of the option that you have selected',
     enum: options.map((o) => o.title),
   } : {
     type: "string",
     description: 'The title of the option that you have selected',
   }
 
+  console.log(options);
+  console.log(option)
   return {
     type: "json_schema",
     json_schema: {
@@ -97,7 +100,7 @@ export function multiSelectSchema(
     description: 'Select the options that you would like to include in the response. If no options are relevant, select "N/A"',
     items: {
       type: "string",
-      enum: ['N/A', options.map((o) => o.title)],
+      enum: ['N/A', ...options.map((o) => o.title)],
     },
   } : {
     type: "array",

@@ -91,6 +91,9 @@ function GroupHeader({ groupName, count }: { groupName: string, count: number })
         fontWeight: "bold",
         borderBottom: "1px solid",
         flex: 2,
+        position: "sticky",
+        top: '49px',
+        zIndex: 1,
         borderColor: "border.default",
       }}
     >
@@ -125,32 +128,38 @@ export default function GridTable() {
 
     primaryColumn.forEach((cell, index) => {
       const groupCell = groupColumn.cells[index];
-      let groupValue: string;
+      let groupValues: string[] = [];
       switch (groupColumn.type) {
         case 'single-select':
-          groupValue = (groupCell.response as SingleSelectResponse).option;
-          break;
-        case 'multi-select':
-          groupValue = (groupCell.response as MultiSelectResponse).options.join(', ');
-          break;
-        case 'multi-select-user':
-          groupValue = (groupCell.response as MultiSelectUserResponse).users.join(', ');
+          groupValues = [(groupCell.response as SingleSelectResponse).option];
           break;
         case 'single-select-user':
-          groupValue = (groupCell.response as SingleSelectUserResponse).user;
+          groupValues = [(groupCell.response as SingleSelectUserResponse).user];
           break;
+        case 'multi-select':
+          groupValues = (groupCell.response as MultiSelectResponse).options;
+          break;
+        case 'multi-select-user':
+          groupValues = (groupCell.response as MultiSelectUserResponse).users;
+          break;
+        
         default:
-          groupValue = '';
+          groupValues = [''];
           break;
       }
 
-      if (!groups[groupValue]) {
-        groups[groupValue] = [];
-      }
-      groups[groupValue].push({ cell, index });
+      groupValues.forEach(groupValue => {
+        if (!groups[groupValue]) {
+          groups[groupValue] = [];
+        }
+        groups[groupValue].push({ cell, index });
+      });
     });
 
-    return Object.entries(groups).map(([groupName, rows]) => ({ groupName, rows }));
+    return Object.keys(groups).map(groupName => ({
+      groupName,
+      rows: groups[groupName]
+    }));
   }, [groupBy, columns, primaryColumn]);
 
   return (
