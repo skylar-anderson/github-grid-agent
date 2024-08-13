@@ -172,7 +172,7 @@ function CellValue({
 
       <Box sx={{ flexDirection: 'column', display: 'flex', p: 3, gap: 3 }}>
         <GridCellContent cell={cell} />
-        <Prompt prompt={`${column.title}\n${column.instructions}`} />
+        {cell.prompt && <Prompt prompt={cell.prompt} /> }
       </Box>
     </Box>
   );

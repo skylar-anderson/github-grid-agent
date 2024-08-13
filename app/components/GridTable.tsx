@@ -1,6 +1,13 @@
 "use client"
 import { useMemo, useCallback, useState } from "react";
-import type { SingleSelectResponse, MultiSelectResponse, GridCol, GridCell } from "../actions";
+import type {
+  SingleSelectResponse,
+  MultiSelectResponse,
+  SingleSelectUserResponse,
+  MultiSelectUserResponse,
+  GridCol,
+  GridCell
+} from "../actions";
 import { Dialog } from "@primer/react/experimental";
 import { Text, Box, CounterLabel } from "@primer/react";
 import { GridHeader } from "./GridHeader";
@@ -27,9 +34,11 @@ function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowPr
         display: "flex",
         flexDirection: "row",
         borderBottom: "1px solid",
-        borderColor: "border.default",
+        borderColor: "#f0f0f0",
+        transition: 'background-color 300ms ease-in-out',
         '&:hover': {
           backgroundColor: 'canvas.inset',
+          borderColor: 'border.default',
           cursor: 'pointer'
         }
       }}
@@ -82,6 +91,9 @@ function GroupHeader({ groupName, count }: { groupName: string, count: number })
         fontWeight: "bold",
         borderBottom: "1px solid",
         flex: 2,
+        position: "sticky",
+        top: '49px',
+        zIndex: 1,
         borderColor: "border.default",
       }}
     >
@@ -116,22 +128,47 @@ export default function GridTable() {
 
     primaryColumn.forEach((cell, index) => {
       const groupCell = groupColumn.cells[index];
-      const groupValue = groupColumn.type === 'single-select' 
-        ? (groupCell.response as SingleSelectResponse).option
-        : (groupCell.response as MultiSelectResponse).options.join(', ');
-
-      if (!groups[groupValue]) {
-        groups[groupValue] = [];
+      let groupValues: string[] = [];
+      switch (groupColumn.type) {
+        case 'single-select':
+          groupValues = [(groupCell.response as SingleSelectResponse).option];
+          break;
+        case 'single-select-user':
+          groupValues = [(groupCell.response as SingleSelectUserResponse).user];
+          break;
+        case 'multi-select':
+          groupValues = (groupCell.response as MultiSelectResponse).options;
+          break;
+        case 'multi-select-user':
+          groupValues = (groupCell.response as MultiSelectUserResponse).users;
+          break;
+        
+        default:
+          groupValues = [''];
+          break;
       }
-      groups[groupValue].push({ cell, index });
+
+      groupValues.forEach(groupValue => {
+        if (!groups[groupValue]) {
+          groups[groupValue] = [];
+        }
+        groups[groupValue].push({ cell, index });
+      });
     });
 
-    return Object.entries(groups).map(([groupName, rows]) => ({ groupName, rows }));
+    return Object.keys(groups).map(groupName => ({
+      groupName,
+      rows: groups[groupName]
+    }));
   }, [groupBy, columns, primaryColumn]);
 
   return (
     <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column", width: '100%'}}>
-      <GridHeader title={title} setShowNewColumnForm={setShowNewColumnForm}/>
+      <GridHeader
+        title={title}
+        setShowNewColumnForm={setShowNewColumnForm}
+        count={primaryColumn.length}
+        />
       <Box
         sx={{
           display: "flex",

@@ -13,7 +13,7 @@ export default function ColumnTitle({ title, index }: { title: string, index?: n
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 1,
+        zIndex: 2,
         position: "sticky",
         top: 0,
         fontSize: 1,

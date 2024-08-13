@@ -100,7 +100,7 @@ export default function CreateIntroForm() {
           want to explore below. Once your grid is started, just add the columns
           that you want to populate and the data grid agent handles the rest.
           Have fun!{" "}
-          <a href="https://github.com/skylar-anderson/openai-chat-playground/tree/main/app/grid">
+          <a href="https://github.com/skylar-anderson/github-grid-agent">
             Source
           </a>
         </Box>

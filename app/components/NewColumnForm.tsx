@@ -81,15 +81,8 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
       return;
     }
 
-    if (
-      (type === "single-select" || type === "multi-select") &&
-      options.length === 0
-    ) {
-      setMessage("Add at least one option for select types");
-      return;
-    }
-
-    addNewColumn({ title, instructions, type, options });
+    let filteredOptions = options.filter((option) => option.title !== "");
+    addNewColumn({ title, instructions, type, options: filteredOptions });
     setTitle("");
     setInstructions("");
     setType("text");
@@ -120,12 +113,15 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
           <Select.Option value="text">Text</Select.Option>
           <Select.Option value="single-select">Single-select</Select.Option>
           <Select.Option value="multi-select">Multi-select</Select.Option>
+          <Select.Option value="single-select-user">User</Select.Option>
+          <Select.Option value="multi-select-user">User list</Select.Option>
         </Select>
       </FormControl>
 
       {(type === "single-select" || type === "multi-select") && (
         <Box>
           <FormControl.Label>Options</FormControl.Label>
+          <FormControl.Caption>If options are not provided, then the model will chose it's own. Make sure to add instructions to help increase accuracy.</FormControl.Caption>
           <Box sx={{ mt: 1 }}>
             {options.map((option, index) => (
               <Box key={index} sx={{ display: "flex", gap: 2, mb: 2 }}>
@@ -150,7 +146,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
                 />
               </Box>
             ))}
-            <Button onClick={addOption}>Add Option</Button>
+            <Button onClick={addOption}>Add</Button>
           </Box>
         </Box>
       )}

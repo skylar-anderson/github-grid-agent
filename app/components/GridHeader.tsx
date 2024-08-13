@@ -1,4 +1,3 @@
-
 import { TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from "@primer/react";
 import { SearchIcon } from "@primer/octicons-react";
 import { useGridContext } from "./GridContext";
@@ -8,7 +7,7 @@ export function Search() {
     <TextInput
       leadingVisual={SearchIcon}
       /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
-      placeholder="Search.."
+      placeholder="Search..."
     />
   )
 }
@@ -17,7 +16,7 @@ export function GroupBy() {
   const { gridState, setGroupBy } = useGridContext();
   if (!gridState) { return null }
   const { groupBy } = gridState;
-  const groupableColumnTypes = ['multi-select', 'single-select'];
+  const groupableColumnTypes = ['multi-select', 'single-select', 'single-select-user', 'multi-select-user'];
   const groupableColumns = gridState.columns.filter(column => groupableColumnTypes.includes(column.type));
   if (gridState && groupableColumns.length === 0) { return null }
 
@@ -53,7 +52,7 @@ export function FilterBy() {
   const { gridState } = useGridContext();
   if (!gridState) { return null }
 
-  const filterableColumnTypes = ['multi-select', 'single-select'];
+  const filterableColumnTypes = ['multi-select', 'single-select', 'single-select-user', 'multi-select-user'];
   const filterableColumns = gridState.columns.filter(column => filterableColumnTypes.includes(column.type));
   if (gridState && filterableColumns.length === 0) { return null }
   return (
@@ -76,13 +75,15 @@ export function FilterBy() {
 
 type GridHeaderProps = {
   title: string;
+  count: number;
   setShowNewColumnForm: (b:boolean) => void;
 }
-export function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
+export function GridHeader({title, setShowNewColumnForm, count}:GridHeaderProps) {
   return (
     <Box
       sx={{
         pb: 2,
+        pl: 3,
         display: "flex",
         flexDirection: "row",
         gap: 2,
@@ -99,7 +100,7 @@ export function GridHeader({title, setShowNewColumnForm}:GridHeaderProps) {
           color: "fg.default",
         }}
       >
-        {title}
+        {title} <CounterLabel>{count}</CounterLabel>
       </Box>
       <Box sx={{display: 'flex', gap: 2}}>
         <Search />
