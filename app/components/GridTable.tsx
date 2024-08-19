@@ -1,13 +1,6 @@
-"use client"
+"use client";
 import { useMemo, useCallback, useState } from "react";
-import type {
-  SingleSelectResponse,
-  MultiSelectResponse,
-  SingleSelectUserResponse,
-  MultiSelectUserResponse,
-  GridCol,
-  GridCell
-} from "../actions";
+import type { GridCol, GridCell, ColumnResponse } from "../actions";
 import { Dialog } from "@primer/react/experimental";
 import { Text, Box, CounterLabel } from "@primer/react";
 import { GridHeader } from "./GridHeader";
@@ -27,7 +20,13 @@ type RowProps = {
   selectedIndex: number | null;
 };
 
-function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowProps) {
+function Row({
+  rowIndex,
+  primaryCell,
+  columns,
+  selectRow,
+  selectedIndex,
+}: RowProps) {
   return (
     <Box
       sx={{
@@ -35,19 +34,16 @@ function Row({ rowIndex, primaryCell, columns, selectRow, selectedIndex }: RowPr
         flexDirection: "row",
         borderBottom: "1px solid",
         borderColor: "#f0f0f0",
-        transition: 'background-color 300ms ease-in-out',
-        '&:hover': {
-          backgroundColor: 'canvas.inset',
-          borderColor: 'border.default',
-          cursor: 'pointer'
-        }
+        transition: "background-color 300ms ease-in-out",
+        "&:hover": {
+          backgroundColor: "canvas.inset",
+          borderColor: "border.default",
+          cursor: "pointer",
+        },
       }}
       onClick={() => selectRow(rowIndex)}
     >
-      <Cell
-        cell={primaryCell}
-        isSelected={selectedIndex === rowIndex}
-      />
+      <Cell cell={primaryCell} isSelected={selectedIndex === rowIndex} />
       {columns.map((column, colIndex) => (
         <Cell
           key={colIndex}
@@ -78,8 +74,13 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   );
 }
 
-
-function GroupHeader({ groupName, count }: { groupName: string, count: number }) {
+function GroupHeader({
+  groupName,
+  count,
+}: {
+  groupName: string;
+  count: number;
+}) {
   return (
     <Box
       sx={{
@@ -87,17 +88,19 @@ function GroupHeader({ groupName, count }: { groupName: string, count: number })
         fontSize: 1,
         p: 2,
         px: 3,
-        color: 'fg.muted',
+        color: "fg.muted",
         fontWeight: "bold",
         borderBottom: "1px solid",
         flex: 2,
         position: "sticky",
-        top: '49px',
+        top: "49px",
         zIndex: 1,
         borderColor: "border.default",
       }}
     >
-      <Text sx={{mr: 2}}>{count === 1 ? groupName : pluralize(groupName)}</Text>
+      <Text sx={{ mr: 2 }}>
+        {count === 1 ? groupName : pluralize(groupName)}
+      </Text>
       <CounterLabel>{count}</CounterLabel>
     </Box>
   );
@@ -106,49 +109,68 @@ function GroupHeader({ groupName, count }: { groupName: string, count: number })
 export default function GridTable() {
   const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
-  const { gridState, addNewColumn, selectRow, selectedIndex } = useGridContext();
+  const { gridState, addNewColumn, selectRow, selectedIndex } =
+    useGridContext();
 
   if (!gridState) {
     return null;
   }
 
-  const { columns, title, primaryColumn, primaryColumnType, groupBy } = gridState;
+  const { columns, title, primaryColumn, primaryColumnType, groupBy } =
+    gridState;
 
   const groupedRows = useMemo(() => {
     if (!groupBy) {
-      return [{ groupName: '', rows: primaryColumn.map((cell, index) => ({ cell, index })) }];
+      return [
+        {
+          groupName: "",
+          rows: primaryColumn.map((cell, index) => ({ cell, index })),
+        },
+      ];
     }
 
-    const groupColumn = columns.find(col => col.title === groupBy);
+    const groupColumn = columns.find((col) => col.title === groupBy);
     if (!groupColumn) {
-      return [{ groupName: '', rows: primaryColumn.map((cell, index) => ({ cell, index })) }];
+      return [
+        {
+          groupName: "",
+          rows: primaryColumn.map((cell, index) => ({ cell, index })),
+        },
+      ];
     }
 
-    const groups: { [key: string]: { cell: GridCell, index: number }[] } = {};
+    const groups: { [key: string]: { cell: GridCell; index: number }[] } = {};
 
     primaryColumn.forEach((cell, index) => {
       const groupCell = groupColumn.cells[index];
       let groupValues: string[] = [];
       switch (groupColumn.type) {
-        case 'single-select':
-          groupValues = [(groupCell.response as SingleSelectResponse).option];
+        case "single-select":
+          groupValues = [
+            (groupCell.response as ColumnResponse["single-select"]).option,
+          ];
           break;
-        case 'single-select-user':
-          groupValues = [(groupCell.response as SingleSelectUserResponse).user];
+        case "single-select-user":
+          groupValues = [
+            (groupCell.response as ColumnResponse["single-select-user"]).user,
+          ];
           break;
-        case 'multi-select':
-          groupValues = (groupCell.response as MultiSelectResponse).options;
+        case "multi-select":
+          groupValues = (groupCell.response as ColumnResponse["multi-select"])
+            .options;
           break;
-        case 'multi-select-user':
-          groupValues = (groupCell.response as MultiSelectUserResponse).users;
+        case "multi-select-user":
+          groupValues = (
+            groupCell.response as ColumnResponse["multi-select-user"]
+          ).users;
           break;
-        
+
         default:
-          groupValues = [''];
+          groupValues = [""];
           break;
       }
 
-      groupValues.forEach(groupValue => {
+      groupValues.forEach((groupValue) => {
         if (!groups[groupValue]) {
           groups[groupValue] = [];
         }
@@ -156,19 +178,27 @@ export default function GridTable() {
       });
     });
 
-    return Object.keys(groups).map(groupName => ({
+    return Object.keys(groups).map((groupName) => ({
       groupName,
-      rows: groups[groupName]
+      rows: groups[groupName],
     }));
   }, [groupBy, columns, primaryColumn]);
 
   return (
-    <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column", width: '100%'}}>
+    <Box
+      sx={{
+        flex: 1,
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+      }}
+    >
       <GridHeader
         title={title}
         setShowNewColumnForm={setShowNewColumnForm}
         count={primaryColumn.length}
-        />
+      />
       <Box
         sx={{
           display: "flex",
@@ -177,17 +207,24 @@ export default function GridTable() {
           gap: 2,
         }}
       >
-        <Panel sx={{ flex: 1, height: "100%", overflowX: 'scroll' }}>
-          <Box sx={{ minWidth: '100%', display: 'flex', flex: 1, flexDirection: 'column'}}>
+        <Panel sx={{ flex: 1, height: "100%", overflowX: "scroll" }}>
+          <Box
+            sx={{
+              minWidth: "100%",
+              display: "flex",
+              flex: 1,
+              flexDirection: "column",
+            }}
+          >
             <Box
               sx={{
                 display: "flex",
-                position: 'sticky',
+                position: "sticky",
                 top: 0,
                 flexDirection: "row",
                 borderBottom: "1px solid",
                 borderColor: "border.default",
-                background: 'canvas.default',
+                background: "canvas.default",
                 flex: 1,
                 zIndex: 1,
               }}
@@ -199,7 +236,12 @@ export default function GridTable() {
             </Box>
             {groupedRows.map((group, groupIndex) => (
               <Box key={groupIndex}>
-                {group.groupName && <GroupHeader groupName={group.groupName} count={group.rows.length} />}
+                {group.groupName && (
+                  <GroupHeader
+                    groupName={group.groupName}
+                    count={group.rows.length}
+                  />
+                )}
                 {group.rows.map(({ cell, index }) => (
                   <Row
                     key={index}

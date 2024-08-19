@@ -1,23 +1,26 @@
-import OpenAI from 'openai';
-import { BaseColumnType } from './BaseColumnType';
-import { GridCell, Option, SingleSelectCell, SingleSelectResponse } from '../actions';
-import { Box, Label, TextInput, IconButton } from '@primer/react';
-import { XIcon } from '@primer/octicons-react';
+import OpenAI from "openai";
+import { BaseColumnType } from "./BaseColumnType";
+import { GridCell, Option, ColumnResponse } from "../actions";
+import { Box, Label, TextInput, IconButton } from "@primer/react";
+import { XIcon } from "@primer/octicons-react";
 
 export function singleSelectSchema(
   options: Option[],
 ): OpenAI.ChatCompletionCreateParams["response_format"] {
-  const option = options && options.length ? {
-    type: "string",
-    description: 'The title of the option that you have selected',
-    enum: options.map((o) => o.title),
-  } : {
-    type: "string",
-    description: 'The title of the option that you have selected',
-  }
+  const option =
+    options && options.length
+      ? {
+          type: "string",
+          description: "The title of the option that you have selected",
+          enum: options.map((o) => o.title),
+        }
+      : {
+          type: "string",
+          description: "The title of the option that you have selected",
+        };
 
   console.log(options);
-  console.log(option)
+  console.log(option);
   return {
     type: "json_schema",
     json_schema: {
@@ -26,7 +29,7 @@ export function singleSelectSchema(
       schema: {
         type: "object",
         properties: {
-          option
+          option,
         },
         required: ["option"],
         additionalProperties: false,
@@ -35,9 +38,8 @@ export function singleSelectSchema(
   };
 }
 
-
-export const SingleSelectColumnType: BaseColumnType<SingleSelectResponse> = {
-  type: 'single-select',
+export const SingleSelectColumnType: BaseColumnType<"single-select"> = {
+  type: "single-select",
   formFields: ({ options, setOptions }) => (
     <Box>
       {options.map((option, index) => (
@@ -74,14 +76,18 @@ export const SingleSelectColumnType: BaseColumnType<SingleSelectResponse> = {
       ))}
     </Box>
   ),
-  renderCell: (cell: SingleSelectCell) => (
+  renderCell: (cell: GridCell<"single-select">) => (
     <Box>
       <Label>{cell.response.option}</Label>
     </Box>
   ),
-  generateResponseSchema: (options?: Option[]) => singleSelectSchema(options || []),
-  buildHydrationPrompt: (cell: GridCell) => 
+  generateResponseSchema: (options?: Option[]) =>
+    singleSelectSchema(options || []),
+  buildHydrationPrompt: (cell: GridCell<"single-select">) =>
     cell.options && cell.options.length > 0
-      ? 'Single select: Select a single option from the user-provided options below. Your selection should satisfy the provided cell data description.'
-      : 'Single select. The user provided no options to choose from, so you must define your own. Define an option that is not overly specific but satisfies the cell data descripton for this cell. Your selection will be used to group cells thematically',
+      ? "Single select: Select a single option from the user-provided options below. Your selection should satisfy the provided cell data description."
+      : "Single select. The user provided no options to choose from, so you must define your own. Define an option that is not overly specific but satisfies the cell data descripton for this cell. Your selection will be used to group cells thematically",
+  parseResponse: (responseContent: string): ColumnResponse["single-select"] => {
+    return JSON.parse(responseContent).options;
+  },
 };

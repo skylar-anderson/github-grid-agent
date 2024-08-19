@@ -7,8 +7,8 @@ import {
   FormControl,
   Select,
 } from "@primer/react";
-import { columnTypes } from '../columns';
-import type { Option } from '../actions';
+import { columnTypes } from "../columns";
+import type { Option } from "../actions";
 type ColumnType = "text" | "single-select" | "multi-select";
 
 type Props = {
@@ -103,7 +103,8 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
         <FormControl>
           <FormControl.Label>Options</FormControl.Label>
           <FormControl.Caption>
-            If options are not provided, then the model will choose its own. Make sure to add instructions to help increase accuracy.
+            If options are not provided, then the model will choose its own.
+            Make sure to add instructions to help increase accuracy.
           </FormControl.Caption>
           {selectedColumnType.formFields({ options, setOptions })}
         </FormControl>

@@ -1,8 +1,8 @@
-import { BaseColumnType } from '../columns/BaseColumnType';
+import { BaseColumnType } from "../columns/BaseColumnType";
 import React from "react";
 import { Spinner, Box } from "@primer/react";
-import type { GridCell, GridCellBase, ColumnResponse } from "../actions";
-import { columnTypes } from '../columns';
+import type { GridCell, ColumnType } from "../actions";
+import { columnTypes } from "../columns";
 
 type CellProps = {
   sx?: any;
@@ -69,6 +69,6 @@ export function GridCellContent({ cell }: { cell: GridCell }) {
     return <Spinner size="small" />;
   }
 
-  const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnResponse>;
-  return columnType.renderCell(cell as GridCellBase<ColumnResponse>);
+  const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnType>;
+  return columnType.renderCell(cell);
 }

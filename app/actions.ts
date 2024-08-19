@@ -2,8 +2,8 @@
 import OpenAI from "openai";
 import type { Tool } from "ai";
 import { runFunction, availableFunctions, FunctionName } from "./functions";
-import { columnTypes } from './columns';
-import { BaseColumnType } from './columns/BaseColumnType';
+import { columnTypes } from "./columns";
+import { BaseColumnType } from "./columns/BaseColumnType";
 const MAX_ROWS = 25;
 
 export type Option = {
@@ -13,22 +13,25 @@ export type Option = {
 
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done" | "error";
-export type ColumnType = "text" | "single-select" | "multi-select" | "single-select-user" | "multi-select-user";
 
-// Define specific response types for each column type
-export type TextResponse = string;
-export type SingleSelectResponse = { option: string };
-export type MultiSelectResponse = { options: string[] };
-export type SingleSelectUserResponse = { user: string };
-export type MultiSelectUserResponse = { users: string[] };
+export type ColumnType =
+  | "text"
+  | "single-select"
+  | "multi-select"
+  | "single-select-user"
+  | "multi-select-user";
 
-// Define a union type for all possible response types
-export type ColumnResponse = TextResponse | SingleSelectResponse | MultiSelectResponse | SingleSelectUserResponse | MultiSelectUserResponse;
+export type ColumnResponse = {
+  text: string;
+  "single-select": { option: string };
+  "multi-select": { options: string[] };
+  "single-select-user": { user: string };
+  "multi-select-user": { users: string[] };
+};
 
-// Define a generic GridCellBase type
-export type GridCellBase<T extends ColumnResponse> = {
-  columnType: ColumnType;
-  response: T;
+export type GridCell<T extends ColumnType = ColumnType> = {
+  columnType: T;
+  response: ColumnResponse[T];
   columnTitle: string;
   columnInstructions: string;
   context: any;
@@ -38,16 +41,6 @@ export type GridCellBase<T extends ColumnResponse> = {
   state: GridCellState;
   errorMessage?: string;
 };
-
-// Define specific cell types using the generic GridCellBase
-export type TextCell = GridCellBase<TextResponse>;
-export type SingleSelectCell = GridCellBase<SingleSelectResponse>;
-export type MultiSelectCell = GridCellBase<MultiSelectResponse>;
-export type SingleSelectUserCell = GridCellBase<SingleSelectUserResponse>;
-export type MultiSelectUserCell = GridCellBase<MultiSelectUserResponse>;
-
-// Define a union type for all possible cell types
-export type GridCell = TextCell | SingleSelectCell | MultiSelectCell | SingleSelectUserCell | MultiSelectUserCell;
 
 export type GridCol = {
   title: string;
@@ -90,7 +83,7 @@ function convertResultToPrimaryCell(result: any): GridCell {
     columnInstructions: "",
     columnTitle: result.type,
     hydrationSources: [],
-    response: result.value as TextResponse,
+    response: result.value as ColumnResponse["text"],
   };
 }
 
@@ -169,7 +162,8 @@ type HydrateResponse = {
   promise: Promise<GridCell>;
 };
 
-const optionString = (option:Option) => `-  ${option.title}: ${option.description}`;
+const optionString = (option: Option) =>
+  `-  ${option.title}: ${option.description}`;
 
 export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   const SYSTEM = `\
@@ -186,24 +180,24 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   Cells will have different format instructions based on the expected data type of the column. It's critical that you adhere to the format instructions.\
   `;
 
-  async function hydrate(): Promise<GridCell> {
+  async function hydrate<T extends ColumnType>(): Promise<GridCell<T>> {
     let hydrationSources: string[] = [];
-    const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnResponse>;
+    const columnType = columnTypes[
+      cell.columnType as ColumnType
+    ] as BaseColumnType<ColumnType>;
     const prompt: OpenAI.Chat.Completions.ChatCompletionUserMessageParam = {
       role: "user",
       content: `Context: ${JSON.stringify(cell.context)}
-      - Cell format instructions: ${columnType.buildHydrationPrompt(cell as GridCellBase<ColumnResponse>)}
+      - Cell format instructions: ${columnType.buildHydrationPrompt(cell as GridCell<T>)}
       - Cell data description (use this to determine relevant data for the cell): ${cell.columnTitle}
-      ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ''}
-      ${cell.options ? `User-provided options:\n${cell.options.map(optionString).join("\n")}` : 'No options provided'}`,
+      ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ""}
+      ${cell.options ? `User-provided options:\n${cell.options.map(optionString).join("\n")}` : "No options provided"}`,
     };
 
     let context: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: "system", content: SYSTEM },
-      prompt
+      prompt,
     ];
-    
-    let response_format = columnType.generateResponseSchema(cell.options);
 
     async function run() {
       const response = await openai.chat.completions.create({
@@ -212,7 +206,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         messages: context,
         tools,
         tool_choice: "auto",
-        response_format,
+        response_format: columnType.generateResponseSchema(cell.options),
       });
 
       const responseChoice = response.choices[0];
@@ -247,32 +241,17 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         ...cell,
         state: "error",
         errorMessage: "Empty response. Weird, huh?",
-      };
-    }
-
-    let response: ColumnResponse;
-    switch (cell.columnType) {
-      case "text":
-        response = responseContent;
-        break;
-      case "single-select":
-      case "multi-select":
-      case "single-select-user":
-      case "multi-select-user":
-        response = JSON.parse(responseContent);
-        break;
-      default:
-        throw new Error(`Unsupported column type: ${cell.columnType}`);
+      } as GridCell<T>;
     }
 
     return {
       ...cell,
       prompt: prompt.content as string,
-      response,
+      response: columnType.parseResponse(responseContent) as ColumnResponse[T],
       state: "done",
       hydrationSources,
       errorMessage: undefined,
-    } as GridCell; // Type assertion needed here
+    } as GridCell<T>;
   }
 
   // pause to prevent rate limiting
