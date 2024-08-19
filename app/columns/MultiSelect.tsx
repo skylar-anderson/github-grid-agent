@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { BaseColumnType } from './BaseColumnType';
 import { GridCell, Option, MultiSelectCell, MultiSelectResponse} from '../actions';
-import { Box, Label, TextInput, IconButton } from '@primer/react';
+import { Box, Label, TextInput, IconButton, Button } from '@primer/react';
 import { XIcon } from '@primer/octicons-react';
 
 export function multiSelectSchema(
@@ -74,6 +74,7 @@ export const MultiSelectColumnType: BaseColumnType<MultiSelectResponse> = {
           />
         </Box>
       ))}
+      <Button onClick={() => setOptions([...options, { title: "", description: "" }])}>Add option</Button>
     </Box>
   ),
   renderCell: (cell: MultiSelectCell) => (

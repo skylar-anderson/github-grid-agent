@@ -1,8 +1,8 @@
 import { TextColumnType } from './TextColumnType';
-import { SingleSelectColumnType } from './SingleSelectColumnType';
-import { MultiSelectColumnType } from './MultiSelectColumnType';
-import { SingleSelectUserColumnType } from './SingleSelectUserColumnType';
-import { MultiSelectUserColumnType } from './MultiSelectUserColumnType';
+import { SingleSelectColumnType } from './SingleSelect';
+import { MultiSelectColumnType } from './MultiSelect';
+import { SingleSelectUserColumnType } from './SingleSelectUser';
+import { MultiSelectUserColumnType } from './MultiSelectUser';
 
 export const columnTypes = {
   text: TextColumnType,

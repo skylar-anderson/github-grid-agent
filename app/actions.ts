@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import type { Tool } from "ai";
 import { runFunction, availableFunctions, FunctionName } from "./functions";
 import { columnTypes } from './columns';
+import { BaseColumnType } from './columns/BaseColumnType';
 const MAX_ROWS = 25;
 
 export type Option = {
@@ -187,13 +188,13 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
 
   async function hydrate(): Promise<GridCell> {
     let hydrationSources: string[] = [];
-    const columnType = columnTypes[cell.columnType];
-    const prompt:OpenAI.Chat.Completions.ChatCompletionUserMessageParam = {
+    const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnResponse>;
+    const prompt: OpenAI.Chat.Completions.ChatCompletionUserMessageParam = {
       role: "user",
       content: `Context: ${JSON.stringify(cell.context)}
-      - Cell format instructions: ${columnType.buildHydrationPrompt(cell)}
+      - Cell format instructions: ${columnType.buildHydrationPrompt(cell as GridCellBase<ColumnResponse>)}
       - Cell data description (use this to determine relevant data for the cell): ${cell.columnTitle}
-      ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ``}
+      ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ''}
       ${cell.options ? `User-provided options:\n${cell.options.map(optionString).join("\n")}` : 'No options provided'}`,
     };
 
@@ -202,7 +203,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
       prompt
     ];
     
-    let response_format = columnType.getResponseFormat(cell.options);
+    let response_format = columnType.generateResponseSchema(cell.options);
 
     async function run() {
       const response = await openai.chat.completions.create({

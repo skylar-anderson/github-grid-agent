@@ -1,8 +1,7 @@
+import { BaseColumnType } from '../columns/BaseColumnType';
 import React from "react";
-import { Avatar, Spinner, Box, Label } from "@primer/react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import type { GridCell } from "../actions";
+import { Spinner, Box } from "@primer/react";
+import type { GridCell, GridCellBase, ColumnResponse } from "../actions";
 import { columnTypes } from '../columns';
 
 type CellProps = {
@@ -62,17 +61,6 @@ export default function Cell({
   );
 }
 
-const avatarUrl = (handle: string, size:number=200) => `https://github.com/${handle}.png?size=${size}`;
-
-function User({handle}:{handle:string}) {
-  return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-      <Avatar src={avatarUrl(handle)} size={24} />
-      <Box sx={{fontWeight: 'semibold', color: 'fg.default'}}>{handle}</Box>
-    </Box>
-  );
-}
-
 export function GridCellContent({ cell }: { cell: GridCell }) {
   if (cell.state === "error") {
     return cell.errorMessage;
@@ -81,6 +69,6 @@ export function GridCellContent({ cell }: { cell: GridCell }) {
     return <Spinner size="small" />;
   }
 
-  const columnType = columnTypes[cell.columnType];
-  return columnType.renderCell(cell);
+  const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnResponse>;
+  return columnType.renderCell(cell as GridCellBase<ColumnResponse>);
 }

@@ -35,20 +35,6 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
 
   const selectedColumnType = columnTypes[type];
 
-  const addOption = () => {
-    setOptions([...options, { title: "", description: "" }]);
-  };
-
-  const updateOption = (index: number, field: keyof Option, value: string) => {
-    const newOptions = [...options];
-    newOptions[index][field] = value;
-    setOptions(newOptions);
-  };
-
-  const removeOption = (index: number) => {
-    setOptions(options.filter((_, i) => i !== index));
-  };
-
   function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newType = e.target.value as ColumnType;
     setType((currentType) => {
