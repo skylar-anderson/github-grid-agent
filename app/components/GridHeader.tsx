@@ -82,10 +82,8 @@ export function FilterBy() {
   }
 
   const filterableColumnTypes = [
-    "multi-select",
-    "single-select",
-    "single-select-user",
-    "multi-select-user",
+    "select",
+    "select-user"
   ];
   const filterableColumns = gridState.columns.filter((column) =>
     filterableColumnTypes.includes(column.type),
