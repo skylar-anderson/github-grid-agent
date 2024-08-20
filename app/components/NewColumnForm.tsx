@@ -1,22 +1,15 @@
 import React, { useState } from "react";
 import {
   Box,
-  IconButton,
   Button,
   TextInput,
   Textarea,
   FormControl,
   Select,
-  Label,
 } from "@primer/react";
-import { PlusIcon, XIcon } from "@primer/octicons-react";
+import { columnTypes } from "../columns";
+import type { Option } from "../actions";
 type ColumnType = "text" | "single-select" | "multi-select";
-
-type Option = {
-  title: string;
-  description: string;
-  color?: string;
-};
 
 type Props = {
   addNewColumn: ({
@@ -40,19 +33,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   const [options, setOptions] = useState<Option[]>([]);
   const [message, setMessage] = useState<string>(errorMessage || "");
 
-  const addOption = () => {
-    setOptions([...options, { title: "", description: "", color: "" }]);
-  };
-
-  const updateOption = (index: number, field: keyof Option, value: string) => {
-    const newOptions = [...options];
-    newOptions[index][field] = value;
-    setOptions(newOptions);
-  };
-
-  const removeOption = (index: number) => {
-    setOptions(options.filter((_, i) => i !== index));
-  };
+  const selectedColumnType = columnTypes[type];
 
   function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newType = e.target.value as ColumnType;
@@ -118,37 +99,15 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
         </Select>
       </FormControl>
 
-      {(type === "single-select" || type === "multi-select") && (
-        <Box>
+      {selectedColumnType.formFields && (
+        <FormControl>
           <FormControl.Label>Options</FormControl.Label>
-          <FormControl.Caption>If options are not provided, then the model will chose it's own. Make sure to add instructions to help increase accuracy.</FormControl.Caption>
-          <Box sx={{ mt: 1 }}>
-            {options.map((option, index) => (
-              <Box key={index} sx={{ display: "flex", gap: 2, mb: 2 }}>
-                <TextInput
-                  sx={{ flex: 1 }}
-                  placeholder="Option"
-                  value={option.title}
-                  onChange={(e) => updateOption(index, "title", e.target.value)}
-                />
-                <TextInput
-                  sx={{ flex: 1 }}
-                  placeholder="Description"
-                  value={option.description}
-                  onChange={(e) =>
-                    updateOption(index, "description", e.target.value)
-                  }
-                />
-                <IconButton
-                  aria-labelledby="Remove icon"
-                  icon={XIcon}
-                  onClick={() => removeOption(index)}
-                />
-              </Box>
-            ))}
-            <Button onClick={addOption}>Add</Button>
-          </Box>
-        </Box>
+          <FormControl.Caption>
+            If options are not provided, then the model will choose its own.
+            Make sure to add instructions to help increase accuracy.
+          </FormControl.Caption>
+          {selectedColumnType.formFields({ options, setOptions })}
+        </FormControl>
       )}
 
       <FormControl>

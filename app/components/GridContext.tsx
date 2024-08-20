@@ -1,4 +1,10 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
 import {
   SuccessfulPrimaryColumnResponse,
   ErrorResponse,
@@ -21,8 +27,11 @@ type GridContextType = {
   inititializeGrid: (s: string) => Promise<void>;
   selectedIndex: number | null;
   deleteColumnByIndex: (index: number) => void;
-  setGroupBy: (columnTitle:string|undefined) => void;
-  setFilterBy: (columnTitle:string|undefined, filterValue:string|undefined) => void;
+  setGroupBy: (columnTitle: string | undefined) => void;
+  setFilterBy: (
+    columnTitle: string | undefined,
+    filterValue: string | undefined,
+  ) => void;
 };
 
 type NewColumnProps = {
@@ -55,14 +64,16 @@ export const GridProvider = ({
   hydrateCell,
   children,
 }: ProviderProps) => {
-
-  const [gridState, setGridState] = useLocalStorage<GridState | null>("gridState", null);
+  const [gridState, setGridState] = useLocalStorage<GridState | null>(
+    "gridState",
+    null,
+  );
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     // Optionally, you can add an effect to save the state to localStorage whenever it changes
     if (gridState) {
-      localStorage.setItem('gridState', JSON.stringify(gridState));
+      localStorage.setItem("gridState", JSON.stringify(gridState));
     }
   }, [gridState]);
 
@@ -145,19 +156,22 @@ export const GridProvider = ({
     });
   };
 
-  const setGroupBy = (columnTitle:string|undefined) => {
+  const setGroupBy = (columnTitle: string | undefined) => {
     setGridState((prevState) => {
       if (prevState === null) {
         return null;
       }
       return {
         ...prevState,
-        groupBy: columnTitle
+        groupBy: columnTitle,
       };
-    })
-  }
+    });
+  };
 
-  const setFilterBy = (columnTitle:string|undefined, filterValue:string|undefined) => {
+  const setFilterBy = (
+    columnTitle: string | undefined,
+    filterValue: string | undefined,
+  ) => {
     setGridState((prevState) => {
       if (prevState === null) {
         return null;
@@ -166,11 +180,11 @@ export const GridProvider = ({
         ...prevState,
         filterBy: {
           columnTitle,
-          filterValue
-        }
+          filterValue,
+        },
       };
-    })
-  }
+    });
+  };
 
   const updateCellState = (
     columnTitle: string,

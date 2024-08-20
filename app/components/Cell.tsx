@@ -1,8 +1,8 @@
+import { BaseColumnType } from "../columns/BaseColumnType";
 import React from "react";
-import { Avatar, Spinner, Box, Label } from "@primer/react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import type { GridCell } from "../actions";
+import { Spinner, Box } from "@primer/react";
+import type { GridCell, ColumnType } from "../actions";
+import { columnTypes } from "../columns";
 
 type CellProps = {
   sx?: any;
@@ -61,17 +61,6 @@ export default function Cell({
   );
 }
 
-const avatarUrl = (handle: string, size:number=200) => `https://github.com/${handle}.png?size=${size}`;
-
-function User({handle}:{handle:string}) {
-  return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-      <Avatar src={avatarUrl(handle)} size={24} />
-      <Box sx={{fontWeight: 'semibold', color: 'fg.default'}}>{handle}</Box>
-    </Box>
-  );
-}
-
 export function GridCellContent({ cell }: { cell: GridCell }) {
   if (cell.state === "error") {
     return cell.errorMessage;
@@ -80,54 +69,6 @@ export function GridCellContent({ cell }: { cell: GridCell }) {
     return <Spinner size="small" />;
   }
 
-  switch (cell.columnType) {
-    case "text":
-      return (
-        <Markdown remarkPlugins={[remarkGfm]} className="markdownContainer">
-          {cell.response as string}
-        </Markdown>
-      );
-
-    case "single-select":
-      console.log(cell.response)
-      return (
-        <Box>
-          <Label>{cell.response.option}</Label>
-        </Box>
-      );
-
-    case "single-select-user":
-      return cell.response.user === 'no-user' ? (
-        <>No user selected</>
-      ) : (
-        <User handle={cell.response.user} />
-      );
-
-    case "multi-select-user":
-      return (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {cell.response.users.length > 0 ? (
-            <>
-              {cell.response.users.map((handle: string, index: number) => (
-                <User handle={handle} key={index} />
-              ))}
-            </>
-          ) : (
-            <>No user selected</>
-          )}
-        </Box>
-      );
-
-    case "multi-select":
-      return (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {cell.response.options.map((option: string, index: number) => (
-            <Label key={index}>{option}</Label>
-          ))}
-        </Box>
-      );
-
-    default:
-      return null;
-  }
+  const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnType>;
+  return columnType.renderCell(cell);
 }
