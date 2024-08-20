@@ -10,7 +10,6 @@ import { Box } from "@primer/react";
 import React, { useEffect } from "react";
 import GridTable from "./GridTable";
 import GridIntroForm from "./GridIntroForm";
-import { getUrlParam } from "../utils/url-params";
 
 import "./Grid.css";
 
@@ -28,17 +27,12 @@ function GridContent({ initialGridId }: { initialGridId?: string }) {
   useEffect(() => {
     if (initialGridId) {
       setCurrentGridId(initialGridId);
-    } else {
-      const gridId = getUrlParam('gridId');
-      if (gridId) {
-        setCurrentGridId(gridId);
-      }
     }
   }, [setCurrentGridId, initialGridId]);
 
   return (
     <div className="grid-app">
-      {gridState ? (
+      {gridState || initialGridId ? (
         <Box
           sx={{
             display: "flex",
