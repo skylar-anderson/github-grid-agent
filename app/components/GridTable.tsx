@@ -145,26 +145,14 @@ export default function GridTable() {
       const groupCell = groupColumn.cells[index];
       let groupValues: string[] = [];
       switch (groupColumn.type) {
-        case "single-select":
-          groupValues = [
-            (groupCell.response as ColumnResponse["single-select"]).option,
-          ];
+        case "select":
+          const optionRes = groupCell.response as ColumnResponse["select"];
+          groupValues = 'options' in optionRes ? optionRes.options : [optionRes.option];
           break;
-        case "single-select-user":
-          groupValues = [
-            (groupCell.response as ColumnResponse["single-select-user"]).user,
-          ];
+        case "select-user":
+          const userRes = groupCell.response as ColumnResponse["select-user"];
+          groupValues = 'users' in userRes ? userRes.users : [userRes.user];
           break;
-        case "multi-select":
-          groupValues = (groupCell.response as ColumnResponse["multi-select"])
-            .options;
-          break;
-        case "multi-select-user":
-          groupValues = (
-            groupCell.response as ColumnResponse["multi-select-user"]
-          ).users;
-          break;
-
         default:
           groupValues = [""];
           break;
@@ -267,8 +255,8 @@ export default function GridTable() {
       {showNewColumnForm ? (
         <Dialog title="Add new column" position="right" onClose={onDialogClose}>
           <NewColumnForm
-            addNewColumn={({ title, instructions, type, options }) => {
-              addNewColumn({ title, instructions, type, options });
+            addNewColumn={({ title, instructions, type, options, multiple }) => {
+              addNewColumn({ title, instructions, type, options, multiple });
               setShowNewColumnForm(false);
               return;
             }}

@@ -14,19 +14,12 @@ export type Option = {
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done" | "error";
 
-export type ColumnType =
-  | "text"
-  | "single-select"
-  | "multi-select"
-  | "single-select-user"
-  | "multi-select-user";
+export type ColumnType = "text" | "select" | "select-user";
 
 export type ColumnResponse = {
   text: string;
-  "single-select": { option: string };
-  "multi-select": { options: string[] };
-  "single-select-user": { user: string };
-  "multi-select-user": { users: string[] };
+  select: { option: string } | { options: string[] };
+  "select-user": { user: string } | { users: string[] };
 };
 
 export type GridCell<T extends ColumnType = ColumnType> = {
@@ -40,6 +33,7 @@ export type GridCell<T extends ColumnType = ColumnType> = {
   prompt?: string;
   state: GridCellState;
   errorMessage?: string;
+  multiple?: boolean;
 };
 
 export type GridCol = {
@@ -48,6 +42,7 @@ export type GridCol = {
   type: ColumnType;
   options?: Option[];
   cells: GridCell[];
+  multiple?: boolean;
 };
 
 export type GridState = {
@@ -206,7 +201,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         messages: context,
         tools,
         tool_choice: "auto",
-        response_format: columnType.generateResponseSchema(cell.options),
+        response_format: columnType.generateResponseSchema(cell.options, cell.multiple),
       });
 
       const responseChoice = response.choices[0];
@@ -247,7 +242,7 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     return {
       ...cell,
       prompt: prompt.content as string,
-      response: columnType.parseResponse(responseContent) as ColumnResponse[T],
+      response: columnType.parseResponse(responseContent, cell.multiple) as ColumnResponse[T],
       state: "done",
       hydrationSources,
       errorMessage: undefined,

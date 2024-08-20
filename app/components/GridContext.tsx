@@ -39,6 +39,7 @@ type NewColumnProps = {
   instructions: string;
   type: ColumnType;
   options: Option[];
+  multiple?: boolean;
 };
 
 const GridContext = createContext<GridContextType | undefined>(undefined);
@@ -99,6 +100,7 @@ export const GridProvider = ({
     instructions,
     type,
     options,
+    multiple,
   }: NewColumnProps) {
     if (!gridState) {
       alert("Can't add column without grid state!");
@@ -110,6 +112,7 @@ export const GridProvider = ({
       type,
       options,
       instructions,
+      multiple,
       cells: gridState.primaryColumn.map((primaryCell) => {
         const staticValue = primaryCell.context[title];
         const emptyCellState: GridCell = {
@@ -117,6 +120,7 @@ export const GridProvider = ({
           columnTitle: title,
           columnType: type,
           options,
+          multiple,
           response: staticValue,
           columnInstructions: instructions,
           context: primaryCell.context,

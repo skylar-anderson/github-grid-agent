@@ -6,10 +6,10 @@ import {
   Textarea,
   FormControl,
   Select,
+  Checkbox,
 } from "@primer/react";
 import { columnTypes } from "../columns";
-import type { Option } from "../actions";
-type ColumnType = "text" | "single-select" | "multi-select";
+import type { Option, ColumnType } from "../actions";
 
 type Props = {
   addNewColumn: ({
@@ -17,11 +17,13 @@ type Props = {
     instructions,
     type,
     options,
+    multiple,
   }: {
     title: string;
     instructions: string;
     type: ColumnType;
     options: Option[];
+    multiple: boolean;
   }) => void;
   errorMessage?: string;
 };
@@ -31,6 +33,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   const [instructions, setInstructions] = useState<string>("");
   const [type, setType] = useState<ColumnType>("text");
   const [options, setOptions] = useState<Option[]>([]);
+  const [multiple, setMultiple] = useState<boolean>(false);
   const [message, setMessage] = useState<string>(errorMessage || "");
 
   const selectedColumnType = columnTypes[type];
@@ -38,15 +41,9 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newType = e.target.value as ColumnType;
     setType((currentType) => {
-      if (
-        currentType === "text" &&
-        (newType === "single-select" || newType === "multi-select")
-      ) {
+      if (currentType === "text" && (newType === "select" || newType === "select-user")) {
         setOptions([{ title: "", description: "" }]);
-      } else if (
-        (currentType === "single-select" || currentType === "multi-select") &&
-        newType === "text"
-      ) {
+      } else if ((currentType === "select" || currentType === "select-user") && newType === "text") {
         setOptions([]);
       }
       return newType;
@@ -63,11 +60,12 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
     }
 
     let filteredOptions = options.filter((option) => option.title !== "");
-    addNewColumn({ title, instructions, type, options: filteredOptions });
+    addNewColumn({ title, instructions, type, options: filteredOptions, multiple });
     setTitle("");
     setInstructions("");
     setType("text");
     setOptions([]);
+    setMultiple(false);
   }
 
   return (
@@ -92,12 +90,20 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
         <FormControl.Label>Type</FormControl.Label>
         <Select value={type} onChange={handleTypeChange}>
           <Select.Option value="text">Text</Select.Option>
-          <Select.Option value="single-select">Single-select</Select.Option>
-          <Select.Option value="multi-select">Multi-select</Select.Option>
-          <Select.Option value="single-select-user">User</Select.Option>
-          <Select.Option value="multi-select-user">User list</Select.Option>
+          <Select.Option value="select">Select</Select.Option>
+          <Select.Option value="select-user">User</Select.Option>
         </Select>
       </FormControl>
+
+      {(type === "select" || type === "select-user") && (
+        <FormControl>
+          <Checkbox
+            checked={multiple}
+            onChange={(e) => setMultiple(e.target.checked)}
+          />
+          <FormControl.Label>Allow multiple</FormControl.Label>
+        </FormControl>
+      )}
 
       {selectedColumnType.formFields && (
         <FormControl>
