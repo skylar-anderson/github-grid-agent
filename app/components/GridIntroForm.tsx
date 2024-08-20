@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Button, Box, Spinner, TextInput } from "@primer/react";
+import { useState, useEffect } from "react";
+import { Button, Box, Spinner, TextInput, Link } from "@primer/react";
 import "./Grid.css";
 import { useGridContext } from "./GridContext";
+import { useRouter } from 'next/navigation';
+import NextLink from 'next/link';
 
 function GridLoading() {
   return (
@@ -43,7 +45,19 @@ export default function CreateIntroForm() {
   const [state, setState] = useState<"empty" | "loading" | "done">("empty");
   const [inputValue, setInputValue] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const { inititializeGrid } = useGridContext();
+  const { inititializeGrid, getAllGrids, setCurrentGridId, deleteGrid } = useGridContext();
+  const router = useRouter();
+
+  const existingGrids = getAllGrids();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const gridId = searchParams.get('gridId');
+    if (gridId) {
+      setCurrentGridId(gridId);
+      setState("done");
+    }
+  }, [setCurrentGridId]);
 
   if (state === "loading") {
     return <GridLoading />;
@@ -56,11 +70,13 @@ export default function CreateIntroForm() {
     }
     setState("loading");
     try {
-      const response = await inititializeGrid(inputValue);
+      const newGridId = await inititializeGrid(inputValue);
+      setState("done");
+      router.push(`/grid/${newGridId}`);
     } catch (e: any) {
       setErrorMessage(e.message);
+      setState("empty");
     }
-    setState("done");
   }
 
   const suggestions = [
@@ -104,6 +120,22 @@ export default function CreateIntroForm() {
             Source
           </a>
         </Box>
+
+        {existingGrids.length > 0 && (
+          <Box sx={{ mb: 4 }}>
+            <Box as="h2" sx={{ fontSize: 3, mb: 2 }}>Existing Grids</Box>
+            {existingGrids.map(grid => (
+              <Box key={grid.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <NextLink href={`/grid/${grid.id}`} passHref legacyBehavior>
+                  <Link>{grid.title}</Link>
+                </NextLink>
+                <Button variant="danger" onClick={() => deleteGrid(grid.id)}>Delete</Button>
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        <Box as="h2" sx={{ fontSize: 3, mb: 2 }}>Create a New Grid</Box>
 
         <Box>
           <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
