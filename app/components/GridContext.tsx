@@ -90,7 +90,8 @@ export const GridProvider = ({
   const getAllGrids = useCallback(() => {
     return Object.entries(grids).map(([id, grid]) => ({
       id,
-      title: grid.title
+      title: grid.title,
+      columns: grid.columns,
     }));
   }, [grids]);
 

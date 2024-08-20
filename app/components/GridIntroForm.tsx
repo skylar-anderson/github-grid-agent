@@ -152,7 +152,6 @@ export default function CreateIntroForm() {
                   alignItems: "center",
                   color: "fg.muted",
                   "&:hover": {
-                    //backgroundColor: 'canvas.inset',
                     cursor: "pointer",
                     border: "1px solid",
                     borderColor: "border.default",
