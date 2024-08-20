@@ -27,10 +27,8 @@ export function GroupBy() {
   }
   const { groupBy } = gridState;
   const groupableColumnTypes = [
-    "multi-select",
-    "single-select",
-    "single-select-user",
-    "multi-select-user",
+    "select",
+    "select-user"
   ];
   const groupableColumns = gridState.columns.filter((column) =>
     groupableColumnTypes.includes(column.type),

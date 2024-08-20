@@ -1,15 +1,11 @@
 import { TextColumnType } from "./TextColumnType";
-import { SingleSelectColumnType } from "./SingleSelect";
-import { MultiSelectColumnType } from "./MultiSelect";
-import { SingleSelectUserColumnType } from "./SingleSelectUser";
-import { MultiSelectUserColumnType } from "./MultiSelectUser";
+import { SelectColumnType } from "./Select";
+import { SelectUserColumnType } from "./SelectUser";
 
 export const columnTypes = {
   text: TextColumnType,
-  "single-select": SingleSelectColumnType,
-  "multi-select": MultiSelectColumnType,
-  "single-select-user": SingleSelectUserColumnType,
-  "multi-select-user": MultiSelectUserColumnType,
+  select: SelectColumnType,
+  "select-user": SelectUserColumnType,
 };
 
 export type ColumnType = keyof typeof columnTypes;
