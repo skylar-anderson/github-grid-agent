@@ -140,11 +140,12 @@ export default function GridTable() {
       switch (groupColumn.type) {
         case "select":
           const optionRes = groupCell.response as ColumnResponse["select"];
-          groupValues = 'options' in optionRes ? optionRes.options : [optionRes.option];
+          groupValues =
+            "options" in optionRes ? optionRes.options : [optionRes.option];
           break;
         case "select-user":
           const userRes = groupCell.response as ColumnResponse["select-user"];
-          groupValues = 'users' in userRes ? userRes.users : [userRes.user];
+          groupValues = "users" in userRes ? userRes.users : [userRes.user];
           break;
         default:
           groupValues = [""];
@@ -254,7 +255,13 @@ export default function GridTable() {
       {showNewColumnForm ? (
         <Dialog title="Add new column" position="right" onClose={onDialogClose}>
           <NewColumnForm
-            addNewColumn={({ title, instructions, type, options, multiple }) => {
+            addNewColumn={({
+              title,
+              instructions,
+              type,
+              options,
+              multiple,
+            }) => {
               addNewColumn({ title, instructions, type, options, multiple });
               setShowNewColumnForm(false);
               return;

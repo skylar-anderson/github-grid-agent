@@ -24,21 +24,44 @@ export async function githubApiRequest<T>(
   return response as T;
 }
 
-export async function searchIssues<T>(q: string, page: number = 1): Promise<T> {
+export async function searchIssues<T>(
+  q: string,
+  autopaginate = false,
+  page = 1,
+): Promise<T> {
   if (!auth) {
     throw new Error("GitHub PAT Not set!");
   }
 
-  const response = await octokit.rest.search.issuesAndPullRequests({
-    q,
-    page,
-    per_page: 50,
-  });
+  const allResults = [];
+  const perPage = 100; // Maximum allowed by GitHub API
 
-  if (!response) {
-    throw new Error("Failed to load commits");
-  }
-  return response as T;
+  do {
+    const response = await octokit.rest.search.issuesAndPullRequests({
+      q,
+      page,
+      per_page: perPage,
+    });
+
+    if (!response) {
+      throw new Error("Failed to load issues and pull requests");
+    }
+
+    allResults.push(...response.data.items);
+
+    if (!autopaginate || response.data.items.length < perPage) {
+      break; // Stop if autopaginate is false or no more pages to fetch
+    }
+
+    page++;
+  } while (true);
+
+  return {
+    data: {
+      items: allResults,
+      total_count: allResults.length,
+    },
+  } as T;
 }
 
 export async function retrieveDiffContents(url: string): Promise<string> {

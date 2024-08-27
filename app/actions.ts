@@ -4,7 +4,7 @@ import type { Tool } from "ai";
 import { runFunction, availableFunctions, FunctionName } from "./functions";
 import { columnTypes } from "./columns";
 import { BaseColumnType } from "./columns/BaseColumnType";
-const MAX_ROWS = 25;
+const MAX_ROWS = 1000;
 
 export type Option = {
   title: string;
@@ -132,7 +132,6 @@ export async function createPrimaryColumn(
   if (responseMessage?.tool_calls?.length) {
     const toolCall = responseMessage.tool_calls[0];
     const args = JSON.parse(toolCall.function.arguments);
-
     const toolResult = await runFunction(toolCall.function.name, args);
     let column = (Array.isArray(toolResult) ? toolResult : [toolResult])
       .map(convertResultToPrimaryCell)
@@ -201,7 +200,10 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         messages: context,
         tools,
         tool_choice: "auto",
-        response_format: columnType.generateResponseSchema(cell.options, cell.multiple),
+        response_format: columnType.generateResponseSchema(
+          cell.options,
+          cell.multiple,
+        ),
       });
 
       const responseChoice = response.choices[0];
@@ -242,7 +244,10 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     return {
       ...cell,
       prompt: prompt.content as string,
-      response: columnType.parseResponse(responseContent, cell.multiple) as ColumnResponse[T],
+      response: columnType.parseResponse(
+        responseContent,
+        cell.multiple,
+      ) as ColumnResponse[T],
       state: "done",
       hydrationSources,
       errorMessage: undefined,

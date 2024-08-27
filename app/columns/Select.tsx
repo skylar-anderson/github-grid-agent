@@ -6,38 +6,39 @@ import { XIcon } from "@primer/octicons-react";
 
 export function selectSchema(
   options: Option[],
-  multiple: boolean
+  multiple: boolean,
 ): OpenAI.ChatCompletionCreateParams["response_format"] {
-  const optionsObj = options && options.length
-    ? {
-        type: multiple ? "array" : "string",
-        description: multiple
-          ? 'Select the options that you would like to include in the response. If no options are relevant, select "N/A"'
-          : "Select a single option that best fits the response",
-        ...(multiple
-          ? {
-              items: {
-                type: "string",
-                enum: ["N/A", ...options.map((o) => o.title)],
-              },
-            }
-          : {
-              enum: options.map((o) => o.title),
-            }),
-      }
-    : {
-        type: multiple ? "array" : "string",
-        description: multiple
-          ? "Define a list of options that you would like to include in the response"
-          : "Define a single option that best fits the response",
-        ...(multiple
-          ? {
-              items: {
-                type: "string",
-              },
-            }
-          : {}),
-      };
+  const optionsObj =
+    options && options.length
+      ? {
+          type: multiple ? "array" : "string",
+          description: multiple
+            ? 'Select the options that you would like to include in the response. If no options are relevant, select "N/A"'
+            : "Select a single option that best fits the response",
+          ...(multiple
+            ? {
+                items: {
+                  type: "string",
+                  enum: ["N/A", ...options.map((o) => o.title)],
+                },
+              }
+            : {
+                enum: options.map((o) => o.title),
+              }),
+        }
+      : {
+          type: multiple ? "array" : "string",
+          description: multiple
+            ? "Define a list of options that you would like to include in the response"
+            : "Define a single option that best fits the response",
+          ...(multiple
+            ? {
+                items: {
+                  type: "string",
+                },
+              }
+            : {}),
+        };
 
   return {
     type: "json_schema",
@@ -61,7 +62,7 @@ export const SelectColumnType: BaseColumnType<"select"> = {
   formFields: ({ options, setOptions }) => (
     <>
       {options.map((option, index) => (
-        <Box key={index} sx={{ display: "flex", width: '100%', gap: 2, mb: 2 }}>
+        <Box key={index} sx={{ display: "flex", width: "100%", gap: 2, mb: 2 }}>
           <TextInput
             sx={{ flex: 1 }}
             placeholder="Option"
@@ -101,12 +102,13 @@ export const SelectColumnType: BaseColumnType<"select"> = {
   ),
   renderCell: (cell: GridCell<"select">) => (
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-      {'options' in cell.response
-        ? cell.response.options.map((option: string, index: number) => (
-            <Label key={index}>{option}</Label>
-          ))
-        : <Label>{cell.response.option}</Label>
-      }
+      {"options" in cell.response ? (
+        cell.response.options.map((option: string, index: number) => (
+          <Label key={index}>{option}</Label>
+        ))
+      ) : (
+        <Label>{cell.response.option}</Label>
+      )}
     </Box>
   ),
   generateResponseSchema: (options?: Option[], multiple?: boolean) =>
@@ -115,7 +117,10 @@ export const SelectColumnType: BaseColumnType<"select"> = {
     cell.options && cell.options.length > 0
       ? `${cell.multiple ? "Multi" : "Single"} select: Select ${cell.multiple ? "one or more options" : "a single option"} from the user-provided options below. Your selection should satisfy the provided cell data description.`
       : `${cell.multiple ? "Multi" : "Single"} select. The user provided no options to choose from, so you must define your own. Define ${cell.multiple ? "one or more options" : "an option"} that are not overly specific but satisfy the cell data descripton for this cell. Your selection will be used to group cells thematically`,
-  parseResponse: (responseContent: string, multiple?: boolean): ColumnResponse["select"] => {
+  parseResponse: (
+    responseContent: string,
+    multiple?: boolean,
+  ): ColumnResponse["select"] => {
     const parsed = JSON.parse(responseContent);
     return multiple ? { options: parsed.options } : { option: parsed.option };
   },

@@ -14,8 +14,11 @@ export interface BaseColumnType<T extends ColumnType> {
   renderCell: (cell: GridCell<T>) => ReactNode;
   generateResponseSchema: (
     options?: Option[],
-    multiple?: boolean
+    multiple?: boolean,
   ) => OpenAI.ChatCompletionCreateParams["response_format"] | undefined;
   buildHydrationPrompt: (cell: GridCell<T>) => string;
-  parseResponse: (responseContent: string, multiple?: boolean) => ColumnResponse[T];
+  parseResponse: (
+    responseContent: string,
+    multiple?: boolean,
+  ) => ColumnResponse[T];
 }

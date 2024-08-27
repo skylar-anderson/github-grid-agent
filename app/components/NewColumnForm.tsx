@@ -41,9 +41,15 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newType = e.target.value as ColumnType;
     setType((currentType) => {
-      if (currentType === "text" && (newType === "select" || newType === "select-user")) {
+      if (
+        currentType === "text" &&
+        (newType === "select" || newType === "select-user")
+      ) {
         setOptions([{ title: "", description: "" }]);
-      } else if ((currentType === "select" || currentType === "select-user") && newType === "text") {
+      } else if (
+        (currentType === "select" || currentType === "select-user") &&
+        newType === "text"
+      ) {
         setOptions([]);
       }
       return newType;
@@ -60,7 +66,13 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
     }
 
     let filteredOptions = options.filter((option) => option.title !== "");
-    addNewColumn({ title, instructions, type, options: filteredOptions, multiple });
+    addNewColumn({
+      title,
+      instructions,
+      type,
+      options: filteredOptions,
+      multiple,
+    });
     setTitle("");
     setInstructions("");
     setType("text");

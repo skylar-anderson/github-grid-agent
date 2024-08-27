@@ -45,9 +45,9 @@ type ListIssuesResponse = Endpoints[typeof ENDPOINT]["response"];
 async function run(
   is: "issue" | "pull-request" = "issue",
   repository: string,
-  page: number = 1,
   assignee: string,
   state: State = "open",
+  page?: number,
   label?: string,
 ) {
   const [owner, repo] = repository.split("/");
@@ -65,7 +65,8 @@ async function run(
 
     const issues = await searchIssues<ListIssuesResponse>(
       filters.join(" "),
-      page,
+      page ? false : true,
+      page ? page : undefined,
     );
 
     return issues.data.items.map((data) => ({

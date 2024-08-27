@@ -11,7 +11,7 @@ import {
 import { ArrowLeftIcon } from "@primer/octicons-react";
 import { SearchIcon } from "@primer/octicons-react";
 import { useGridContext } from "./GridContext";
-import NextLink from 'next/link';
+import NextLink from "next/link";
 
 export function Search() {
   return (
@@ -29,10 +29,7 @@ export function GroupBy() {
     return null;
   }
   const { groupBy } = gridState;
-  const groupableColumnTypes = [
-    "select",
-    "select-user"
-  ];
+  const groupableColumnTypes = ["select", "select-user"];
   const groupableColumns = gridState.columns.filter((column) =>
     groupableColumnTypes.includes(column.type),
   );
@@ -84,10 +81,7 @@ export function FilterBy() {
     return null;
   }
 
-  const filterableColumnTypes = [
-    "select",
-    "select-user"
-  ];
+  const filterableColumnTypes = ["select", "select-user"];
   const filterableColumns = gridState.columns.filter((column) =>
     filterableColumnTypes.includes(column.type),
   );
@@ -145,21 +139,21 @@ export function GridHeader({
         <NextLink href={`/`} passHref>
           <Box
             sx={{
-              cursor: 'pointer',
-              height: '28px',
-              width: '28px',
+              cursor: "pointer",
+              height: "28px",
+              width: "28px",
               color: "fg.muted",
               fontWeight: "semibold",
-              backgroundColor: 'transparent', 
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              backgroundColor: "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               borderRadius: 2,
-              '&:hover': {
+              "&:hover": {
                 backgroundColor: "#e0e0e0",
-                color: 'fg.default',
-                cursor: 'pointer'
-              }
+                color: "fg.default",
+                cursor: "pointer",
+              },
             }}
           >
             <ArrowLeftIcon />
@@ -169,7 +163,7 @@ export function GridHeader({
         <Box>
           <Box
             sx={{
-              display: 'inline-block',
+              display: "inline-block",
               fontSize: 2,
               color: "fg.default",
             }}

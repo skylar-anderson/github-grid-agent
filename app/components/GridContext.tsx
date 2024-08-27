@@ -14,7 +14,7 @@ import {
 } from "../actions";
 import type { ColumnType, GridCol, Option } from "../actions";
 import useLocalStorage from "../utils/local-storage";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export type Grid = {
   id: string;
@@ -22,7 +22,7 @@ export type Grid = {
   rowCount: number;
   columnCount: number;
   createdAt: Date;
-}
+};
 
 type GridContextType = {
   gridState: GridState | null;
@@ -79,18 +79,24 @@ export const GridProvider = ({
   hydrateCell,
   children,
 }: ProviderProps) => {
-  const [grids, setGrids] = useLocalStorage<Record<string, GridState>>("grids", {});
+  const [grids, setGrids] = useLocalStorage<Record<string, GridState>>(
+    "grids",
+    {},
+  );
   const [currentGridId, setCurrentGridId] = useState<string | null>(null);
 
   const gridState = currentGridId ? grids[currentGridId] : null;
 
-  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = (newState) => {
+  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = (
+    newState,
+  ) => {
     if (currentGridId) {
-      setGrids(prevGrids => ({
+      setGrids((prevGrids) => ({
         ...prevGrids,
-        [currentGridId]: typeof newState === 'function' 
-          ? newState(prevGrids[currentGridId]) ?? prevGrids[currentGridId]
-          : newState ?? prevGrids[currentGridId]
+        [currentGridId]:
+          typeof newState === "function"
+            ? (newState(prevGrids[currentGridId]) ?? prevGrids[currentGridId])
+            : (newState ?? prevGrids[currentGridId]),
       }));
     }
   };
@@ -105,15 +111,18 @@ export const GridProvider = ({
     }));
   }, [grids]);
 
-  const deleteGrid = useCallback((id: string) => {
-    setGrids(prevGrids => {
-      const { [id]: _, ...rest } = prevGrids;
-      return rest;
-    });
-    if (currentGridId === id) {
-      setCurrentGridId(null);
-    }
-  }, [setGrids, currentGridId]);
+  const deleteGrid = useCallback(
+    (id: string) => {
+      setGrids((prevGrids) => {
+        const { [id]: _, ...rest } = prevGrids;
+        return rest;
+      });
+      if (currentGridId === id) {
+        setCurrentGridId(null);
+      }
+    },
+    [setGrids, currentGridId],
+  );
 
   async function inititializeGrid(title: string): Promise<string> {
     const result = await createPrimaryColumn(title);
@@ -122,9 +131,9 @@ export const GridProvider = ({
     }
 
     const newGridId = uuidv4();
-    setGrids(prevGrids => ({
+    setGrids((prevGrids) => ({
       ...prevGrids,
-      [newGridId]: result.grid
+      [newGridId]: result.grid,
     }));
     setCurrentGridId(newGridId);
     return newGridId;

@@ -144,18 +144,18 @@ export async function runFunction(name: string, args: any) {
       return await listIssues.run(
         "issue",
         args["repository"],
-        args["page"],
         args["assignee"],
         args["state"],
+        args["page"],
         args["label"],
       );
     case "listPullRequests":
       return await listIssues.run(
         "pull-request",
         args["repository"],
-        args["page"],
         args["assignee"],
         args["state"],
+        args["page"],
       );
     case "listIssueComments":
       return await listIssueComments.run(

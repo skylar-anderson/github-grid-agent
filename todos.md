@@ -16,6 +16,7 @@
 ## Improve columns & column types
 
 Logic surrounding column types is scattered throughout the codebase. Let's consolidate each column type into a single file that has the logic for prompting, display, filtering, sorting, etc.
+
 - [ ] Column sort
 - [ ] Column filter
 - [ ] Column edit

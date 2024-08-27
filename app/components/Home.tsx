@@ -1,9 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
-import { Button, Box, Spinner, TextInput, Textarea, Link, Text } from "@primer/react";
+import {
+  Button,
+  Box,
+  Spinner,
+  TextInput,
+  Textarea,
+  Link,
+  Text,
+} from "@primer/react";
 import "./Grid.css";
 import { useGridContext } from "./GridContext";
-import { useRouter } from 'next/navigation';
-import NextLink from 'next/link';
+import { useRouter } from "next/navigation";
+import NextLink from "next/link";
 import type { Grid } from "./GridContext";
 
 const shuffleArray = (array: string[]) => {
@@ -50,19 +58,25 @@ function GridLoading() {
   );
 }
 
-const SuggestionItem = ({ children, onClick }: { children: string; onClick: () => void }) => (
+const SuggestionItem = ({
+  children,
+  onClick,
+}: {
+  children: string;
+  onClick: () => void;
+}) => (
   <Box
     sx={{
       px: 2,
       py: 0,
-      height: '24px',
-      border: 'none',
+      height: "24px",
+      border: "none",
       backgroundColor: "canvas.inset",
-      borderRadius: '20px',
+      borderRadius: "20px",
       color: "fg.muted",
       fontSize: 0,
-      cursor: 'pointer',
-      fontWeight: '500',
+      cursor: "pointer",
+      fontWeight: "500",
       "&:hover": {
         color: "fg.default",
       },
@@ -74,50 +88,66 @@ const SuggestionItem = ({ children, onClick }: { children: string; onClick: () =
   </Box>
 );
 
-const GridItem = ({ id, title, subtitle }: { id: string, title: string, subtitle: string }) => (
+const GridItem = ({
+  id,
+  title,
+  subtitle,
+}: {
+  id: string;
+  title: string;
+  subtitle: string;
+}) => (
   <NextLink href={`/grid/${id}`} passHref legacyBehavior>
-    <Link style={{ textDecoration: 'none' }}>
+    <Link style={{ textDecoration: "none" }}>
       <Box
         sx={{
-          border: '1px solid',
-          borderColor: 'border.default',
+          border: "1px solid",
+          borderColor: "border.default",
           borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           padding: 3,
-          backgroundColor: 'canvas.default',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '120px',
-          justifyContent: 'flex-end',
-          transition: 'all 260ms ease-in-out',
-          '&:hover': {
-            textDecoration: 'none',
-            boxShadow: '0 1px 6px rgba(0,0,0,0.16)',
+          backgroundColor: "canvas.default",
+          display: "flex",
+          flexDirection: "column",
+          height: "120px",
+          justifyContent: "flex-end",
+          transition: "all 260ms ease-in-out",
+          "&:hover": {
+            textDecoration: "none",
+            boxShadow: "0 1px 6px rgba(0,0,0,0.16)",
             //boxShadow: '0 0 2px rgba(0,0,0,0.14), 0 1px 6px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12)',
           },
         }}
       >
-        <Box sx={{ fontSize: 1, fontWeight: 'bold', color: 'fg.default'}}>{title}</Box>
-        <Box sx={{ fontSize: 0, color: 'fg.muted' }}>{subtitle}</Box>
+        <Box sx={{ fontSize: 1, fontWeight: "bold", color: "fg.default" }}>
+          {title}
+        </Box>
+        <Box sx={{ fontSize: 0, color: "fg.muted" }}>{subtitle}</Box>
       </Box>
     </Link>
   </NextLink>
 );
 
-function ExistingGrids({ grids, deleteGrid }: { grids: Grid[], deleteGrid: (id: string) => void }) {
+function ExistingGrids({
+  grids,
+  deleteGrid,
+}: {
+  grids: Grid[];
+  deleteGrid: (id: string) => void;
+}) {
   if (grids.length === 0) {
     return null;
   }
   return (
-    <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)', // Changed this line
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)", // Changed this line
           gap: 3,
         }}
       >
-        {grids.map(grid => (
+        {grids.map((grid) => (
           <GridItem
             key={grid.id}
             id={grid.id}
@@ -127,30 +157,27 @@ function ExistingGrids({ grids, deleteGrid }: { grids: Grid[], deleteGrid: (id: 
         ))}
       </Box>
     </Box>
-  )
+  );
 }
 
 export default function Home() {
   const [state, setState] = useState<"empty" | "loading" | "done">("empty");
   const [inputValue, setInputValue] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const { inititializeGrid, getAllGrids, setCurrentGridId, deleteGrid } = useGridContext();
+  const { inititializeGrid, getAllGrids, setCurrentGridId, deleteGrid } =
+    useGridContext();
   const router = useRouter();
 
   const existingGrids = getAllGrids();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const gridId = searchParams.get('gridId');
+    const gridId = searchParams.get("gridId");
     if (gridId) {
       setCurrentGridId(gridId);
       setState("done");
     }
   }, [setCurrentGridId]);
-
-  if (state === "loading") {
-    return <GridLoading />;
-  }
 
   async function createGrid(inputValue: string) {
     if (!inputValue) {
@@ -180,6 +207,10 @@ export default function Home() {
     return shuffleArray([...suggestions]).slice(0, 3);
   }, []);
 
+  if (state === "loading") {
+    return <GridLoading />;
+  }
+
   return (
     <Box
       sx={{
@@ -203,64 +234,79 @@ export default function Home() {
             mb: 2,
             fontWeight: "semibold",
             color: "fg.default",
-            width: '100',
-            textAlign: 'center',
+            width: "100",
+            textAlign: "center",
           }}
         >
           Grid
         </Box>
-        <Box as="p" sx={{ color: "fg.muted", textAlign: 'center' }}>
+        <Box as="p" sx={{ color: "fg.muted", textAlign: "center" }}>
           Build a data grid, just by describing the content you want to see.{" "}
           <a href="https://github.com/skylar-anderson/github-grid-agent">
             Source
           </a>
         </Box>
 
-        <Box sx={{
-          border: '1px solid',
-          backgroundColor: 'canvas.default',
-          p:2,
-          width: '100%',
-          borderColor: 'border.default',
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          alignItems: 'flex-end',
-          ':focus-within': {
-            outline: '2px solid #0969da',
-            outlineOffset: '-1px',
-            transition: 'all 260ms ease-in-out',
-          },
-        }}>
+        <Box
+          sx={{
+            border: "1px solid",
+            backgroundColor: "canvas.default",
+            p: 2,
+            width: "100%",
+            borderColor: "border.default",
+            borderRadius: 2,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            alignItems: "flex-end",
+            ":focus-within": {
+              outline: "2px solid #0969da",
+              outlineOffset: "-1px",
+              transition: "all 260ms ease-in-out",
+            },
+          }}
+        >
           <textarea
             placeholder="Describe the data you want to see in the grid..."
             rows={4}
             value={inputValue}
             style={{
-              border: 'none',
-              boxShadow: 'none',
-              fontFamily: 'sans-serif',
-              outlineColor: 'transparent',
-              outline: 'none !important',
-              width: '100%',
+              border: "none",
+              boxShadow: "none",
+              fontFamily: "sans-serif",
+              outlineColor: "transparent",
+              outline: "none !important",
+              width: "100%",
             }}
             onChange={(e) => setInputValue(e.target.value)}
           />
-          <Box sx={{ display: "flex", flexDirection: "row", gap: 2, flex: 1, alignItems: 'center', width: '100%' }}>
-            <Box sx={{ display: "flex", flexDirection: "row", gap: 2, flex: 1, alignItems: 'flex-start'}}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              flex: 1,
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 2,
+                flex: 1,
+                alignItems: "flex-start",
+              }}
+            >
               {selectedSuggestions.map((s) => (
-                <SuggestionItem
-                  key={s}
-                  onClick={() => createGrid(s)}
-                >{s}</SuggestionItem>
+                <SuggestionItem key={s} onClick={() => createGrid(s)}>
+                  {s}
+                </SuggestionItem>
               ))}
             </Box>
-            <Button
-              variant="default"
-              onClick={() => createGrid(inputValue)}
-            >
+            <Button variant="default" onClick={() => createGrid(inputValue)}>
               Create
             </Button>
           </Box>
@@ -268,10 +314,17 @@ export default function Home() {
 
         {existingGrids.length > 0 && (
           <Box sx={{ mt: 3 }}>
-            <Box sx={{ fontSize: 2, fontWeight: 'semibold', color: 'fg.muted', mb: 3 }}>
+            <Box
+              sx={{
+                fontSize: 2,
+                fontWeight: "semibold",
+                color: "fg.muted",
+                mb: 3,
+              }}
+            >
               Your grids
             </Box>
-          <ExistingGrids grids={existingGrids} deleteGrid={deleteGrid} />
+            <ExistingGrids grids={existingGrids} deleteGrid={deleteGrid} />
           </Box>
         )}
 
