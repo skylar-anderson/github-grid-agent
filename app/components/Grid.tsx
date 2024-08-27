@@ -9,7 +9,7 @@ import { GridProvider, useGridContext } from "./GridContext";
 import { Box } from "@primer/react";
 import React, { useEffect } from "react";
 import GridTable from "./GridTable";
-import GridIntroForm from "./GridIntroForm";
+import Home from "./Home";
 
 import "./Grid.css";
 
@@ -47,7 +47,7 @@ function GridContent({ initialGridId }: { initialGridId?: string }) {
         </Box>
       ) : (
         <div>
-          <GridIntroForm />
+          <Home />
         </div>
       )}
     </div>

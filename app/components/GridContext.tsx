@@ -16,6 +16,14 @@ import type { ColumnType, GridCol, Option } from "../actions";
 import useLocalStorage from "../utils/local-storage";
 import { v4 as uuidv4 } from 'uuid';
 
+export type Grid = {
+  id: string;
+  title: string;
+  rowCount: number;
+  columnCount: number;
+  createdAt: Date;
+}
+
 type GridContextType = {
   gridState: GridState | null;
   setGridState: React.Dispatch<React.SetStateAction<GridState | null>>;
@@ -36,7 +44,7 @@ type GridContextType = {
   ) => void;
   currentGridId: string | null;
   setCurrentGridId: (id: string) => void;
-  getAllGrids: () => { id: string; title: string }[];
+  getAllGrids: () => Grid[];
   deleteGrid: (id: string) => void;
 };
 
@@ -91,7 +99,9 @@ export const GridProvider = ({
     return Object.entries(grids).map(([id, grid]) => ({
       id,
       title: grid.title,
-      columns: grid.columns,
+      rowCount: grid.primaryColumn.length,
+      columnCount: grid.columns.length + 1,
+      createdAt: new Date(),
     }));
   }, [grids]);
 
