@@ -7,9 +7,9 @@ import type {
 } from "../actions";
 import { GridProvider, useGridContext } from "./GridContext";
 import { Box } from "@primer/react";
-import React from "react";
+import React, { useEffect } from "react";
 import GridTable from "./GridTable";
-import GridIntroForm from "./GridIntroForm";
+import Home from "./Home";
 
 import "./Grid.css";
 
@@ -18,13 +18,21 @@ type Props = {
     s: string,
   ) => Promise<SuccessfulPrimaryColumnResponse | ErrorResponse>;
   hydrateCell: (s: GridCell) => Promise<{ promise: Promise<GridCell> }>;
+  initialGridId?: string;
 };
 
-function GridContent() {
-  const { gridState } = useGridContext();
+function GridContent({ initialGridId }: { initialGridId?: string }) {
+  const { gridState, setCurrentGridId } = useGridContext();
+
+  useEffect(() => {
+    if (initialGridId) {
+      setCurrentGridId(initialGridId);
+    }
+  }, [setCurrentGridId, initialGridId]);
+
   return (
     <div className="grid-app">
-      {gridState ? (
+      {gridState || initialGridId ? (
         <Box
           sx={{
             display: "flex",
@@ -39,7 +47,7 @@ function GridContent() {
         </Box>
       ) : (
         <div>
-          <GridIntroForm />
+          <Home />
         </div>
       )}
     </div>
@@ -52,7 +60,7 @@ export default function Grid(props: Props) {
       hydrateCell={props.hydrateCell}
       createPrimaryColumn={props.createPrimaryColumn}
     >
-      <GridContent />
+      <GridContent initialGridId={props.initialGridId} />
     </GridProvider>
   );
 }

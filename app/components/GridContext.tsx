@@ -4,6 +4,7 @@ import React, {
   ReactNode,
   useState,
   useEffect,
+  useCallback,
 } from "react";
 import {
   SuccessfulPrimaryColumnResponse,
@@ -13,6 +14,15 @@ import {
 } from "../actions";
 import type { ColumnType, GridCol, Option } from "../actions";
 import useLocalStorage from "../utils/local-storage";
+import { v4 as uuidv4 } from 'uuid';
+
+export type Grid = {
+  id: string;
+  title: string;
+  rowCount: number;
+  columnCount: number;
+  createdAt: Date;
+}
 
 type GridContextType = {
   gridState: GridState | null;
@@ -24,7 +34,7 @@ type GridContextType = {
     newCellContents: GridCell,
   ) => void;
   addNewColumn: (props: NewColumnProps) => void;
-  inititializeGrid: (s: string) => Promise<void>;
+  inititializeGrid: (s: string) => Promise<string>;
   selectedIndex: number | null;
   deleteColumnByIndex: (index: number) => void;
   setGroupBy: (columnTitle: string | undefined) => void;
@@ -32,6 +42,10 @@ type GridContextType = {
     columnTitle: string | undefined,
     filterValue: string | undefined,
   ) => void;
+  currentGridId: string | null;
+  setCurrentGridId: (id: string) => void;
+  getAllGrids: () => Grid[];
+  deleteGrid: (id: string) => void;
 };
 
 type NewColumnProps = {
@@ -65,27 +79,58 @@ export const GridProvider = ({
   hydrateCell,
   children,
 }: ProviderProps) => {
-  const [gridState, setGridState] = useLocalStorage<GridState | null>(
-    "gridState",
-    null,
-  );
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [grids, setGrids] = useLocalStorage<Record<string, GridState>>("grids", {});
+  const [currentGridId, setCurrentGridId] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Optionally, you can add an effect to save the state to localStorage whenever it changes
-    if (gridState) {
-      localStorage.setItem("gridState", JSON.stringify(gridState));
+  const gridState = currentGridId ? grids[currentGridId] : null;
+
+  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = (newState) => {
+    if (currentGridId) {
+      setGrids(prevGrids => ({
+        ...prevGrids,
+        [currentGridId]: typeof newState === 'function' 
+          ? newState(prevGrids[currentGridId]) ?? prevGrids[currentGridId]
+          : newState ?? prevGrids[currentGridId]
+      }));
     }
-  }, [gridState]);
+  };
 
-  async function inititializeGrid(title: string) {
+  const getAllGrids = useCallback(() => {
+    return Object.entries(grids).map(([id, grid]) => ({
+      id,
+      title: grid.title,
+      rowCount: grid.primaryColumn.length,
+      columnCount: grid.columns.length + 1,
+      createdAt: new Date(),
+    }));
+  }, [grids]);
+
+  const deleteGrid = useCallback((id: string) => {
+    setGrids(prevGrids => {
+      const { [id]: _, ...rest } = prevGrids;
+      return rest;
+    });
+    if (currentGridId === id) {
+      setCurrentGridId(null);
+    }
+  }, [setGrids, currentGridId]);
+
+  async function inititializeGrid(title: string): Promise<string> {
     const result = await createPrimaryColumn(title);
     if (!result.success) {
       throw new Error(result.message);
     }
 
-    setGridState(result.grid);
+    const newGridId = uuidv4();
+    setGrids(prevGrids => ({
+      ...prevGrids,
+      [newGridId]: result.grid
+    }));
+    setCurrentGridId(newGridId);
+    return newGridId;
   }
+
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const selectRow = (index: number | null) => {
     if (!gridState) {
@@ -232,6 +277,10 @@ export const GridProvider = ({
         deleteColumnByIndex,
         setGroupBy,
         setFilterBy,
+        currentGridId,
+        setCurrentGridId,
+        getAllGrids,
+        deleteGrid,
       }}
     >
       {children}

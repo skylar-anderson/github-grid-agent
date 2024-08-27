@@ -6,9 +6,12 @@ import {
   Box,
   Button,
   CounterLabel,
+  IconButton,
 } from "@primer/react";
+import { ArrowLeftIcon } from "@primer/octicons-react";
 import { SearchIcon } from "@primer/octicons-react";
 import { useGridContext } from "./GridContext";
+import NextLink from 'next/link';
 
 export function Search() {
   return (
@@ -82,10 +85,8 @@ export function FilterBy() {
   }
 
   const filterableColumnTypes = [
-    "multi-select",
-    "single-select",
-    "single-select-user",
-    "multi-select-user",
+    "select",
+    "select-user"
   ];
   const filterableColumns = gridState.columns.filter((column) =>
     filterableColumnTypes.includes(column.type),
@@ -126,7 +127,7 @@ export function GridHeader({
     <Box
       sx={{
         pb: 2,
-        pl: 3,
+        pl: 2,
         display: "flex",
         flexDirection: "row",
         gap: 2,
@@ -138,12 +139,45 @@ export function GridHeader({
           display: "flex",
           alignItems: "center",
           flex: 1,
-          fontWeight: "semibold",
-          fontSize: 1,
-          color: "fg.default",
+          gap: 2,
         }}
       >
-        {title} <CounterLabel>{count}</CounterLabel>
+        <NextLink href={`/`} passHref>
+          <Box
+            sx={{
+              cursor: 'pointer',
+              height: '28px',
+              width: '28px',
+              color: "fg.muted",
+              fontWeight: "semibold",
+              backgroundColor: 'transparent', 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 2,
+              '&:hover': {
+                backgroundColor: "#e0e0e0",
+                color: 'fg.default',
+                cursor: 'pointer'
+              }
+            }}
+          >
+            <ArrowLeftIcon />
+          </Box>
+        </NextLink>
+
+        <Box>
+          <Box
+            sx={{
+              display: 'inline-block',
+              fontSize: 2,
+              color: "fg.default",
+            }}
+          >
+            {title}
+          </Box>
+          <CounterLabel>{count}</CounterLabel>
+        </Box>
       </Box>
       <Box sx={{ display: "flex", gap: 2 }}>
         <Search />

@@ -112,31 +112,24 @@ export default function GridTable() {
   const { gridState, addNewColumn, selectRow, selectedIndex } =
     useGridContext();
 
-  if (!gridState) {
-    return null;
-  }
-
-  const { columns, title, primaryColumn, primaryColumnType, groupBy } =
-    gridState;
-
   const groupedRows = useMemo(() => {
+    if (!gridState) {
+      return [];
+    }
+
+    const { columns, primaryColumn, groupBy } = gridState;
+    const defaultGroup = {
+      groupName: "",
+      rows: primaryColumn.map((cell, index) => ({ cell, index })),
+    };
+
     if (!groupBy) {
-      return [
-        {
-          groupName: "",
-          rows: primaryColumn.map((cell, index) => ({ cell, index })),
-        },
-      ];
+      return [defaultGroup];
     }
 
     const groupColumn = columns.find((col) => col.title === groupBy);
     if (!groupColumn) {
-      return [
-        {
-          groupName: "",
-          rows: primaryColumn.map((cell, index) => ({ cell, index })),
-        },
-      ];
+      return [defaultGroup];
     }
 
     const groups: { [key: string]: { cell: GridCell; index: number }[] } = {};
@@ -170,7 +163,13 @@ export default function GridTable() {
       groupName,
       rows: groups[groupName],
     }));
-  }, [groupBy, columns, primaryColumn]);
+  }, [gridState]);
+
+  if (!gridState) {
+    return null;
+  }
+
+  const { columns, title, primaryColumn, primaryColumnType } = gridState;
 
   return (
     <Box
