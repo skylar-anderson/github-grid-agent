@@ -14,12 +14,13 @@ export type Option = {
 type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done" | "error";
 
-export type ColumnType = "text" | "select" | "select-user";
+export type ColumnType = "text" | "select" | "select-user" | "select-file";
 
 export type ColumnResponse = {
   text: string;
   select: { option: string } | { options: string[] };
   "select-user": { user: string } | { users: string[] };
+  "select-file": { file: { path: string; repository: string } } | { files: { path: string; repository: string }[] };
 };
 
 export type GridCell<T extends ColumnType = ColumnType> = {

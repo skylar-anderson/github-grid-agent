@@ -43,11 +43,11 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
     setType((currentType) => {
       if (
         currentType === "text" &&
-        (newType === "select" || newType === "select-user")
+        (newType === "select" || newType === "select-user" || newType === "select-file")
       ) {
         setOptions([{ title: "", description: "" }]);
       } else if (
-        (currentType === "select" || currentType === "select-user") &&
+        (currentType === "select" || currentType === "select-user" || currentType === "select-file") &&
         newType === "text"
       ) {
         setOptions([]);
@@ -104,10 +104,11 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
           <Select.Option value="text">Text</Select.Option>
           <Select.Option value="select">Select</Select.Option>
           <Select.Option value="select-user">User</Select.Option>
+          <Select.Option value="select-file">File</Select.Option>
         </Select>
       </FormControl>
 
-      {(type === "select" || type === "select-user") && (
+      {(type === "select" || type === "select-user" || type === "select-file") && (
         <FormControl>
           <Checkbox
             checked={multiple}
