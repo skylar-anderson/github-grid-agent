@@ -1,5 +1,9 @@
 # Grid agent
 
+
+https://github.com/user-attachments/assets/890d1b0a-2cc1-4a6c-b2f7-f8f90161f087
+
+
 ## Getting started
 
 First, install dependencies
