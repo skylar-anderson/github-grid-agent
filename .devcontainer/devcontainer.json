@@ -1,0 +1,8 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
+  "tasks": {
+    "build": "yarn run build",
+    "test": "yarn run test",
+    "launch": "yarn run dev"
+  }
+}
