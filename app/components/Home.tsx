@@ -238,10 +238,10 @@ export default function Home() {
             textAlign: "center",
           }}
         >
-          Grid
+        🕵🏻‍♂️ Grid Agent
         </Box>
         <Box as="p" sx={{ color: "fg.muted", textAlign: "center" }}>
-          Build a data grid, just by describing the content you want to see.{" "}
+          Build your grid. Just describe the data you want to see and let 🕵🏻‍♂️ Grid Agent do the rest.{" "}
           <a href="https://github.com/skylar-anderson/github-grid-agent">
             Source
           </a>
