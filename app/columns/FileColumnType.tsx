@@ -2,7 +2,7 @@ import React from "react";
 import OpenAI from "openai";
 import { BaseColumnType } from "./BaseColumnType";
 import { GridCell, ColumnResponse } from "../actions";
-import { Box, Link } from "@primer/react";
+import { Text, Label, Box, Link } from "@primer/react";
 import { FileIcon } from "@primer/octicons-react";
 
 function fileSchema(
@@ -50,13 +50,36 @@ function fileSchema(
 
 function File({ file }: { file: { path: string; repository: string } }) {
   const fileUrl = `https://github.com/${file.repository}/blob/main/${file.path}`;
+  const fileName = file.path.split("/").pop() || file.path;
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-      <FileIcon size={16} />
-      <Link href={fileUrl} target="_blank" rel="noopener noreferrer">
-        {file.path}
-      </Link>
-    </Box>
+    <Link
+      href={fileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      //   sx={{
+      //     backgroundColor: 'bg.subtle',
+      //     border: '1px solid',
+      //     borderColor: 'border.muted',
+      //     borderRadius: 1,
+      //     fontSize: 0,
+      //     display: "flex",
+      //     alignItems: "center",
+      //     gap: 1,
+      //     color: "fg.muted",
+      //     px: 2,
+      //     py: 1,
+      //     '&:hover': {
+      //       backgroundColor: 'bg.default',
+      //       borderColor: 'border.default',
+      //       color: 'fg.default',
+      //     },
+      // }}
+    >
+      <Label>
+        <Text sx={{color: 'fg.muted'}}>File:</Text>
+        <Text sx={{color: 'fg.default', fontWeight: 'bold'}}>{fileName}</Text>
+      </Label>
+    </Link>
   );
 }
 

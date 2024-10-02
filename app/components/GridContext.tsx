@@ -12,9 +12,10 @@ import {
   GridState,
   GridCell,
 } from "../actions";
-import type { ColumnType, GridCol, Option } from "../actions";
+import type { ColumnResponse,ColumnType, GridCol, Option } from "../actions";
 import useLocalStorage from "../utils/local-storage";
 import { v4 as uuidv4 } from "uuid";
+import { createGist } from "../actions";
 
 export type Grid = {
   id: string;
@@ -46,6 +47,8 @@ type GridContextType = {
   setCurrentGridId: (id: string) => void;
   getAllGrids: () => Grid[];
   deleteGrid: (id: string) => void;
+  saveGridAsGist: () => Promise<string | null>;
+  isSavingGist: boolean; // Add this new property
 };
 
 type NewColumnProps = {
@@ -273,6 +276,78 @@ export const GridProvider = ({
     });
   };
 
+  const [isSavingGist, setIsSavingGist] = useState(false);
+
+  const saveGridAsGist = async (): Promise<string | null> => {
+    if (!gridState) {
+      console.warn("Can't save grid without grid state!");
+      return null;
+    }
+
+    setIsSavingGist(true);
+    try {
+      const markdownTable = generateMarkdownTable(gridState);
+      const filename = `${gridState.title}.md`;
+      const gistUrl = await createGist(filename, markdownTable);
+      return gistUrl;
+    } catch (error) {
+      console.error("Failed to save grid as gist:", error);
+      return null;
+    } finally {
+      setIsSavingGist(false);
+    }
+  };
+
+  const fileToMd = (file: { path: string; repository: string }) => {
+    const href = `https://github.com/${file.repository}/blob/${file.path}`;
+    return `[${file.path}](${href})`;
+  };
+
+  function generateMarkdownTable(gridState: GridState): string {
+    const headers = ["Primary Column", ...gridState.columns.map(col => col.title)];
+    
+    function escapeMarkdown(text: string): string {
+      return text.replace(/\|/g, '\\|').replace(/\n/g, '<br>');
+    }
+
+    function formatCell(response: ColumnResponse[keyof ColumnResponse]): string {
+      if (!response) return '';
+      if (typeof response === 'string') {
+        return escapeMarkdown(response);
+      } else if ('options' in response) {
+        return response.options.map(escapeMarkdown).join('; ');
+      } else if ('option' in response) {
+        return escapeMarkdown(response.option);
+      } else if ('files' in response) {
+        return response.files.map(fileToMd).join('; ');
+      } else if ('file' in response) {
+        return response.file ? fileToMd(response.file) : '';
+      } else if ('user' in response) {
+        return escapeMarkdown(response.user);
+      } else if ('users' in response) {
+        return response.users.map(escapeMarkdown).join('; ');
+      } else {
+        return '';
+      }
+    }
+
+    const rows = gridState.primaryColumn.map((primaryCell, index) => {
+      return [
+        formatCell(primaryCell.response),
+        ...gridState.columns.map(col => {
+          const cell = col.cells[index];
+          return formatCell(cell.response as ColumnResponse[keyof ColumnResponse]);
+        })
+      ];
+    });
+
+    const headerRow = `| ${headers.map(escapeMarkdown).join(' | ')} |`;
+    const separatorRow = `| ${headers.map(() => '---').join(' | ')} |`;
+    const dataRows = rows.map(row => `| ${row.join(' | ')} |`);
+    
+    return [headerRow, separatorRow, ...dataRows].join('\n');
+  }
+
   return (
     <GridContext.Provider
       value={{
@@ -290,6 +365,8 @@ export const GridProvider = ({
         setCurrentGridId,
         getAllGrids,
         deleteGrid,
+        saveGridAsGist,
+        isSavingGist,
       }}
     >
       {children}

@@ -7,6 +7,7 @@ import {
   Button,
   CounterLabel,
   IconButton,
+  Tooltip,
 } from "@primer/react";
 import { ArrowLeftIcon } from "@primer/octicons-react";
 import { SearchIcon } from "@primer/octicons-react";
@@ -117,6 +118,15 @@ export function GridHeader({
   setShowNewColumnForm,
   count,
 }: GridHeaderProps) {
+  const { saveGridAsGist, isSavingGist } = useGridContext();
+
+  const handleSaveGist = async () => {
+    const gistUrl = await saveGridAsGist();
+    if (gistUrl) {
+      window.open(gistUrl, '_blank');
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -177,6 +187,9 @@ export function GridHeader({
         <Search />
         <GroupBy />
         <FilterBy />
+        <Button onClick={handleSaveGist} disabled={isSavingGist}>
+          Save to gist
+        </Button>
         <Button variant="primary" onClick={() => setShowNewColumnForm(true)}>
           Add column
         </Button>

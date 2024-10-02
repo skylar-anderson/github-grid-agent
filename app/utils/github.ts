@@ -8,6 +8,7 @@ const CREATE_ISSUE_COMMENT_ENDPOINT =
 const UPDATE_ISSUE_ENDPOINT =
   "PATCH /repos/{owner}/{repo}/issues/{issue_number}";
 const CREATE_PULL_REQUEST_REVIEW_ENDPOINT = `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews`;
+const CREATE_GIST_ENDPOINT = "POST /gists";
 
 export const headers = {
   "X-GitHub-Api-Version": "2022-11-28",
@@ -296,5 +297,32 @@ export async function getMemory() {
     console.log("Failed to fetch memory!");
     console.log(error);
     return "An error occured when trying to fetch memory.";
+  }
+}
+
+export async function createGist(filename: string, content: string): Promise<string> {
+  type CreateGistResponse = Endpoints[typeof CREATE_GIST_ENDPOINT]["response"] | undefined;
+  
+  try {
+    const sanitizedFilename = filename.replace(/[^a-z0-9.-]/gi, '_');
+    const response = await githubApiRequest<CreateGistResponse>(CREATE_GIST_ENDPOINT, {
+      files: {
+        [sanitizedFilename]: {
+          content: content,
+        },
+      },
+      public: false,
+      description: "Created by Grid Agent",
+      headers,
+    });
+
+    if (!response?.data?.html_url) {
+      throw new Error("Failed to create gist: No URL returned");
+    }
+    
+    return response.data.html_url;
+  } catch (error) {
+    console.error("Failed to create gist:", error);
+    throw new Error(`Failed to create gist: ${error as string}`);
   }
 }
