@@ -4,6 +4,7 @@ import type { Tool } from "ai";
 import { runFunction, availableFunctions, FunctionName } from "./functions";
 import { columnTypes } from "./columns";
 import { BaseColumnType } from "./columns/BaseColumnType";
+import { createGist as createGistOnGitHub } from "./utils/github";
 const MAX_ROWS = 1000;
 
 export type Option = {
@@ -265,4 +266,15 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   return {
     promise: hydrate(),
   };
+}
+
+export async function createGist(filename: string, content: string): Promise<string> {
+  'use server';
+  try {
+    const gistUrl = await createGistOnGitHub(filename, content);
+    return gistUrl;
+  } catch (error) {
+    console.error("Failed to create gist:", error);
+    throw new Error("Failed to create gist");
+  }
 }

@@ -223,7 +223,7 @@ export default function GridTable() {
               ))}
             </Box>
             {groupedRows.map((group, groupIndex) => (
-              <Box key={groupIndex}>
+              <Box key={groupIndex} sx={{ width: 'fit-content'}}>
                 {group.groupName && (
                   <GroupHeader
                     groupName={group.groupName}

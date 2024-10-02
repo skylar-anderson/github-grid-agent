@@ -2,7 +2,7 @@ import React from "react";
 import OpenAI from "openai";
 import { BaseColumnType } from "./BaseColumnType";
 import { GridCell, ColumnResponse } from "../actions";
-import { Box, Avatar } from "@primer/react";
+import { Label, Box, Avatar } from "@primer/react";
 
 function selectUserSchema(
   multiple: boolean,
@@ -42,10 +42,10 @@ const avatarUrl = (handle: string, size: number = 200) =>
 
 function User({ handle }: { handle: string }) {
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-      <Avatar src={avatarUrl(handle)} size={24} />
+    <Label sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Avatar src={avatarUrl(handle)} size={16} />
       <Box sx={{ fontWeight: "semibold", color: "fg.default" }}>{handle}</Box>
-    </Box>
+    </Label>
   );
 }
 
