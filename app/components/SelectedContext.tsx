@@ -11,21 +11,22 @@ import { useGridContext } from "./GridContext";
 import "./SelectedContext.css";
 import { GridCellContent } from "./Cell";
 
-function Prompt({ prompt }: { prompt: string }) {
+function Prompt({ prompt, sources }: { prompt: string, sources: string[] }) {
   const [open, setOpen] = useState<boolean>(false);
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "canvas.inset",
+        backgroundColor: open ? "canvas.inset" : "canvas.default",
+        border: "1px solid",
+        borderColor: open ? "border.default" : "transparent",
         borderRadius: 2,
       }}
     >
       <Box
         sx={{
           display: "flex",
-          p: 2,
           flexDirection: "row",
           alignItems: "center",
           gap: 1,
@@ -35,18 +36,24 @@ function Prompt({ prompt }: { prompt: string }) {
         }}
         onClick={() => setOpen(!open)}
       >
-        <IconButton
-          onClick={() => setOpen(!open)}
-          size="small"
-          variant="invisible"
-          aria-label={open ? "Close prompt" : "Open prompt"}
-          icon={open ? ChevronDownIcon : ChevronRightIcon}
-        />
-        <Box sx={{ fontSize: 0, color: "fg.muted" }}>Prompt</Box>
+        {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        <Box sx={{ fontSize: 0, color: "fg.muted" }}>Debug</Box>
       </Box>
       {open && (
         <Box sx={{ p: 2 }}>
-          <Box
+          {sources.length > 0 && (
+            <>
+              <Box sx={{ fontSize: 0, pb: 2, fontWeight: "semibold", color: "fg.muted" }}>Sources used:</Box>
+              {sources.map((source) => (
+                <Box key={source} sx={{ fontSize: 0, pb: 2, fontWeight: "semibold", color: "fg.muted" }}>{source}</Box>
+              ))}
+            </>
+          )}
+          
+          {prompt && (
+            <>
+              <Box sx={{ fontSize: 0, pb: 2, fontWeight: "semibold", color: "fg.muted" }}>Prompt used:</Box>
+              <Box
             as="pre"
             sx={{
               wordWrap: "break-word",
@@ -60,6 +67,7 @@ function Prompt({ prompt }: { prompt: string }) {
           >
             {prompt}
           </Box>
+          </>)}
         </Box>
       )}
     </Box>
@@ -67,42 +75,17 @@ function Prompt({ prompt }: { prompt: string }) {
 }
 
 function ContextDetails({ context }: { context: any }) {
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(true);
   return (
     <Box
       sx={{
-        borderRadius: 2,
         flexShrink: 0,
         overflow: "hidden",
-        border: "1px solid",
-        borderColor: "border.default",
       }}
     >
-      <Box
-        sx={{
-          m: 0,
-          px: 2,
-          py: 2,
-          gap: 2,
-          backgroundColor: "canvas.inset",
-          borderBottom: open ? "1px solid" : 0,
-          borderColor: "border.default",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <IconButton
-          onClick={() => setOpen(!open)}
-          size="small"
-          variant="invisible"
-          aria-label={open ? "Close details" : "Open details"}
-          icon={open ? ChevronDownIcon : ChevronRightIcon}
-        />
 
-        <Box sx={{ fontSize: 1, fontWeight: "semibold", pr: 2 }}>
-          Original {context.type} details
-        </Box>
+      <Box sx={{ fontSize: 1, fontWeight: "semibold", px: 3, pt: 3}}>
+        Original {context.type} details
       </Box>
 
       {open && (
@@ -140,39 +123,19 @@ function CellValue({
   return (
     <Box
       sx={{
-        borderRadius: 2,
-        flexShrink: 0,
-        overflow: "hidden",
-        border: "1px solid",
+        p: '12px', 
+        borderBottom: "1px solid",
         borderColor: "border.default",
       }}
     >
-      <Box
-        sx={{
-          m: 0,
-          px: 3,
-          py: 2,
-          backgroundColor: "canvas.inset",
-          borderBottom: "1px solid",
-          borderColor: "border.default",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "baseline",
-        }}
-      >
-        <Box sx={{ fontSize: 1, fontWeight: "semibold", pb: 1 }}>
-          {column.title}
-        </Box>
 
-        <Box sx={{ color: "fg.muted", fontFamily: "mono", fontSize: 0 }}>
-          Using{" "}
-          {sources.length > 0 ? sources.join(", ") : `original ${contextType}`}
-        </Box>
+      <Box sx={{ fontSize: 1, fontWeight: "semibold", pb: 1}}>
+        {column.title}
       </Box>
 
-      <Box sx={{ flexDirection: "column", display: "flex", p: 3, gap: 3 }}>
+      <Box sx={{ flexDirection: "column", display: "flex", gap: 1 }}>
         <GridCellContent cell={cell} />
-        {cell.prompt && <Prompt prompt={cell.prompt} />}
+        <Prompt prompt={cell.prompt || ""} sources={sources} />
       </Box>
     </Box>
   );
@@ -194,6 +157,11 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
         borderBottom: "1px solid",
         borderColor: "border.default",
         alignItems: "center",
+        position: "sticky",
+        top: 0,
+        left: 0,
+        backgroundColor: "canvas.default",
+        height: '48px',
       }}
     >
       <Box sx={{ display: "flex", gap: 0 }}>
@@ -289,8 +257,6 @@ export default function SelectedContext() {
           flex: 1,
           height: "100%",
           overflow: "scroll",
-          p: 3,
-          gap: 3,
           display: "flex",
           flexDirection: "column",
         }}
