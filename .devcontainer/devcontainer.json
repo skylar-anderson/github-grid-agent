@@ -1,9 +1,9 @@
 {
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
   "tasks": {
-    "dev": "npm run dev",
-    "build": "npm run build",
-    "start": "npm run start",
-    "lint": "npm run lint"
+    "dev": "npm install && npm run dev",
+    "build": "npm install && npm run build",
+    "start": "npm install && npm run start",
+    "lint": "npm install && npm run lint"
   }
 }
