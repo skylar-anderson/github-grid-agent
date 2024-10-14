@@ -179,6 +179,13 @@ export default function Home() {
     }
   }, [setCurrentGridId]);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      createGrid(inputValue);
+    }
+  };
+
   async function createGrid(inputValue: string) {
     if (!inputValue) {
       alert("Please enter a value");
@@ -248,6 +255,11 @@ export default function Home() {
         </Box>
 
         <Box
+          as="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            createGrid(inputValue);
+          }}
           sx={{
             border: "1px solid",
             backgroundColor: "canvas.default",
@@ -280,6 +292,7 @@ export default function Home() {
               width: "100%",
             }}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
           <Box
             sx={{
@@ -327,14 +340,6 @@ export default function Home() {
             <ExistingGrids grids={existingGrids} deleteGrid={deleteGrid} />
           </Box>
         )}
-
-        <Box
-          as="form"
-          sx={{ width: "100%", display: "flex", gap: 2, pt: 2, px: 0 }}
-          onSubmit={() => createGrid(inputValue)}
-        >
-          {errorMessage && <div className="error-message">{errorMessage}</div>}
-        </Box>
       </Box>
     </Box>
   );
