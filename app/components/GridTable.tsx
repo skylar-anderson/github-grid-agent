@@ -12,48 +12,8 @@ import "./Grid.css";
 import ColumnTitle from "./ColumnTitle";
 import { pluralize } from "../utils/pluralize";
 import { capitalize } from "../utils/capitalize";
-type RowProps = {
-  rowIndex: number;
-  primaryCell: GridCell;
-  columns: GridCol[];
-  selectRow: (n: number) => void;
-  selectedIndex: number | null;
-};
-
-function Row({
-  rowIndex,
-  primaryCell,
-  columns,
-  selectRow,
-  selectedIndex,
-}: RowProps) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        borderBottom: "1px solid",
-        borderColor: "#f0f0f0",
-        transition: "background-color 300ms ease-in-out",
-        "&:hover": {
-          backgroundColor: "canvas.inset",
-          borderColor: "border.default",
-          cursor: "pointer",
-        },
-      }}
-      onClick={() => selectRow(rowIndex)}
-    >
-      <Cell cell={primaryCell} isSelected={selectedIndex === rowIndex} />
-      {columns.map((column, colIndex) => (
-        <Cell
-          key={colIndex}
-          cell={column.cells[rowIndex]}
-          isSelected={selectedIndex === rowIndex}
-        />
-      ))}
-    </Box>
-  );
-}
+import type { GridState, PrimaryDataType } from "../actions";
+import Row from "./Row";
 
 function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   return (
@@ -106,13 +66,19 @@ function GroupHeader({
   );
 }
 
-export default function GridTable() {
-  const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
+function useColumnDialog() {
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
-  const { gridState, addNewColumn, selectRow, selectedIndex } =
-    useGridContext();
+  const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
+  
+  return {
+    showNewColumnForm,
+    setShowNewColumnForm,
+    onDialogClose
+  };
+}
 
-  const groupedRows = useMemo(() => {
+function useGroupedRows(gridState: GridState|null) {
+  return useMemo(() => {
     if (!gridState) {
       return [];
     }
@@ -165,7 +131,36 @@ export default function GridTable() {
       rows: groups[groupName],
     }));
   }, [gridState]);
+}
 
+function TableHeaderRow({ columns, primaryColumnType }: { columns: GridCol[], primaryColumnType: PrimaryDataType }) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        position: "sticky",
+        top: 0,
+        flexDirection: "row",
+        borderBottom: "1px solid",
+        borderColor: "border.default",
+        background: "canvas.default",
+        flex: 1,
+        zIndex: 1,
+      }}
+    >
+      <ColumnTitle title={capitalize(primaryColumnType)} />
+      {columns.map((column: GridCol, index: number) => (
+        <ColumnTitle key={index} title={column.title} index={index} />
+      ))}
+    </Box>
+  )
+}
+
+export default function GridTable() {
+  const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
+  const { gridState, addNewColumn, selectRow, selectedIndex } =
+    useGridContext();
+  const groupedRows = useGroupedRows(gridState);
   if (!gridState) {
     return null;
   }
@@ -204,26 +199,9 @@ export default function GridTable() {
               flexDirection: "column",
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                position: "sticky",
-                top: 0,
-                flexDirection: "row",
-                borderBottom: "1px solid",
-                borderColor: "border.default",
-                background: "canvas.default",
-                flex: 1,
-                zIndex: 1,
-              }}
-            >
-              <ColumnTitle title={capitalize(primaryColumnType)} />
-              {columns.map((column: GridCol, index: number) => (
-                <ColumnTitle key={index} title={column.title} index={index} />
-              ))}
-            </Box>
+            <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
             {groupedRows.map((group, groupIndex) => (
-              <Box key={groupIndex} sx={{ width: 'fit-content'}}>
+              <Box key={groupIndex}>
                 {group.groupName && (
                   <GroupHeader
                     groupName={group.groupName}

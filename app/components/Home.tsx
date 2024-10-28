@@ -246,7 +246,6 @@ export default function Home() {
             Source
           </a>
         </Box>
-
         <Box
           sx={{
             border: "1px solid",
@@ -280,6 +279,15 @@ export default function Home() {
               width: "100%",
             }}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (e.shiftKey) {
+                  return; // Allow newline with shift+enter
+                }
+                e.preventDefault();
+                createGrid(inputValue);
+              }
+            }}
           />
           <Box
             sx={{
