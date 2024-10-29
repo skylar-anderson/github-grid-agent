@@ -8,9 +8,18 @@
   font-size: 14px;
 }
 
+.markdownContainer img {
+  max-width: 100%;
+}
+
 .markdownContainer > p {
   padding-top: 0;
   margin-top: 0;
+}
+
+.markdownContainer *:first-child {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .markdownContainer *:last-child {

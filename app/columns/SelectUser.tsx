@@ -42,7 +42,7 @@ const avatarUrl = (handle: string, size: number = 200) =>
 
 function User({ handle }: { handle: string }) {
   return (
-    <Label sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+    <Label sx={{ display: "flex", alignItems: "center", border:0, backgroundColor:'canvas.inset', pl: 0, gap: 1 }}>
       <Avatar src={avatarUrl(handle)} size={16} />
       <Box sx={{ fontWeight: "semibold", color: "fg.default" }}>{handle}</Box>
     </Label>
@@ -59,10 +59,10 @@ export const SelectUserColumnType: BaseColumnType<"select-user"> = {
             <User handle={handle} key={index} />
           ))
         ) : (
-          <>No users selected</>
+          <Box sx={{ color: "fg.default", fontSize: 1 }}>No users selected</Box>
         )
       ) : cell.response.user === "no-user" ? (
-        <>No user selected</>
+        <Box sx={{ color: "fg.default", fontSize: 1 }}>No user selected</Box>
       ) : (
         <User handle={cell.response.user} />
       )}

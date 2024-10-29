@@ -52,30 +52,8 @@ function File({ file }: { file: { path: string; repository: string } }) {
   const fileUrl = `https://github.com/${file.repository}/blob/main/${file.path}`;
   const fileName = file.path.split("/").pop() || file.path;
   return (
-    <Link
-      href={fileUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-      //   sx={{
-      //     backgroundColor: 'bg.subtle',
-      //     border: '1px solid',
-      //     borderColor: 'border.muted',
-      //     borderRadius: 1,
-      //     fontSize: 0,
-      //     display: "flex",
-      //     alignItems: "center",
-      //     gap: 1,
-      //     color: "fg.muted",
-      //     px: 2,
-      //     py: 1,
-      //     '&:hover': {
-      //       backgroundColor: 'bg.default',
-      //       borderColor: 'border.default',
-      //       color: 'fg.default',
-      //     },
-      // }}
-    >
-      <Label>
+    <Link href={fileUrl} target="_blank" rel="noopener noreferrer">
+      <Label sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>
         <Text sx={{color: 'fg.muted'}}>File:</Text>
         <Text sx={{color: 'fg.default', fontWeight: 'bold'}}>{fileName}</Text>
       </Label>
@@ -93,12 +71,12 @@ export const FileColumnType: BaseColumnType<"file"> = {
             <File file={file} key={index} />
           ))
         ) : (
-          <>No files selected</>
+          <Box sx={{ color: "fg.default", fontSize: 1 }}>No files selected</Box>
         )
       ) : cell.response.file ? (
         <File file={cell.response.file} />
       ) : (
-        <>No file selected</>
+        <Box sx={{ color: "fg.default", fontSize: 1 }}>No file selected</Box>
       )}
     </Box>
   ),

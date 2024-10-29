@@ -175,7 +175,9 @@ export function GridHeader({
             sx={{
               display: "inline-block",
               fontSize: 2,
+              fontWeight: "semibold",
               color: "fg.default",
+              mr: 1,
             }}
           >
             {title}
