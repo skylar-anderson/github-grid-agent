@@ -42,7 +42,7 @@ const avatarUrl = (handle: string, size: number = 200) =>
 
 function User({ handle }: { handle: string }) {
   return (
-    <Label sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+    <Label sx={{ display: "flex", alignItems: "center", border:0, backgroundColor:'canvas.inset', pl: 0, gap: 1 }}>
       <Avatar src={avatarUrl(handle)} size={16} />
       <Box sx={{ fontWeight: "semibold", color: "fg.default" }}>{handle}</Box>
     </Label>

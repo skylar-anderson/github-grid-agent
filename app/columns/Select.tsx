@@ -104,10 +104,10 @@ export const SelectColumnType: BaseColumnType<"select"> = {
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
       {"options" in cell.response ? (
         cell.response.options.map((option: string, index: number) => (
-          <Label key={index}>{option}</Label>
+          <Label key={index} sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>{option}</Label>
         ))
       ) : (
-        <Label>{cell.response.option}</Label>
+        <Label sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>{cell.response.option}</Label>
       )}
     </Box>
   ),

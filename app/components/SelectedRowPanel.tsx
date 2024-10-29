@@ -1,81 +1,115 @@
 import { useState } from "react";
-import { IconButton, Box } from "@primer/react";
+import { IconButton, Box, Avatar, Text } from "@primer/react";
+import DebugDialog from "./DebugDialog";
 import {
   XIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
-  ChevronRightIcon,
+  ChevronUpIcon,  
 } from "@primer/octicons-react";
 import { GridCol, GridCell } from "../actions";
 import { useGridContext } from "./GridContext";
 import "./SelectedContext.css";
 import { GridCellContent } from "./Cell";
+import { marked } from 'marked';
 
-function Prompt({ prompt, sources }: { prompt: string, sources: string[] }) {
+const avatarUrl = (handle: string, size: number = 200) =>
+  `https://github.com/${handle}.png?size=${size}`;
+/*
+assignee_handle
+siddharthkp
+assignee_avatar
+https://avatars.githubusercontent.com/u/1863771?v=4
+assignee_url
+https://github.com/siddharthkp
+opener_handle
+DavidMeu
+state
+open
+title
+[ActionMenu.Button] onClick doesn't function
+body
+### Description When trying to pass a function to `ActionMenu.Button ` it doesn't get invoked. ![Image](https://github.com/primer/react/assets/35102691/c6d77c3e-64b5-43c1-9d78-c3e28fa235ef) ### Steps to reproduce 1. Goto: https://primer.style/react/ActionMenu 2. Overload `onClick` and see it doesn't get invoked on clicking. ### Version ^36.19.1 ### Browser _No response_
+number
+4647
+url
+https://github.com/primer/react/issues/4647*/
+
+type Issue = {
+  assignee_handle: string;
+  assignee_avatar: string;
+  assignee_url: string;
+  opener_handle: string;
+  state: string;
+  title: string;
+  body: string;
+  number: string;
+  url: string;
+}
+function IssueDetails({ issue }: { issue: Issue }) {
   const [open, setOpen] = useState<boolean>(false);
+  
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: open ? "canvas.inset" : "canvas.default",
-        border: "1px solid",
-        borderColor: open ? "border.default" : "transparent",
-        borderRadius: 2,
-      }}
-    >
+    <Box sx={{ p: 3 }}>
       <Box
+        as="a"
+        href={issue.url}
         sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 1,
-          borderBottom: open ? "1px solid" : "0",
-          borderColor: "border.default",
-          cursor: "pointer",
-        }}
-        onClick={() => setOpen(!open)}
-      >
-        {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        <Box sx={{ fontSize: 0, color: "fg.muted" }}>Debug</Box>
-      </Box>
-      {open && (
-        <Box sx={{ p: 2 }}>
-          {sources.length > 0 && (
-            <>
-              <Box sx={{ fontSize: 0, pb: 2, fontWeight: "semibold", color: "fg.muted" }}>Sources used:</Box>
-              {sources.map((source) => (
-                <Box key={source} sx={{ fontSize: 0, pb: 2, fontWeight: "semibold", color: "fg.muted" }}>{source}</Box>
-              ))}
-            </>
-          )}
-          
-          {prompt && (
-            <>
-              <Box sx={{ fontSize: 0, pb: 2, fontWeight: "semibold", color: "fg.muted" }}>Prompt used:</Box>
-              <Box
-            as="pre"
-            sx={{
-              wordWrap: "break-word",
-              fontSize: 0,
-              p: 0,
-              m: 0,
-              fontFamily: "mono",
-              whiteSpace: "pre-wrap",
-              lineHeight: "22px",
-            }}
-          >
-            {prompt}
-          </Box>
-          </>)}
+          display: 'block',
+          color: "fg.default",
+          textDecoration: 'none',
+          fontSize: 4,
+          fontWeight: "semibold",
+          lineHeight: 1.33,
+          mb: 3}}
+        >
+          {issue.title}<Text sx={{color: 'fg.muted'}}>(#{issue.number})</Text></Box>
+      <Box sx={{ fontSize: 0, border: "1px solid", borderColor: "border.default", borderRadius: 2, overflow: "hidden"}}>
+        <Box sx={{ px: 3, py: 2, backgroundColor: "canvas.inset", display: "flex", alignItems: "center", gap: 1, borderBottom: "1px solid", borderColor: "border.default"}}>
+          <Avatar src={avatarUrl(issue.opener_handle)} size={20} sx={{mr: 1}} />
+          <Text sx={{color: 'fg.default', fontWeight: 'semibold'}}>
+            {issue.opener_handle}
+          </Text> <Text sx={{color: 'fg.muted'}}>opened this issue on {new Date(issue.url).toLocaleDateString()}</Text>
         </Box>
-      )}
+        <Box sx={{ p: 3, maxHeight: open ? "none" : "225px", overflow: "hidden", position: "relative", transition: "max-height 0.3s ease" }}>
+          <div className="markdownContainer" dangerouslySetInnerHTML={{ __html: marked.parse(issue.body) }} />
+          {open ? (
+            <IconButton
+              icon={ChevronUpIcon}
+              aria-label="Show less" 
+              onClick={() => setOpen(false)}
+              sx={{
+                position: "absolute",
+                bottom: 2,
+                right: 2,
+                backgroundColor: "canvas.default"
+              }}
+            />
+          ) : (
+            <IconButton
+              icon={ChevronDownIcon}
+              aria-label="Show more"
+              onClick={() => setOpen(true)}
+              sx={{
+                position: "absolute",
+                bottom: 2,
+                right: 2,
+                backgroundColor: "canvas.default"
+              }}
+            />
+          )}
+        </Box>
+      </Box>
     </Box>
-  );
+  )
 }
 
-function ContextDetails({ context }: { context: any }) {
+function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
   const [open, setOpen] = useState<boolean>(true);
+  const { context } = primaryCell
+  
+  if (context.type === 'issue') {
+    return <IssueDetails issue={context as Issue} />
+  }
   return (
     <Box
       sx={{
@@ -119,23 +153,21 @@ function CellValue({
   contextType: string;
 }) {
   const sources = cell.hydrationSources;
-
   return (
     <Box
       sx={{
-        p: '12px', 
-        borderBottom: "1px solid",
-        borderColor: "border.default",
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1
       }}
     >
 
-      <Box sx={{ fontSize: 1, fontWeight: "semibold", pb: 1}}>
-        {column.title}
+      <Box sx={{ fontSize: 1, fontWeight: "semibold" }}>
+        {column.title} <DebugDialog prompt={cell.prompt || ""} sources={sources} />
       </Box>
 
-      <Box sx={{ flexDirection: "column", display: "flex", gap: 1 }}>
+      <Box sx={{ flexDirection: "column", display: "flex", flex: 1,gap: 1 }}>
         <GridCellContent cell={cell} />
-        <Prompt prompt={cell.prompt || ""} sources={sources} />
       </Box>
     </Box>
   );
@@ -205,7 +237,7 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
   );
 }
 
-export default function SelectedContext() {
+export default function SelectedRowPanel() {
   const { gridState, selectRow, selectedIndex } = useGridContext();
   if (!gridState) {
     return null;
@@ -261,16 +293,17 @@ export default function SelectedContext() {
           flexDirection: "column",
         }}
       >
-        {columns.map((c, i) => (
-          <CellValue
-            key={`cell-${i}`}
-            column={c}
-            contextType={primaryCell.context.type}
-            cell={c.cells[selectedIndex]}
-          />
-        ))}
+        <ContextDetails primaryCell={primaryCell} />
 
-        <ContextDetails context={primaryCell.context} />
+        {columns.map((c, i) => (
+          <Box key={`cell-${i}`} sx={{p:3}}>
+            <CellValue
+              column={c}
+              contextType={primaryCell.context.type}
+              cell={c.cells[selectedIndex]}
+            />
+          </Box>
+        ))}
       </Box>
     </Box>
   );

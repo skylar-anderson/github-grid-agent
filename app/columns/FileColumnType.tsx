@@ -53,7 +53,7 @@ function File({ file }: { file: { path: string; repository: string } }) {
   const fileName = file.path.split("/").pop() || file.path;
   return (
     <Link href={fileUrl} target="_blank" rel="noopener noreferrer">
-      <Label>
+      <Label sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>
         <Text sx={{color: 'fg.muted'}}>File:</Text>
         <Text sx={{color: 'fg.default', fontWeight: 'bold'}}>{fileName}</Text>
       </Label>

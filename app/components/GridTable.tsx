@@ -5,7 +5,7 @@ import { Dialog } from "@primer/react/experimental";
 import { Text, Box, CounterLabel } from "@primer/react";
 import { GridHeader } from "./GridHeader";
 import { useGridContext } from "./GridContext";
-import SelectedContext from "./SelectedContext";
+import SelectedContext from "./SelectedRowPanel";
 import NewColumnForm from "./NewColumnForm";
 import Cell from "./Cell";
 import "./Grid.css";
