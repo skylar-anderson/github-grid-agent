@@ -103,11 +103,16 @@ export const SelectColumnType: BaseColumnType<"select"> = {
   renderCell: (cell: GridCell<"select">) => (
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
       {"options" in cell.response ? (
-        cell.response.options.map((option: string, index: number) => (
-          <Label key={index} sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>{option}</Label>
-        ))
+
+        cell.response.options.length > 0 ? (
+          cell.response.options.map((option: string, index: number) => (
+            <Label key={index} sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>{option}</Label>
+          ))
+        ) : (
+          <Label>No options selected</Label>
+        )
       ) : (
-        <Label sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>{cell.response.option}</Label>
+        <Label sx={{border:0, backgroundColor:'canvas.inset', gap: 1 }}>{cell.response.option || "No options selected"}</Label>
       )}
     </Box>
   ),

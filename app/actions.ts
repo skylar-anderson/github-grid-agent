@@ -15,13 +15,39 @@ export type Option = {
 export type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
 type GridCellState = "empty" | "generating" | "done" | "error";
 
-export type ColumnType = "text" | "select" | "select-user" | "file";
+export type ColumnType = "text" | "select" | "select-user" | "file" | "boolean" | "issue-pr" | "commit";
 
 export type ColumnResponse = {
   text: string;
   select: { option: string } | { options: string[] };
   "select-user": { user: string } | { users: string[] };
   file: { file: { path: string; repository: string } } | { files: { path: string; repository: string }[] };
+  "issue-pr": {
+    reference?: {
+      number: number;
+      repository: string;
+      type: 'issue' | 'pull-request';
+      title?: string;
+    };
+    references?: Array<{
+      number: number;
+      repository: string;
+      type: 'issue' | 'pull-request';
+      title?: string;
+    }>;
+  };
+  "commit": {
+    commit?: {
+      sha: string;
+      repository: string;
+      message?: string;
+    };
+    commits?: Array<{
+      sha: string;
+      repository: string;
+      message?: string;
+    }>;
+  };
 };
 
 export type GridCell<T extends ColumnType = ColumnType> = {

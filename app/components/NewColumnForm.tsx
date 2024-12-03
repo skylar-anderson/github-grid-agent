@@ -105,6 +105,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
           <Select.Option value="select">Select</Select.Option>
           <Select.Option value="select-user">User</Select.Option>
           <Select.Option value="file">File</Select.Option>
+          <Select.Option value="boolean">Boolean</Select.Option>
         </Select>
       </FormControl>
 
