@@ -17,6 +17,8 @@
     "@primer/react": "^36.27.0",
     "@supabase/supabase-js": "^2.44.4",
     "ai": "^3.2.37",
+    "autoevals": "^0.0.110",
+    "braintrust": "^0.0.176",
     "graphql-request": "^7.1.0",
     "marked": "^14.1.3",
     "next": "14.2.4",
