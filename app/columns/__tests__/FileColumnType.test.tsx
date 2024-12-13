@@ -73,12 +73,12 @@ describe('FileColumnType', () => {
   describe('generateResponseSchema', () => {
     it('returns correct schema for single selection', () => {
       const schema = FileColumnType.generateResponseSchema(undefined, false);
-      expect(schema?.json_schema.schema.properties).toHaveProperty('file');
+      expect((schema as any).json_schema.schema.properties).toHaveProperty('file');
     });
 
     it('returns correct schema for multiple selection', () => {
       const schema = FileColumnType.generateResponseSchema(undefined, true);
-      expect(schema?.json_schema.schema.properties).toHaveProperty('files');
+      expect((schema as any).json_schema.schema.properties).toHaveProperty('files');
     });
   });
 
