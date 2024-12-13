@@ -5,27 +5,27 @@ import { GridCell } from '../../actions';
 
 describe('IssuePRColumnType', () => {
   const baseCell = {
-    columnTitle: "Test Column",
-    columnInstructions: "Test instructions",
-    context: "",
+    columnTitle: 'Test Column',
+    columnInstructions: 'Test instructions',
+    context: '',
     hydrationSources: [],
   };
 
   describe('renderCell', () => {
     it('renders single issue correctly', () => {
-      const cell: GridCell<"issue-pr"> = {
+      const cell: GridCell<'issue-pr'> = {
         ...baseCell,
-        columnType: "issue-pr",
-        state: "done",
+        columnType: 'issue-pr',
+        state: 'done',
         response: {
           reference: {
             number: 123,
-            repository: "owner/repo",
-            type: "issue",
-            title: "Test Issue"
-          }
+            repository: 'owner/repo',
+            type: 'issue',
+            title: 'Test Issue',
+          },
         },
-        multiple: false
+        multiple: false,
       };
 
       render(<>{IssuePRColumnType.renderCell(cell)}</>);
@@ -34,27 +34,27 @@ describe('IssuePRColumnType', () => {
     });
 
     it('renders multiple PRs correctly', () => {
-      const cell: GridCell<"issue-pr"> = {
+      const cell: GridCell<'issue-pr'> = {
         ...baseCell,
-        columnType: "issue-pr",
-        state: "done",
+        columnType: 'issue-pr',
+        state: 'done',
         response: {
           references: [
             {
               number: 123,
-              repository: "owner/repo",
-              type: "pull-request",
-              title: "Test PR 1"
+              repository: 'owner/repo',
+              type: 'pull-request',
+              title: 'Test PR 1',
             },
             {
               number: 124,
-              repository: "owner/repo",
-              type: "pull-request",
-              title: "Test PR 2"
-            }
-          ]
+              repository: 'owner/repo',
+              type: 'pull-request',
+              title: 'Test PR 2',
+            },
+          ],
         },
-        multiple: true
+        multiple: true,
       };
 
       render(<>{IssuePRColumnType.renderCell(cell)}</>);
@@ -65,12 +65,12 @@ describe('IssuePRColumnType', () => {
     });
 
     it('renders no selection message when empty', () => {
-      const cell: GridCell<"issue-pr"> = {
+      const cell: GridCell<'issue-pr'> = {
         ...baseCell,
-        columnType: "issue-pr",
-        state: "done",
+        columnType: 'issue-pr',
+        state: 'done',
         response: { references: [] },
-        multiple: true
+        multiple: true,
       };
 
       render(<>{IssuePRColumnType.renderCell(cell)}</>);
@@ -84,39 +84,43 @@ describe('IssuePRColumnType', () => {
         JSON.stringify({
           reference: {
             number: 123,
-            repository: "owner/repo",
-            type: "issue"
-          }
+            repository: 'owner/repo',
+            type: 'issue',
+          },
         }),
         false
       );
       expect(response).toEqual({
         reference: {
           number: 123,
-          repository: "owner/repo",
-          type: "issue"
-        }
+          repository: 'owner/repo',
+          type: 'issue',
+        },
       });
     });
 
     it('parses multiple response correctly', () => {
       const response = IssuePRColumnType.parseResponse(
         JSON.stringify({
-          references: [{
-            number: 123,
-            repository: "owner/repo",
-            type: "issue"
-          }]
+          references: [
+            {
+              number: 123,
+              repository: 'owner/repo',
+              type: 'issue',
+            },
+          ],
         }),
         true
       );
       expect(response).toEqual({
-        references: [{
-          number: 123,
-          repository: "owner/repo",
-          type: "issue"
-        }]
+        references: [
+          {
+            number: 123,
+            repository: 'owner/repo',
+            type: 'issue',
+          },
+        ],
       });
     });
   });
-}); 
+});

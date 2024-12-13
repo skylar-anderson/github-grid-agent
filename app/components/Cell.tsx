@@ -1,8 +1,8 @@
-import { BaseColumnType } from "../columns/BaseColumnType";
-import React from "react";
-import { Spinner, Box } from "@primer/react";
-import type { GridCell, ColumnType } from "../actions";
-import { columnTypes } from "../columns";
+import { BaseColumnType } from '../columns/BaseColumnType';
+import React from 'react';
+import { Spinner, Box } from '@primer/react';
+import type { GridCell, ColumnType } from '../actions';
+import { columnTypes } from '../columns';
 
 type CellProps = {
   sx?: any;
@@ -11,43 +11,38 @@ type CellProps = {
   isSelected?: boolean;
 };
 
-export default function Cell({
-  sx,
-  cell,
-  onClick,
-  isSelected = false,
-}: CellProps) {
+export default function Cell({ sx, cell, onClick, isSelected = false }: CellProps) {
   const hoverProps = onClick
     ? {
-        ":hover": {
-          backgroundColor: "canvas.inset",
-          cursor: "pointer",
-          transition: "background-color 300ms ease-in-out",
+        ':hover': {
+          backgroundColor: 'canvas.inset',
+          cursor: 'pointer',
+          transition: 'background-color 300ms ease-in-out',
         },
       }
     : {};
   const selectedProps = {
-    backgroundColor: "canvas.inset",
+    backgroundColor: 'canvas.inset',
   };
 
   return (
     <Box
       sx={{
-        wordWrap: "break-word",
-        display: "flex",
+        wordWrap: 'break-word',
+        display: 'flex',
         flexShrink: 0,
-        overflowY: "scroll",
-        flexDirection: "column",
-        position: "relative",
+        overflowY: 'scroll',
+        flexDirection: 'column',
+        position: 'relative',
         p: 3,
         fontSize: 1,
         flex: 1,
-        boxSizing: "border-box",
-        minWidth: "260px",
-        borderRight: "1px solid",
-        borderColor: "#f0f0f0",
-        overflow: "hidden",
-        "&:last-child": {
+        boxSizing: 'border-box',
+        minWidth: '260px',
+        borderRight: '1px solid',
+        borderColor: '#f0f0f0',
+        overflow: 'hidden',
+        '&:last-child': {
           border: 0,
         },
         ...(isSelected ? selectedProps : {}),
@@ -62,10 +57,10 @@ export default function Cell({
 }
 
 export function GridCellContent({ cell }: { cell: GridCell }) {
-  if (cell.state === "error") {
+  if (cell.state === 'error') {
     return cell.errorMessage;
   }
-  if (cell.state === "empty") {
+  if (cell.state === 'empty') {
     return <Spinner size="small" />;
   }
 

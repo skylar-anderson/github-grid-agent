@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "next lint --fix"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
@@ -16,6 +19,7 @@
     "@primer/octicons-react": "^19.11.0",
     "@primer/react": "^36.27.0",
     "@supabase/supabase-js": "^2.44.4",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
     "ai": "^3.2.37",
     "autoevals": "^0.0.110",
     "braintrust": "^0.0.176",
@@ -43,7 +47,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/parser": "^7.17.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.4",

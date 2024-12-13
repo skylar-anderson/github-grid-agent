@@ -1,23 +1,23 @@
-import OpenAI from "openai";
-import { getDiscussion } from "./discussions";
+import OpenAI from 'openai';
+import { getDiscussion } from './discussions';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "getDiscussion",
+  name: 'getDiscussion',
   description: `Retrieves the contents of a discussion in a repository.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       id: {
-        type: "string",
-        description: "The id of the discussion to retrieve",
+        type: 'string',
+        description: 'The id of the discussion to retrieve',
       },
     },
-    required: ["repository", "id"],
+    required: ['repository', 'id'],
   },
 };
 

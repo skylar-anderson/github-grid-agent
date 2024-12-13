@@ -7,18 +7,18 @@ import { baseCell } from './test-types';
 describe('CommitColumnType', () => {
   describe('renderCell', () => {
     it('renders single commit correctly', () => {
-      const cell: GridCell<"commit"> = {
+      const cell: GridCell<'commit'> = {
         ...baseCell,
-        columnType: "commit",
-        state: "done",
+        columnType: 'commit',
+        state: 'done',
         response: {
           commit: {
-            sha: "abc123",
-            message: "Fix bug",
-            repository: "owner/repo"
-          }
+            sha: 'abc123',
+            message: 'Fix bug',
+            repository: 'owner/repo',
+          },
         },
-        multiple: false
+        multiple: false,
       };
 
       render(<>{CommitColumnType.renderCell(cell)}</>);
@@ -27,25 +27,25 @@ describe('CommitColumnType', () => {
     });
 
     it('renders multiple commits correctly', () => {
-      const cell: GridCell<"commit"> = {
+      const cell: GridCell<'commit'> = {
         ...baseCell,
-        columnType: "commit",
-        state: "done",
+        columnType: 'commit',
+        state: 'done',
         response: {
           commits: [
             {
-              sha: "abc123",
-              message: "Fix bug",
-              repository: "owner/repo"
+              sha: 'abc123',
+              message: 'Fix bug',
+              repository: 'owner/repo',
             },
             {
-              sha: "def456",
-              message: "Add feature",
-              repository: "owner/repo"
-            }
-          ]
+              sha: 'def456',
+              message: 'Add feature',
+              repository: 'owner/repo',
+            },
+          ],
         },
-        multiple: true
+        multiple: true,
       };
 
       render(<>{CommitColumnType.renderCell(cell)}</>);
@@ -56,12 +56,12 @@ describe('CommitColumnType', () => {
     });
 
     it('renders no selection message when empty', () => {
-      const cell: GridCell<"commit"> = {
+      const cell: GridCell<'commit'> = {
         ...baseCell,
-        columnType: "commit",
-        state: "done",
+        columnType: 'commit',
+        state: 'done',
         response: { commits: [] },
-        multiple: true
+        multiple: true,
       };
 
       render(<>{CommitColumnType.renderCell(cell)}</>);
@@ -88,40 +88,44 @@ describe('CommitColumnType', () => {
       const response = CommitColumnType.parseResponse(
         JSON.stringify({
           commit: {
-            sha: "abc123",
-            message: "Fix bug",
-            repository: "owner/repo"
-          }
+            sha: 'abc123',
+            message: 'Fix bug',
+            repository: 'owner/repo',
+          },
         }),
         false
       );
       expect(response).toEqual({
         commit: {
-          sha: "abc123",
-          message: "Fix bug",
-          repository: "owner/repo"
-        }
+          sha: 'abc123',
+          message: 'Fix bug',
+          repository: 'owner/repo',
+        },
       });
     });
 
     it('parses multiple commits response correctly', () => {
       const response = CommitColumnType.parseResponse(
         JSON.stringify({
-          commits: [{
-            sha: "abc123",
-            message: "Fix bug",
-            repository: "owner/repo"
-          }]
+          commits: [
+            {
+              sha: 'abc123',
+              message: 'Fix bug',
+              repository: 'owner/repo',
+            },
+          ],
         }),
         true
       );
       expect(response).toEqual({
-        commits: [{
-          sha: "abc123",
-          message: "Fix bug",
-          repository: "owner/repo"
-        }]
+        commits: [
+          {
+            sha: 'abc123',
+            message: 'Fix bug',
+            repository: 'owner/repo',
+          },
+        ],
       });
     });
   });
-}); 
+});

@@ -4,10 +4,5 @@
     "jsx": "react-jsx",
     "types": ["jest", "@testing-library/jest-dom"]
   },
-  "include": [
-    "app/**/*.test.ts",
-    "app/**/*.test.tsx",
-    "app/**/*.spec.ts",
-    "app/**/*.spec.tsx"
-  ]
-} 
+  "include": ["app/**/*.test.ts", "app/**/*.test.tsx", "app/**/*.spec.ts", "app/**/*.spec.tsx"]
+}

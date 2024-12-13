@@ -1,24 +1,24 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { TextColumnType } from '../TextColumnType';
 import { GridCell } from '../../actions';
 
 describe('TextColumnType', () => {
   const baseCell = {
-    columnTitle: "Test Column",
-    columnInstructions: "Test instructions",
-    context: "",
+    columnTitle: 'Test Column',
+    columnInstructions: 'Test instructions',
+    context: '',
     hydrationSources: [],
   };
 
   describe('renderCell', () => {
     it('renders markdown text correctly', () => {
-      const cell: GridCell<"text"> = {
+      const cell: GridCell<'text'> = {
         ...baseCell,
-        columnType: "text",
-        state: "done",
-        response: "This is **bold** text",
-        multiple: false
+        columnType: 'text',
+        state: 'done',
+        response: 'This is **bold** text',
+        multiple: false,
       };
 
       const { container } = render(<>{TextColumnType.renderCell(cell)}</>);
@@ -26,12 +26,12 @@ describe('TextColumnType', () => {
     });
 
     it('renders empty string when response is empty', () => {
-      const cell: GridCell<"text"> = {
+      const cell: GridCell<'text'> = {
         ...baseCell,
-        columnType: "text",
-        state: "done",
-        response: "",
-        multiple: false
+        columnType: 'text',
+        state: 'done',
+        response: '',
+        multiple: false,
       };
 
       const { container } = render(<>{TextColumnType.renderCell(cell)}</>);
@@ -52,4 +52,4 @@ describe('TextColumnType', () => {
       expect(response).toBe('Some markdown text');
     });
   });
-}); 
+});

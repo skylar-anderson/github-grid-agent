@@ -1,4 +1,4 @@
-name: Jest Tests
+name: ESLint
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  eslint:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,9 +22,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Jest tests
-        run: npm test
-        env:
-          # Add any environment variables needed for tests
-          # Based on your .env.local file structure
-          NODE_ENV: test
+      - name: Run ESLint
+        run: npx eslint . --ext .ts,.tsx

@@ -1,42 +1,42 @@
-import { createIssue } from "@/app/utils/github";
-import OpenAI from "openai";
+import { createIssue } from '@/app/utils/github';
+import OpenAI from 'openai';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "createIssue",
+  name: 'createIssue',
   description: `Creates a new issue in a repository.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       title: {
-        type: "string",
-        description: "The title of the issue.",
+        type: 'string',
+        description: 'The title of the issue.',
       },
       body: {
-        type: "string",
-        description: "The contents of the issue.",
+        type: 'string',
+        description: 'The contents of the issue.',
       },
       labels: {
-        type: "array",
-        description: "An array of labels to associate with this issue.",
+        type: 'array',
+        description: 'An array of labels to associate with this issue.',
         items: {
-          type: "string",
+          type: 'string',
         },
       },
       assignees: {
-        type: "array",
+        type: 'array',
         description:
-          "An array of GitHub user handles to assign to this issue. If you omit this parameter, the issue will be assigned to the authenticated user.",
+          'An array of GitHub user handles to assign to this issue. If you omit this parameter, the issue will be assigned to the authenticated user.',
         items: {
-          type: "string",
+          type: 'string',
         },
       },
     },
-    required: ["repository", "title"],
+    required: ['repository', 'title'],
   },
 };
 
@@ -45,7 +45,7 @@ async function run(
   title: string,
   body: string,
   labels: string[],
-  assignees: string[],
+  assignees: string[]
 ) {
   return await createIssue({ repository, title, body, labels, assignees });
 }

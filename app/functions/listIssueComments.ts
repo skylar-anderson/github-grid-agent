@@ -1,46 +1,43 @@
-import { Endpoints } from "@octokit/types";
-import { githubApiRequest } from "@/app/utils/github";
-import OpenAI from "openai";
+import { Endpoints } from '@octokit/types';
+import { githubApiRequest } from '@/app/utils/github';
+import OpenAI from 'openai';
 
-const ENDPOINT = "GET /repos/{owner}/{repo}/issues/{issue_number}/comments";
+const ENDPOINT = 'GET /repos/{owner}/{repo}/issues/{issue_number}/comments';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "listIssueComments",
+  name: 'listIssueComments',
   description: `Retrieves a paginated list of comments for a given issue.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       issue_number: {
-        type: "number",
-        description: "The issue number to retrieve comments for",
+        type: 'number',
+        description: 'The issue number to retrieve comments for',
       },
       page: {
-        type: "number",
-        description: "The page of issue comments to return, defaults to 1",
+        type: 'number',
+        description: 'The page of issue comments to return, defaults to 1',
       },
     },
-    required: ["repository", "issue_number"],
+    required: ['repository', 'issue_number'],
   },
 };
 
-async function run(repository: string, issue_number: number, page: number = 1) {
-  const [owner, repo] = repository.split("/");
-  type GetIssueCommentsResponseType = Endpoints[typeof ENDPOINT]["response"];
+async function run(repository: string, issue_number: number, _page: number = 1) {
+  const [owner, repo] = repository.split('/');
+  type GetIssueCommentsResponseType = Endpoints[typeof ENDPOINT]['response'];
   try {
-    const response = (await githubApiRequest<GetIssueCommentsResponseType>(
-      ENDPOINT,
-      {
-        owner,
-        repo,
-        issue_number,
-        per_page: 10,
-      },
-    )) as GetIssueCommentsResponseType;
+    const response = (await githubApiRequest<GetIssueCommentsResponseType>(ENDPOINT, {
+      owner,
+      repo,
+      issue_number,
+      per_page: 10,
+    })) as GetIssueCommentsResponseType;
 
     return response.data.map((comment) => ({
       body: comment.body,
@@ -50,10 +47,11 @@ async function run(repository: string, issue_number: number, page: number = 1) {
       value: comment.body,
     }));
   } catch (e) {
-    console.log("Failed to fetch issue comments!");
+    console.log('Failed to fetch issue comments!');
     console.log(e);
-    return "An error occured when trying to fetch issue comments.";
+    return 'An error occured when trying to fetch issue comments.';
   }
 }
 
-export default { run, meta };
+const listIssueCommentsFunction = { run, meta };
+export default listIssueCommentsFunction;

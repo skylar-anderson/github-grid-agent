@@ -5,25 +5,25 @@ import { GridCell } from '../../actions';
 
 describe('FileColumnType', () => {
   const baseCell = {
-    columnTitle: "Test Column",
-    columnInstructions: "Test instructions",
-    context: "",
+    columnTitle: 'Test Column',
+    columnInstructions: 'Test instructions',
+    context: '',
     hydrationSources: [],
   };
 
   describe('renderCell', () => {
     it('renders single file correctly', () => {
-      const cell: GridCell<"file"> = {
+      const cell: GridCell<'file'> = {
         ...baseCell,
-        columnType: "file",
-        state: "done",
+        columnType: 'file',
+        state: 'done',
         response: {
           file: {
-            path: "src/index.ts",
-            repository: "owner/repo"
-          }
+            path: 'src/index.ts',
+            repository: 'owner/repo',
+          },
         },
-        multiple: false
+        multiple: false,
       };
 
       render(<>{FileColumnType.renderCell(cell)}</>);
@@ -32,23 +32,23 @@ describe('FileColumnType', () => {
     });
 
     it('renders multiple files correctly', () => {
-      const cell: GridCell<"file"> = {
+      const cell: GridCell<'file'> = {
         ...baseCell,
-        columnType: "file",
-        state: "done",
+        columnType: 'file',
+        state: 'done',
         response: {
           files: [
             {
-              path: "src/index.ts",
-              repository: "owner/repo"
+              path: 'src/index.ts',
+              repository: 'owner/repo',
             },
             {
-              path: "src/types.ts",
-              repository: "owner/repo"
-            }
-          ]
+              path: 'src/types.ts',
+              repository: 'owner/repo',
+            },
+          ],
         },
-        multiple: true
+        multiple: true,
       };
 
       render(<>{FileColumnType.renderCell(cell)}</>);
@@ -57,12 +57,12 @@ describe('FileColumnType', () => {
     });
 
     it('renders no selection message when empty', () => {
-      const cell: GridCell<"file"> = {
+      const cell: GridCell<'file'> = {
         ...baseCell,
-        columnType: "file",
-        state: "done",
+        columnType: 'file',
+        state: 'done',
         response: { files: [] },
-        multiple: true
+        multiple: true,
       };
 
       render(<>{FileColumnType.renderCell(cell)}</>);
@@ -87,36 +87,40 @@ describe('FileColumnType', () => {
       const response = FileColumnType.parseResponse(
         JSON.stringify({
           file: {
-            path: "src/index.ts",
-            repository: "owner/repo"
-          }
+            path: 'src/index.ts',
+            repository: 'owner/repo',
+          },
         }),
         false
       );
       expect(response).toEqual({
         file: {
-          path: "src/index.ts",
-          repository: "owner/repo"
-        }
+          path: 'src/index.ts',
+          repository: 'owner/repo',
+        },
       });
     });
 
     it('parses multiple files response correctly', () => {
       const response = FileColumnType.parseResponse(
         JSON.stringify({
-          files: [{
-            path: "src/index.ts",
-            repository: "owner/repo"
-          }]
+          files: [
+            {
+              path: 'src/index.ts',
+              repository: 'owner/repo',
+            },
+          ],
         }),
         true
       );
       expect(response).toEqual({
-        files: [{
-          path: "src/index.ts",
-          repository: "owner/repo"
-        }]
+        files: [
+          {
+            path: 'src/index.ts',
+            repository: 'owner/repo',
+          },
+        ],
       });
     });
   });
-}); 
+});

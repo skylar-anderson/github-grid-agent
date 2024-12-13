@@ -1,15 +1,11 @@
-import { useState } from "react";
-import { IconButton, Box, Avatar, Text } from "@primer/react";
-import DebugDialog from "./DebugDialog";
-import {
-  XIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,  
-} from "@primer/octicons-react";
-import { GridCol, GridCell } from "../actions";
-import { useGridContext } from "./GridContext";
-import "./SelectedContext.css";
-import { GridCellContent } from "./Cell";
+import { useState } from 'react';
+import { IconButton, Box, Avatar, Text } from '@primer/react';
+import DebugDialog from './DebugDialog';
+import { XIcon, ChevronDownIcon, ChevronUpIcon } from '@primer/octicons-react';
+import { GridCol, GridCell } from '../actions';
+import { useGridContext } from './GridContext';
+import './SelectedContext.css';
+import { GridCellContent } from './Cell';
 import { marked } from 'marked';
 
 const avatarUrl = (handle: string, size: number = 200) =>
@@ -44,10 +40,10 @@ type Issue = {
   body: string;
   number: string;
   url: string;
-}
+};
 function IssueDetails({ issue }: { issue: Issue }) {
   const [open, setOpen] = useState<boolean>(false);
-  
+
   return (
     <Box sx={{ p: 3 }}>
       <Box
@@ -55,33 +51,69 @@ function IssueDetails({ issue }: { issue: Issue }) {
         href={issue.url}
         sx={{
           display: 'block',
-          color: "fg.default",
+          color: 'fg.default',
           textDecoration: 'none',
           fontSize: 4,
-          fontWeight: "semibold",
+          fontWeight: 'semibold',
           lineHeight: 1.33,
-          mb: 3}}
+          mb: 3,
+        }}
+      >
+        {issue.title}
+        <Text sx={{ color: 'fg.muted' }}>(#{issue.number})</Text>
+      </Box>
+      <Box
+        sx={{
+          fontSize: 0,
+          border: '1px solid',
+          borderColor: 'border.default',
+          borderRadius: 2,
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            backgroundColor: 'canvas.inset',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            borderBottom: '1px solid',
+            borderColor: 'border.default',
+          }}
         >
-          {issue.title}<Text sx={{color: 'fg.muted'}}>(#{issue.number})</Text></Box>
-      <Box sx={{ fontSize: 0, border: "1px solid", borderColor: "border.default", borderRadius: 2, overflow: "hidden"}}>
-        <Box sx={{ px: 3, py: 2, backgroundColor: "canvas.inset", display: "flex", alignItems: "center", gap: 1, borderBottom: "1px solid", borderColor: "border.default"}}>
-          <Avatar src={avatarUrl(issue.opener_handle)} size={20} sx={{mr: 1}} />
-          <Text sx={{color: 'fg.default', fontWeight: 'semibold'}}>
+          <Avatar src={avatarUrl(issue.opener_handle)} size={20} sx={{ mr: 1 }} />
+          <Text sx={{ color: 'fg.default', fontWeight: 'semibold' }}>
             {issue.opener_handle}
-          </Text> <Text sx={{color: 'fg.muted'}}>opened this issue on {new Date(issue.url).toLocaleDateString()}</Text>
+          </Text>{' '}
+          <Text sx={{ color: 'fg.muted' }}>
+            opened this issue on {new Date(issue.url).toLocaleDateString()}
+          </Text>
         </Box>
-        <Box sx={{ p: 3, maxHeight: open ? "none" : "225px", overflow: "hidden", position: "relative", transition: "max-height 0.3s ease" }}>
-          <div className="markdownContainer" dangerouslySetInnerHTML={{ __html: marked.parse(issue.body) }} />
+        <Box
+          sx={{
+            p: 3,
+            maxHeight: open ? 'none' : '225px',
+            overflow: 'hidden',
+            position: 'relative',
+            transition: 'max-height 0.3s ease',
+          }}
+        >
+          <div
+            className="markdownContainer"
+            dangerouslySetInnerHTML={{ __html: marked.parse(issue.body) }}
+          />
           {open ? (
             <IconButton
               icon={ChevronUpIcon}
-              aria-label="Show less" 
+              aria-label="Show less"
               onClick={() => setOpen(false)}
               sx={{
-                position: "absolute",
+                position: 'absolute',
                 bottom: 2,
                 right: 2,
-                backgroundColor: "canvas.default"
+                backgroundColor: 'canvas.default',
               }}
             />
           ) : (
@@ -90,35 +122,34 @@ function IssueDetails({ issue }: { issue: Issue }) {
               aria-label="Show more"
               onClick={() => setOpen(true)}
               sx={{
-                position: "absolute",
+                position: 'absolute',
                 bottom: 2,
                 right: 2,
-                backgroundColor: "canvas.default"
+                backgroundColor: 'canvas.default',
               }}
             />
           )}
         </Box>
       </Box>
     </Box>
-  )
+  );
 }
 
 function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
-  const [open, setOpen] = useState<boolean>(true);
-  const { context } = primaryCell
-  
+  const [open] = useState<boolean>(true);
+  const { context } = primaryCell;
+
   if (context.type === 'issue') {
-    return <IssueDetails issue={context as Issue} />
+    return <IssueDetails issue={context as Issue} />;
   }
   return (
     <Box
       sx={{
         flexShrink: 0,
-        overflow: "hidden",
+        overflow: 'hidden',
       }}
     >
-
-      <Box sx={{ fontSize: 1, fontWeight: "semibold", px: 3, pt: 3}}>
+      <Box sx={{ fontSize: 1, fontWeight: 'semibold', px: 3, pt: 3 }}>
         Original {context.type} details
       </Box>
 
@@ -126,14 +157,12 @@ function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
         <Box sx={{ p: 3 }}>
           {Object.keys(context).map((key) => {
             const value = context[key];
-            if (key === "type" || key === "value") return null;
+            if (key === 'type' || key === 'value') return null;
             return (
-              <Box sx={{ pb: 3, "&:last-child": { pb: 0 } }} key={key}>
-                <Box sx={{ fontSize: 0, fontWeight: "semibold", m: 0, pb: 0 }}>
-                  {key}
-                </Box>
+              <Box sx={{ pb: 3, '&:last-child': { pb: 0 } }} key={key}>
+                <Box sx={{ fontSize: 0, fontWeight: 'semibold', m: 0, pb: 0 }}>{key}</Box>
 
-                <Box sx={{ fontSize: 0, color: "fg.muted" }}>{value}</Box>
+                <Box sx={{ fontSize: 0, color: 'fg.muted' }}>{value}</Box>
               </Box>
             );
           })}
@@ -143,30 +172,21 @@ function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
   );
 }
 
-function CellValue({
-  column,
-  cell,
-  contextType,
-}: {
-  column: GridCol;
-  cell: GridCell;
-  contextType: string;
-}) {
+function CellValue({ column, cell }: { column: GridCol; cell: GridCell }) {
   const sources = cell.hydrationSources;
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 1
+        gap: 1,
       }}
     >
-
-      <Box sx={{ fontSize: 1, fontWeight: "semibold" }}>
-        {column.title} <DebugDialog prompt={cell.prompt || ""} sources={sources} />
+      <Box sx={{ fontSize: 1, fontWeight: 'semibold' }}>
+        {column.title} <DebugDialog prompt={cell.prompt || ''} sources={sources} />
       </Box>
 
-      <Box sx={{ flexDirection: "column", display: "flex", flex: 1,gap: 1 }}>
+      <Box sx={{ flexDirection: 'column', display: 'flex', flex: 1, gap: 1 }}>
         <GridCellContent cell={cell} />
       </Box>
     </Box>
@@ -183,20 +203,20 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
   return (
     <Box
       sx={{
-        display: "flex",
+        display: 'flex',
         p: 2,
         gap: 2,
-        borderBottom: "1px solid",
-        borderColor: "border.default",
-        alignItems: "center",
-        position: "sticky",
+        borderBottom: '1px solid',
+        borderColor: 'border.default',
+        alignItems: 'center',
+        position: 'sticky',
         top: 0,
         left: 0,
-        backgroundColor: "canvas.default",
+        backgroundColor: 'canvas.default',
         height: '48px',
       }}
     >
-      <Box sx={{ display: "flex", gap: 0 }}>
+      <Box sx={{ display: 'flex', gap: 0 }}>
         <IconButton
           aria-label="Previous"
           size="small"
@@ -217,10 +237,10 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
         sx={{
           flex: 1,
           fontSize: 1,
-          fontWeight: "semibold",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          fontWeight: 'semibold',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}
       >
         {title}
@@ -255,8 +275,7 @@ export default function SelectedRowPanel() {
     if (selectedIndex === null) {
       return null;
     }
-    const targetRow =
-      selectedIndex === 0 ? primaryColumn.length - 1 : selectedIndex - 1;
+    const targetRow = selectedIndex === 0 ? primaryColumn.length - 1 : selectedIndex - 1;
     selectRow(targetRow);
   }
 
@@ -264,17 +283,16 @@ export default function SelectedRowPanel() {
     if (selectedIndex === null) {
       return null;
     }
-    const targetRow =
-      selectedIndex === primaryColumn.length - 1 ? 0 : selectedIndex + 1;
+    const targetRow = selectedIndex === primaryColumn.length - 1 ? 0 : selectedIndex + 1;
     selectRow(targetRow);
   }
 
   return (
     <Box
       sx={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <ContextHeader
@@ -287,21 +305,17 @@ export default function SelectedRowPanel() {
       <Box
         sx={{
           flex: 1,
-          height: "100%",
-          overflow: "scroll",
-          display: "flex",
-          flexDirection: "column",
+          height: '100%',
+          overflow: 'scroll',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <ContextDetails primaryCell={primaryCell} />
 
         {columns.map((c, i) => (
-          <Box key={`cell-${i}`} sx={{p:3}}>
-            <CellValue
-              column={c}
-              contextType={primaryCell.context.type}
-              cell={c.cells[selectedIndex]}
-            />
+          <Box key={`cell-${i}`} sx={{ p: 3 }}>
+            <CellValue column={c} cell={c.cells[selectedIndex]} />
           </Box>
         ))}
       </Box>

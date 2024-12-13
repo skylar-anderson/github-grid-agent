@@ -6,19 +6,19 @@ import { GridCell } from '../../actions';
 describe('BooleanColumnType', () => {
   describe('renderCell', () => {
     const baseCell = {
-      columnTitle: "Test Column",
-      columnInstructions: "Test instructions",
-      context: "",
+      columnTitle: 'Test Column',
+      columnInstructions: 'Test instructions',
+      context: '',
       hydrationSources: [],
     };
 
     it('renders true value correctly', () => {
-      const cell: GridCell<"boolean"> = {
+      const cell: GridCell<'boolean'> = {
         ...baseCell,
-        columnType: "boolean",
-        state: "done",
+        columnType: 'boolean',
+        state: 'done',
         response: { value: true },
-        multiple: false
+        multiple: false,
       };
 
       render(<>{BooleanColumnType.renderCell(cell)}</>);
@@ -26,12 +26,12 @@ describe('BooleanColumnType', () => {
     });
 
     it('renders false value correctly', () => {
-      const cell: GridCell<"boolean"> = {
+      const cell: GridCell<'boolean'> = {
         ...baseCell,
-        columnType: "boolean",
-        state: "done",
+        columnType: 'boolean',
+        state: 'done',
         response: { value: false },
-        multiple: false
+        multiple: false,
       };
 
       render(<>{BooleanColumnType.renderCell(cell)}</>);
@@ -43,19 +43,19 @@ describe('BooleanColumnType', () => {
     it('returns correct schema', () => {
       const schema = BooleanColumnType.generateResponseSchema();
       expect(schema).toEqual({
-        type: "json_schema",
+        type: 'json_schema',
         json_schema: {
-          name: "boolean_response",
+          name: 'boolean_response',
           strict: true,
           schema: {
-            type: "object",
+            type: 'object',
             properties: {
               value: {
-                type: "boolean",
-                description: "The boolean value (true or false) for this cell",
+                type: 'boolean',
+                description: 'The boolean value (true or false) for this cell',
               },
             },
-            required: ["value"],
+            required: ['value'],
             additionalProperties: false,
           },
         },
@@ -78,4 +78,4 @@ describe('BooleanColumnType', () => {
       expect(() => BooleanColumnType.parseResponse('invalid')).toThrow();
     });
   });
-}); 
+});

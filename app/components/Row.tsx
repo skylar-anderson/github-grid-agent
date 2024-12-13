@@ -1,6 +1,6 @@
-import { Box } from "@primer/react";
-import Cell from "./Cell";
-import type { GridCol, GridCell } from "../actions";
+import { Box } from '@primer/react';
+import Cell from './Cell';
+import type { GridCol, GridCell } from '../actions';
 
 type RowProps = {
   rowIndex: number;
@@ -20,15 +20,15 @@ export default function Row({
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "row",
-        borderBottom: "1px solid",
-        borderColor: "#f0f0f0",
-        transition: "background-color 300ms ease-in-out",
-        "&:hover": {
-          backgroundColor: "canvas.inset",
-          borderColor: "border.default",
-          cursor: "pointer",
+        display: 'flex',
+        flexDirection: 'row',
+        borderBottom: '1px solid',
+        borderColor: '#f0f0f0',
+        transition: 'background-color 300ms ease-in-out',
+        '&:hover': {
+          backgroundColor: 'canvas.inset',
+          borderColor: 'border.default',
+          cursor: 'pointer',
         },
       }}
       onClick={() => selectRow(rowIndex)}
@@ -43,4 +43,4 @@ export default function Row({
       ))}
     </Box>
   );
-} 
+}

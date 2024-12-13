@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { GridCell, Option, ColumnType, ColumnResponse } from "../actions";
-import OpenAI from "openai";
+import { ReactNode } from 'react';
+import { GridCell, Option, ColumnType, ColumnResponse } from '../actions';
+import OpenAI from 'openai';
 
 export interface BaseColumnType<T extends ColumnType> {
   type: T;
@@ -14,11 +14,8 @@ export interface BaseColumnType<T extends ColumnType> {
   renderCell: (cell: GridCell<T>) => ReactNode;
   generateResponseSchema: (
     options?: Option[],
-    multiple?: boolean,
-  ) => OpenAI.ChatCompletionCreateParams["response_format"] | undefined;
+    multiple?: boolean
+  ) => OpenAI.ChatCompletionCreateParams['response_format'] | undefined;
   buildHydrationPrompt: (cell: GridCell<T>) => string;
-  parseResponse: (
-    responseContent: string,
-    multiple?: boolean,
-  ) => ColumnResponse[T];
+  parseResponse: (responseContent: string, multiple?: boolean) => ColumnResponse[T];
 }

@@ -1,31 +1,31 @@
-"use client";
-import { useMemo, useCallback, useState } from "react";
-import type { GridCol, GridCell, ColumnResponse } from "../actions";
-import { Dialog } from "@primer/react/experimental";
-import { Text, Box, CounterLabel } from "@primer/react";
-import { GridHeader } from "./GridHeader";
-import { useGridContext } from "./GridContext";
-import SelectedContext from "./SelectedRowPanel";
-import NewColumnForm from "./NewColumnForm";
-import Cell from "./Cell";
-import "./Grid.css";
-import ColumnTitle from "./ColumnTitle";
-import { pluralize } from "../utils/pluralize";
-import { capitalize } from "../utils/capitalize";
-import type { GridState, PrimaryDataType } from "../actions";
-import Row from "./Row";
+'use client';
+import { useMemo, useCallback, useState } from 'react';
+import type { GridCol, GridCell, ColumnResponse } from '../actions';
+import { Dialog } from '@primer/react/experimental';
+import { Text, Box, CounterLabel } from '@primer/react';
+import { GridHeader } from './GridHeader';
+import { useGridContext } from './GridContext';
+import SelectedContext from './SelectedRowPanel';
+import NewColumnForm from './NewColumnForm';
+import Cell from './Cell';
+import './Grid.css';
+import ColumnTitle from './ColumnTitle';
+import { pluralize } from '../utils/pluralize';
+import { capitalize } from '../utils/capitalize';
+import type { GridState, PrimaryDataType } from '../actions';
+import Row from './Row';
 
 function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   return (
     <Box
       sx={{
         flex: 1,
-        backgroundColor: "white",
+        backgroundColor: 'white',
         borderRadius: 2,
-        border: "1px solid",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-        borderColor: "border.default",
-        overflow: "scroll",
+        border: '1px solid',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        borderColor: 'border.default',
+        overflow: 'scroll',
         ...sx,
       }}
     >
@@ -34,33 +34,25 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   );
 }
 
-function GroupHeader({
-  groupName,
-  count,
-}: {
-  groupName: string;
-  count: number;
-}) {
+function GroupHeader({ groupName, count }: { groupName: string; count: number }) {
   return (
     <Box
       sx={{
-        backgroundColor: "canvas.subtle",
+        backgroundColor: 'canvas.subtle',
         fontSize: 1,
         p: 2,
         px: 3,
-        color: "fg.muted",
-        fontWeight: "bold",
-        borderBottom: "1px solid",
+        color: 'fg.muted',
+        fontWeight: 'bold',
+        borderBottom: '1px solid',
         flex: 2,
-        position: "sticky",
-        top: "49px",
+        position: 'sticky',
+        top: '49px',
         zIndex: 1,
-        borderColor: "border.default",
+        borderColor: 'border.default',
       }}
     >
-      <Text sx={{ mr: 2 }}>
-        {count === 1 ? groupName : pluralize(groupName)}
-      </Text>
+      <Text sx={{ mr: 2 }}>{count === 1 ? groupName : pluralize(groupName)}</Text>
       <CounterLabel>{count}</CounterLabel>
     </Box>
   );
@@ -69,15 +61,15 @@ function GroupHeader({
 function useColumnDialog() {
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
   const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
-  
+
   return {
     showNewColumnForm,
     setShowNewColumnForm,
-    onDialogClose
+    onDialogClose,
   };
 }
 
-function useGroupedRows(gridState: GridState|null) {
+function useGroupedRows(gridState: GridState | null) {
   return useMemo(() => {
     if (!gridState) {
       return [];
@@ -85,7 +77,7 @@ function useGroupedRows(gridState: GridState|null) {
 
     const { columns, primaryColumn, groupBy } = gridState;
     const defaultGroup = {
-      groupName: "",
+      groupName: '',
       rows: primaryColumn.map((cell, index) => ({ cell, index })),
     };
 
@@ -104,17 +96,16 @@ function useGroupedRows(gridState: GridState|null) {
       const groupCell = groupColumn.cells[index];
       let groupValues: string[] = [];
       switch (groupColumn.type) {
-        case "select":
-          const optionRes = groupCell.response as ColumnResponse["select"];
-          groupValues =
-            "options" in optionRes ? optionRes.options : [optionRes.option];
+        case 'select':
+          const optionRes = groupCell.response as ColumnResponse['select'];
+          groupValues = 'options' in optionRes ? optionRes.options : [optionRes.option];
           break;
-        case "select-user":
-          const userRes = groupCell.response as ColumnResponse["select-user"];
-          groupValues = "users" in userRes ? userRes.users : [userRes.user];
+        case 'select-user':
+          const userRes = groupCell.response as ColumnResponse['select-user'];
+          groupValues = 'users' in userRes ? userRes.users : [userRes.user];
           break;
         default:
-          groupValues = [""];
+          groupValues = [''];
           break;
       }
 
@@ -133,17 +124,23 @@ function useGroupedRows(gridState: GridState|null) {
   }, [gridState]);
 }
 
-function TableHeaderRow({ columns, primaryColumnType }: { columns: GridCol[], primaryColumnType: PrimaryDataType }) {
+function TableHeaderRow({
+  columns,
+  primaryColumnType,
+}: {
+  columns: GridCol[];
+  primaryColumnType: PrimaryDataType;
+}) {
   return (
     <Box
       sx={{
-        display: "flex",
-        position: "sticky",
+        display: 'flex',
+        position: 'sticky',
         top: 0,
-        flexDirection: "row",
-        borderBottom: "1px solid",
-        borderColor: "border.default",
-        background: "canvas.default",
+        flexDirection: 'row',
+        borderBottom: '1px solid',
+        borderColor: 'border.default',
+        background: 'canvas.default',
         flex: 1,
         zIndex: 1,
       }}
@@ -153,13 +150,12 @@ function TableHeaderRow({ columns, primaryColumnType }: { columns: GridCol[], pr
         <ColumnTitle key={index} title={column.title} index={index} />
       ))}
     </Box>
-  )
+  );
 }
 
 export default function GridTable() {
   const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
-  const { gridState, addNewColumn, selectRow, selectedIndex } =
-    useGridContext();
+  const { gridState, addNewColumn, selectRow, selectedIndex } = useGridContext();
   const groupedRows = useGroupedRows(gridState);
   if (!gridState) {
     return null;
@@ -172,9 +168,9 @@ export default function GridTable() {
       sx={{
         flex: 1,
         p: 2,
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
       }}
     >
       <GridHeader
@@ -184,29 +180,26 @@ export default function GridTable() {
       />
       <Box
         sx={{
-          display: "flex",
+          display: 'flex',
           flex: 1,
-          overflow: "scroll",
+          overflow: 'scroll',
           gap: 2,
         }}
       >
-        <Panel sx={{ flex: 1, height: "100%", overflowX: "scroll" }}>
+        <Panel sx={{ flex: 1, height: '100%', overflowX: 'scroll' }}>
           <Box
             sx={{
-              minWidth: "100%",
-              display: "flex",
+              minWidth: '100%',
+              display: 'flex',
               flex: 1,
-              flexDirection: "column",
+              flexDirection: 'column',
             }}
           >
             <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
             {groupedRows.map((group, groupIndex) => (
               <Box key={groupIndex}>
                 {group.groupName && (
-                  <GroupHeader
-                    groupName={group.groupName}
-                    count={group.rows.length}
-                  />
+                  <GroupHeader groupName={group.groupName} count={group.rows.length} />
                 )}
                 {group.rows.map(({ cell, index }) => (
                   <Row
@@ -224,7 +217,7 @@ export default function GridTable() {
         </Panel>
 
         {selectedIndex !== null && (
-          <Panel sx={{ flex: 0, minWidth: "640px", height: "100%" }}>
+          <Panel sx={{ flex: 0, minWidth: '640px', height: '100%' }}>
             <SelectedContext />
           </Panel>
         )}
@@ -233,13 +226,7 @@ export default function GridTable() {
       {showNewColumnForm ? (
         <Dialog title="Add new column" position="right" onClose={onDialogClose}>
           <NewColumnForm
-            addNewColumn={({
-              title,
-              instructions,
-              type,
-              options,
-              multiple,
-            }) => {
+            addNewColumn={({ title, instructions, type, options, multiple }) => {
               addNewColumn({ title, instructions, type, options, multiple });
               setShowNewColumnForm(false);
               return;

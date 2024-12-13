@@ -1,31 +1,31 @@
-import { githubApiRequest } from "@/app/utils/github";
-import { Endpoints } from "@octokit/types";
-import OpenAI from "openai";
-const ENDPOINT = "GET /repos/{owner}/{repo}/contents/{path}";
+import { githubApiRequest } from '@/app/utils/github';
+import { Endpoints } from '@octokit/types';
+import OpenAI from 'openai';
+const ENDPOINT = 'GET /repos/{owner}/{repo}/contents/{path}';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "readFile",
+  name: 'readFile',
   description: `Retrieves the contents of a file or directory in a repository.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       path: {
-        type: "string",
-        description: "The file path to retrieve",
+        type: 'string',
+        description: 'The file path to retrieve',
       },
     },
-    required: ["repository", "path"],
+    required: ['repository', 'path'],
   },
 };
 
 async function run(repository: string, path: string) {
-  const [owner, repo] = repository.split("/");
-  type ContentsResponse = Endpoints[typeof ENDPOINT]["response"] | undefined;
+  const [owner, repo] = repository.split('/');
+  type ContentsResponse = Endpoints[typeof ENDPOINT]['response'] | undefined;
   try {
     const response = await githubApiRequest<ContentsResponse>(ENDPOINT, {
       owner,
@@ -36,9 +36,9 @@ async function run(repository: string, path: string) {
       return response.data;
     }
   } catch (error) {
-    console.log("Failed to fetch content!");
+    console.log('Failed to fetch content!');
     console.log(error);
-    return "An error occured when trying to fetch content.";
+    return 'An error occured when trying to fetch content.';
   }
 }
 

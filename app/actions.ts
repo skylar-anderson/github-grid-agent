@@ -1,10 +1,10 @@
-"use server";
-import OpenAI from "openai";
-import type { Tool } from "ai";
-import { runFunction, availableFunctions, FunctionName } from "./functions";
-import { columnTypes } from "./columns";
-import { BaseColumnType } from "./columns/BaseColumnType";
-import { createGist as createGistOnGitHub } from "./utils/github";
+'use server';
+import OpenAI from 'openai';
+import type { Tool } from 'ai';
+import { runFunction, availableFunctions, FunctionName } from './functions';
+import { columnTypes } from './columns';
+import { BaseColumnType } from './columns/BaseColumnType';
+import { createGist as createGistOnGitHub } from './utils/github';
 const MAX_ROWS = 1000;
 
 export type Option = {
@@ -12,17 +12,19 @@ export type Option = {
   description: string;
 };
 
-export type PrimaryDataType = "issue" | "commit" | "pull-request" | "snippet" | "item";
-type GridCellState = "empty" | "generating" | "done" | "error";
+export type PrimaryDataType = 'issue' | 'commit' | 'pull-request' | 'snippet' | 'item';
+type GridCellState = 'empty' | 'generating' | 'done' | 'error';
 
-export type ColumnType = "text" | "select" | "select-user" | "file" | "issue-pr" | "commit";
+export type ColumnType = 'text' | 'select' | 'select-user' | 'file' | 'issue-pr' | 'commit';
 
 export type ColumnResponse = {
   text: string;
   select: { option: string } | { options: string[] };
-  "select-user": { user: string } | { users: string[] };
-  file: { file: { path: string; repository: string } } | { files: { path: string; repository: string }[] };
-  "issue-pr": {
+  'select-user': { user: string } | { users: string[] };
+  file:
+    | { file: { path: string; repository: string } }
+    | { files: { path: string; repository: string }[] };
+  'issue-pr': {
     reference?: {
       number: number;
       repository: string;
@@ -36,7 +38,7 @@ export type ColumnResponse = {
       title?: string;
     }>;
   };
-  "commit": {
+  commit: {
     commit?: {
       sha: string;
       repository: string;
@@ -102,24 +104,24 @@ export type ErrorResponse = {
 function convertResultToPrimaryCell(result: any): GridCell {
   return {
     context: result,
-    state: "done",
-    columnType: "text",
-    columnInstructions: "",
+    state: 'done',
+    columnType: 'text',
+    columnInstructions: '',
     columnTitle: result.type,
     hydrationSources: [],
-    response: result.value as ColumnResponse["text"],
+    response: result.value as ColumnResponse['text'],
   };
 }
 
 function signatureFromArgs(args: Record<string, unknown>) {
   return Object.entries(args)
     .map(([key, value]) => `${key}=${value}`)
-    .join(", ");
+    .join(', ');
 }
 
-const GH_MODELS_ENDPOINT = "https://models.inference.ai.azure.com";
+const GH_MODELS_ENDPOINT = 'https://models.inference.ai.azure.com';
 const shouldUseGitHubModels = !!process.env.GITHUB_MODELS;
-const MODEL = shouldUseGitHubModels ? "gpt-4o" : "gpt-4o-2024-08-06";
+const MODEL = shouldUseGitHubModels ? 'gpt-4o' : 'gpt-4o-2024-08-06';
 
 const oaiParams = shouldUseGitHubModels
   ? {
@@ -133,13 +135,13 @@ const openai = new OpenAI(oaiParams);
 
 const tools: Tool[] = Object.keys(availableFunctions).map((f) => {
   return {
-    type: "function",
+    type: 'function',
     function: availableFunctions[f as FunctionName].meta,
   } as Tool;
 });
 
 export async function createPrimaryColumn(
-  primaryQuery: string,
+  primaryQuery: string
 ): Promise<SuccessfulPrimaryColumnResponse | ErrorResponse> {
   const SYSTEM = `\
   You have access to a number of tools that allow you to retrieve context from GitHub.com.\
@@ -149,11 +151,11 @@ export async function createPrimaryColumn(
     model: MODEL,
     stream: false,
     messages: [
-      { role: "system", content: SYSTEM },
-      { role: "user", content: primaryQuery },
+      { role: 'system', content: SYSTEM },
+      { role: 'user', content: primaryQuery },
     ],
     tools,
-    tool_choice: "auto",
+    tool_choice: 'auto',
   });
 
   const responseMessage = response.choices[0].message;
@@ -162,14 +164,14 @@ export async function createPrimaryColumn(
     const toolCall = responseMessage.tool_calls[0];
     const args = JSON.parse(toolCall.function.arguments);
     const toolResult = await runFunction(toolCall.function.name, args);
-    let column = (Array.isArray(toolResult) ? toolResult : [toolResult])
+    const column = (Array.isArray(toolResult) ? toolResult : [toolResult])
       .map(convertResultToPrimaryCell)
       .slice(0, MAX_ROWS);
     const grid = {
       title: primaryQuery,
       columns: [],
       primaryColumn: column,
-      primaryColumnType: column[0].context.type || ("Item" as PrimaryDataType),
+      primaryColumnType: column[0].context.type || ('Item' as PrimaryDataType),
     };
 
     return { success: true, grid };
@@ -177,7 +179,7 @@ export async function createPrimaryColumn(
 
   return {
     success: false,
-    message: responseMessage.content || "Something went wrong",
+    message: responseMessage.content || 'Something went wrong',
   };
 }
 
@@ -185,8 +187,7 @@ type HydrateResponse = {
   promise: Promise<GridCell>;
 };
 
-const optionString = (option: Option) =>
-  `-  ${option.title}: ${option.description}`;
+const optionString = (option: Option) => `-  ${option.title}: ${option.description}`;
 
 export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   const SYSTEM = `\
@@ -204,21 +205,19 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
   `;
 
   async function hydrate<T extends ColumnType>(): Promise<GridCell<T>> {
-    let hydrationSources: string[] = [];
-    const columnType = columnTypes[
-      cell.columnType as ColumnType
-    ] as BaseColumnType<ColumnType>;
+    const hydrationSources: string[] = [];
+    const columnType = columnTypes[cell.columnType as ColumnType] as BaseColumnType<ColumnType>;
     const prompt: OpenAI.Chat.Completions.ChatCompletionUserMessageParam = {
-      role: "user",
+      role: 'user',
       content: `Context: ${JSON.stringify(cell.context)}
       - Cell format instructions: ${columnType.buildHydrationPrompt(cell as GridCell<T>)}
       - Cell data description (use this to determine relevant data for the cell): ${cell.columnTitle}
-      ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ""}
-      ${cell.options ? `User-provided options:\n${cell.options.map(optionString).join("\n")}` : "No options provided"}`,
+      ${cell.columnInstructions ? `- Additional instructions: ${cell.columnInstructions}` : ''}
+      ${cell.options ? `User-provided options:\n${cell.options.map(optionString).join('\n')}` : 'No options provided'}`,
     };
 
-    let context: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: "system", content: SYSTEM },
+    const context: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM },
       prompt,
     ];
 
@@ -228,11 +227,8 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         stream: false,
         messages: context,
         tools,
-        tool_choice: "auto",
-        response_format: columnType.generateResponseSchema(
-          cell.options,
-          cell.multiple,
-        ),
+        tool_choice: 'auto',
+        response_format: columnType.generateResponseSchema(cell.options, cell.multiple),
       });
 
       const responseChoice = response.choices[0];
@@ -244,12 +240,10 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
         const toolCall = toolCalls[0];
         const args = JSON.parse(toolCall.function.arguments);
         const toolResult = await runFunction(toolCall.function.name, args);
-        const signature = `${toolCall.function.name}(${signatureFromArgs(
-          args,
-        )})`;
+        const signature = `${toolCall.function.name}(${signatureFromArgs(args)})`;
         hydrationSources.push(signature);
         context.push({
-          role: "tool",
+          role: 'tool',
           content: JSON.stringify(toolResult),
           tool_call_id: toolCall.id,
         });
@@ -265,19 +259,16 @@ export async function hydrateCell(cell: GridCell): Promise<HydrateResponse> {
     if (!responseContent) {
       return {
         ...cell,
-        state: "error",
-        errorMessage: "Empty response. Weird, huh?",
+        state: 'error',
+        errorMessage: 'Empty response. Weird, huh?',
       } as GridCell<T>;
     }
 
     return {
       ...cell,
       prompt: prompt.content as string,
-      response: columnType.parseResponse(
-        responseContent,
-        cell.multiple,
-      ) as ColumnResponse[T],
-      state: "done",
+      response: columnType.parseResponse(responseContent, cell.multiple) as ColumnResponse[T],
+      state: 'done',
       hydrationSources,
       errorMessage: undefined,
     } as GridCell<T>;
@@ -301,7 +292,7 @@ export async function createGist(filename: string, content: string): Promise<str
     const gistUrl = await createGistOnGitHub(filename, content);
     return gistUrl;
   } catch (error) {
-    console.error("Failed to create gist:", error);
-    throw new Error("Failed to create gist");
+    console.error('Failed to create gist:', error);
+    throw new Error('Failed to create gist');
   }
 }

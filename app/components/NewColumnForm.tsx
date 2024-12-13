@@ -1,15 +1,7 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  TextInput,
-  Textarea,
-  FormControl,
-  Select,
-  Checkbox,
-} from "@primer/react";
-import { columnTypes } from "../columns";
-import type { Option, ColumnType } from "../actions";
+import React, { useState } from 'react';
+import { Box, Button, TextInput, Textarea, FormControl, Select, Checkbox } from '@primer/react';
+import { columnTypes } from '../columns';
+import type { Option, ColumnType } from '../actions';
 
 type Props = {
   addNewColumn: ({
@@ -29,12 +21,12 @@ type Props = {
 };
 
 export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
-  const [title, setTitle] = useState<string>("");
-  const [instructions, setInstructions] = useState<string>("");
-  const [type, setType] = useState<ColumnType>("text");
+  const [title, setTitle] = useState<string>('');
+  const [instructions, setInstructions] = useState<string>('');
+  const [type, setType] = useState<ColumnType>('text');
   const [options, setOptions] = useState<Option[]>([]);
   const [multiple, setMultiple] = useState<boolean>(false);
-  const [message, setMessage] = useState<string>(errorMessage || "");
+  const [message, setMessage] = useState<string>(errorMessage || '');
 
   const selectedColumnType = columnTypes[type];
 
@@ -42,13 +34,13 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
     const newType = e.target.value as ColumnType;
     setType((currentType) => {
       if (
-        currentType === "text" &&
-        (newType === "select" || newType === "select-user" || newType === "file")
+        currentType === 'text' &&
+        (newType === 'select' || newType === 'select-user' || newType === 'file')
       ) {
-        setOptions([{ title: "", description: "" }]);
+        setOptions([{ title: '', description: '' }]);
       } else if (
-        (currentType === "select" || currentType === "select-user" || currentType === "file") &&
-        newType === "text"
+        (currentType === 'select' || currentType === 'select-user' || currentType === 'file') &&
+        newType === 'text'
       ) {
         setOptions([]);
       }
@@ -58,14 +50,14 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
 
   function addNewHandler(e: React.FormEvent) {
     e.preventDefault();
-    setMessage("");
+    setMessage('');
 
-    if (title === "") {
-      setMessage("Enter a title");
+    if (title === '') {
+      setMessage('Enter a title');
       return;
     }
 
-    let filteredOptions = options.filter((option) => option.title !== "");
+    const filteredOptions = options.filter((option) => option.title !== '');
     addNewColumn({
       title,
       instructions,
@@ -73,9 +65,9 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
       options: filteredOptions,
       multiple,
     });
-    setTitle("");
-    setInstructions("");
-    setType("text");
+    setTitle('');
+    setInstructions('');
+    setType('text');
     setOptions([]);
     setMultiple(false);
   }
@@ -83,19 +75,14 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
   return (
     <Box
       as="form"
-      sx={{ gap: 3, display: "flex", flexDirection: "column" }}
+      sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}
       onSubmit={addNewHandler}
     >
-      {message && <Box sx={{ color: "danger.fg" }}>{message}</Box>}
+      {message && <Box sx={{ color: 'danger.fg' }}>{message}</Box>}
 
       <FormControl>
         <FormControl.Label>Title</FormControl.Label>
-        <TextInput
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          block
-        />
+        <TextInput type="text" value={title} onChange={(e) => setTitle(e.target.value)} block />
       </FormControl>
 
       <FormControl>
@@ -109,12 +96,9 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
         </Select>
       </FormControl>
 
-      {(type === "select" || type === "select-user" || type === "file") && (
+      {(type === 'select' || type === 'select-user' || type === 'file') && (
         <FormControl>
-          <Checkbox
-            checked={multiple}
-            onChange={(e) => setMultiple(e.target.checked)}
-          />
+          <Checkbox checked={multiple} onChange={(e) => setMultiple(e.target.checked)} />
           <FormControl.Label>Allow multiple</FormControl.Label>
         </FormControl>
       )}
@@ -123,8 +107,8 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
         <FormControl>
           <FormControl.Label>Options</FormControl.Label>
           <FormControl.Caption>
-            If options are not provided, then the model will choose its own.
-            Make sure to add instructions to help increase accuracy.
+            If options are not provided, then the model will choose its own. Make sure to add
+            instructions to help increase accuracy.
           </FormControl.Caption>
           {selectedColumnType.formFields({ options, setOptions })}
         </FormControl>
@@ -141,7 +125,7 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
         />
       </FormControl>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Button type="submit" variant="primary">
           Submit
         </Button>
