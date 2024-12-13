@@ -7,7 +7,6 @@ import { GridHeader } from './GridHeader';
 import { useGridContext } from './GridContext';
 import SelectedContext from './SelectedRowPanel';
 import NewColumnForm from './NewColumnForm';
-import Cell from './Cell';
 import './Grid.css';
 import ColumnTitle from './ColumnTitle';
 import { pluralize } from '../utils/pluralize';
@@ -95,13 +94,16 @@ function useGroupedRows(gridState: GridState | null) {
     primaryColumn.forEach((cell, index) => {
       const groupCell = groupColumn.cells[index];
       let groupValues: string[] = [];
+      let optionRes;
+      let userRes;
+
       switch (groupColumn.type) {
         case 'select':
-          const optionRes = groupCell.response as ColumnResponse['select'];
+          optionRes = groupCell.response as ColumnResponse['select'];
           groupValues = 'options' in optionRes ? optionRes.options : [optionRes.option];
           break;
         case 'select-user':
-          const userRes = groupCell.response as ColumnResponse['select-user'];
+          userRes = groupCell.response as ColumnResponse['select-user'];
           groupValues = 'users' in userRes ? userRes.users : [userRes.user];
           break;
         default:

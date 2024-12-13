@@ -104,13 +104,7 @@ const GridItem = ({ id, title, subtitle }: { id: string; title: string; subtitle
   </NextLink>
 );
 
-function ExistingGrids({
-  grids,
-  _deleteGrid,
-}: {
-  grids: Grid[];
-  deleteGrid: (id: string) => void;
-}) {
+function ExistingGrids({ grids }: { grids: Grid[]; deleteGrid: (id: string) => void }) {
   if (grids.length === 0) {
     return null;
   }

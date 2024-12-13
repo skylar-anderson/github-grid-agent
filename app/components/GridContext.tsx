@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  ReactNode,
-  useState,
-  useCallback,
-} from 'react';
+import React, { createContext, useContext, ReactNode, useState, useCallback } from 'react';
 import { SuccessfulPrimaryColumnResponse, ErrorResponse, GridState, GridCell } from '../actions';
 import type { ColumnResponse, ColumnType, GridCol, Option } from '../actions';
 import useLocalStorage from '../utils/local-storage';
@@ -278,7 +272,9 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
       if (!response) return '';
       if (typeof response === 'string') {
         return escapeMarkdown(response);
-      } else if ('options' in response) {
+      }
+      if (typeof response !== 'object') return '';
+      if ('options' in response) {
         return response.options.map(escapeMarkdown).join('; ');
       } else if ('option' in response) {
         return escapeMarkdown(response.option);

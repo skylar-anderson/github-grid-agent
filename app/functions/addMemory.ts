@@ -47,4 +47,5 @@ async function run(memory: string) {
   }
 }
 
-export default { run, meta };
+const addMemoryFunction = { run, meta };
+export default addMemoryFunction;

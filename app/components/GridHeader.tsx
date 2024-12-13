@@ -1,12 +1,4 @@
-import {
-  TextInput,
-  Text,
-  ActionMenu,
-  ActionList,
-  Box,
-  Button,
-  CounterLabel,
-} from '@primer/react';
+import { TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from '@primer/react';
 import { ArrowLeftIcon } from '@primer/octicons-react';
 import { SearchIcon } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
