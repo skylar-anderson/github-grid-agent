@@ -1,32 +1,32 @@
-import { githubApiRequest } from "@/app/utils/github";
-import { Endpoints } from "@octokit/types";
-import OpenAI from "openai";
-const ENDPOINT = "GET /repos/{owner}/{repo}/commits/{ref}";
+import { githubApiRequest } from '@/app/utils/github';
+import { Endpoints } from '@octokit/types';
+import OpenAI from 'openai';
+const ENDPOINT = 'GET /repos/{owner}/{repo}/commits/{ref}';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "getCommit",
+  name: 'getCommit',
   description: `Retrieves details for a given commit:`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       ref: {
-        type: "string",
+        type: 'string',
         description:
-          "The commit reference. Can be a commit SHA, branch name (heads/BRANCH_NAME), or tag name (tags/TAG_NAME)",
+          'The commit reference. Can be a commit SHA, branch name (heads/BRANCH_NAME), or tag name (tags/TAG_NAME)',
       },
     },
-    required: ["repository", "ref"],
+    required: ['repository', 'ref'],
   },
 };
 
 async function run(repository: string, ref: string) {
-  const [owner, repo] = repository.split("/");
-  type GetCommitResponse = Endpoints[typeof ENDPOINT]["response"] | undefined;
+  const [owner, repo] = repository.split('/');
+  type GetCommitResponse = Endpoints[typeof ENDPOINT]['response'] | undefined;
   try {
     const response = await githubApiRequest<GetCommitResponse>(ENDPOINT, {
       owner,
@@ -34,7 +34,7 @@ async function run(repository: string, ref: string) {
       ref,
     });
     if (!response?.data) {
-      return "That commit could not be found";
+      return 'That commit could not be found';
     }
     return {
       stats: response.data.stats,
@@ -46,12 +46,12 @@ async function run(repository: string, ref: string) {
       author_date: response.data.commit.author?.date,
       sha: response.data.sha,
       url: response.data.html_url,
-      type: "commit",
+      type: 'commit',
     };
   } catch (error) {
-    console.log("Failed to fetch commit!");
+    console.log('Failed to fetch commit!');
     console.log(error);
-    return "An error occured when trying to fetch that commit.";
+    return 'An error occured when trying to fetch that commit.';
   }
 }
 

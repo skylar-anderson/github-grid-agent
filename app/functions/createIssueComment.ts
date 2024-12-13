@@ -1,27 +1,27 @@
-import { createIssueComment } from "@/app/utils/github";
-import OpenAI from "openai";
+import { createIssueComment } from '@/app/utils/github';
+import OpenAI from 'openai';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "createIssueComment",
+  name: 'createIssueComment',
   description: `Adds a comment to an existing issue or pull request.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       issueNumber: {
-        type: "number",
-        description: "The number that identifies the issue",
+        type: 'number',
+        description: 'The number that identifies the issue',
       },
       body: {
-        type: "string",
-        description: "The contents of the comment.",
+        type: 'string',
+        description: 'The contents of the comment.',
       },
     },
-    required: ["repository", "body", "issueNumber"],
+    required: ['repository', 'body', 'issueNumber'],
   },
 };
 

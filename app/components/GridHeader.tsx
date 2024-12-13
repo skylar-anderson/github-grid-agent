@@ -1,18 +1,8 @@
-import {
-  TextInput,
-  Text,
-  ActionMenu,
-  ActionList,
-  Box,
-  Button,
-  CounterLabel,
-  IconButton,
-  Tooltip,
-} from "@primer/react";
-import { ArrowLeftIcon } from "@primer/octicons-react";
-import { SearchIcon } from "@primer/octicons-react";
-import { useGridContext } from "./GridContext";
-import NextLink from "next/link";
+import { TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from '@primer/react';
+import { ArrowLeftIcon } from '@primer/octicons-react';
+import { SearchIcon } from '@primer/octicons-react';
+import { useGridContext } from './GridContext';
+import NextLink from 'next/link';
 
 export function Search() {
   return (
@@ -30,9 +20,9 @@ export function GroupBy() {
     return null;
   }
   const { groupBy } = gridState;
-  const groupableColumnTypes = ["select", "select-user"];
+  const groupableColumnTypes = ['select', 'select-user'];
   const groupableColumns = gridState.columns.filter((column) =>
-    groupableColumnTypes.includes(column.type),
+    groupableColumnTypes.includes(column.type)
   );
   if (gridState && groupableColumns.length === 0) {
     return null;
@@ -43,9 +33,7 @@ export function GroupBy() {
       <ActionMenu.Button>
         {groupBy ? (
           <>
-            <Text sx={{ color: "fg.muted", fontWeight: "semibold" }}>
-              Group by:
-            </Text>
+            <Text sx={{ color: 'fg.muted', fontWeight: 'semibold' }}>Group by:</Text>
             &nbsp;
             <Text>{groupBy}</Text>
           </>
@@ -64,10 +52,7 @@ export function GroupBy() {
               {column.title}
             </ActionList.Item>
           ))}
-          <ActionList.Item
-            selected={groupBy === undefined}
-            onSelect={() => setGroupBy(undefined)}
-          >
+          <ActionList.Item selected={groupBy === undefined} onSelect={() => setGroupBy(undefined)}>
             Ungrouped
           </ActionList.Item>
         </ActionList>
@@ -82,9 +67,9 @@ export function FilterBy() {
     return null;
   }
 
-  const filterableColumnTypes = ["select", "select-user"];
+  const filterableColumnTypes = ['select', 'select-user'];
   const filterableColumns = gridState.columns.filter((column) =>
-    filterableColumnTypes.includes(column.type),
+    filterableColumnTypes.includes(column.type)
   );
   if (gridState && filterableColumns.length === 0) {
     return null;
@@ -95,10 +80,7 @@ export function FilterBy() {
       <ActionMenu.Overlay width="medium">
         <ActionList>
           {filterableColumns.map((column, index) => (
-            <ActionList.Item
-              key={index}
-              onSelect={() => alert(`Group by ${column.title}`)}
-            >
+            <ActionList.Item key={index} onSelect={() => alert(`Group by ${column.title}`)}>
               {column.title}
             </ActionList.Item>
           ))}
@@ -113,11 +95,7 @@ type GridHeaderProps = {
   count: number;
   setShowNewColumnForm: (b: boolean) => void;
 };
-export function GridHeader({
-  title,
-  setShowNewColumnForm,
-  count,
-}: GridHeaderProps) {
+export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderProps) {
   const { saveGridAsGist, isSavingGist } = useGridContext();
 
   const handleSaveGist = async () => {
@@ -132,16 +110,16 @@ export function GridHeader({
       sx={{
         pb: 2,
         pl: 2,
-        display: "flex",
-        flexDirection: "row",
+        display: 'flex',
+        flexDirection: 'row',
         gap: 2,
-        justifyContent: "center",
+        justifyContent: 'center',
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
+          display: 'flex',
+          alignItems: 'center',
           flex: 1,
           gap: 2,
         }}
@@ -149,20 +127,20 @@ export function GridHeader({
         <NextLink href={`/`} passHref>
           <Box
             sx={{
-              cursor: "pointer",
-              height: "28px",
-              width: "28px",
-              color: "fg.muted",
-              fontWeight: "semibold",
-              backgroundColor: "transparent",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              cursor: 'pointer',
+              height: '28px',
+              width: '28px',
+              color: 'fg.muted',
+              fontWeight: 'semibold',
+              backgroundColor: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               borderRadius: 2,
-              "&:hover": {
-                backgroundColor: "#e0e0e0",
-                color: "fg.default",
-                cursor: "pointer",
+              '&:hover': {
+                backgroundColor: '#e0e0e0',
+                color: 'fg.default',
+                cursor: 'pointer',
               },
             }}
           >
@@ -173,10 +151,10 @@ export function GridHeader({
         <Box>
           <Box
             sx={{
-              display: "inline-block",
+              display: 'inline-block',
               fontSize: 2,
-              fontWeight: "semibold",
-              color: "fg.default",
+              fontWeight: 'semibold',
+              color: 'fg.default',
               mr: 1,
             }}
           >
@@ -185,7 +163,7 @@ export function GridHeader({
           <CounterLabel>{count}</CounterLabel>
         </Box>
       </Box>
-      <Box sx={{ display: "flex", gap: 2 }}>
+      <Box sx={{ display: 'flex', gap: 2 }}>
         <Search />
         <GroupBy />
         <FilterBy />

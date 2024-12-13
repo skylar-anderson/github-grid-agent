@@ -1,16 +1,16 @@
-import OpenAI from "openai";
+import OpenAI from 'openai';
 const meta: OpenAI.FunctionDefinition = {
-  name: "searchWithBing",
+  name: 'searchWithBing',
   description: `Performs a Bing web search. Use this function when directly asked or when recent events are necessary to answer the users question.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       query: {
-        type: "string",
-        description: "Required. The query to search for.",
+        type: 'string',
+        description: 'Required. The query to search for.',
       },
     },
-    required: ["query"],
+    required: ['query'],
   },
 };
 
@@ -19,22 +19,22 @@ async function run(query: string) {
   const KEY = process.env.BING_SEARCH_SUBSCRIPTION_KEY;
 
   if (!ENDPOINT || !KEY) {
-    return "unable to make bing request";
+    return 'unable to make bing request';
   }
 
   try {
     const url = new URL(ENDPOINT);
-    url.searchParams.append("mkt", "en-US");
-    url.searchParams.append("q", query);
+    url.searchParams.append('mkt', 'en-US');
+    url.searchParams.append('q', query);
     const response = await fetch(url, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Ocp-Apim-Subscription-Key": KEY,
+        'Ocp-Apim-Subscription-Key': KEY,
       },
     });
     console.log(response);
     if (!response.ok) {
-      throw new Error("Failed to search bing");
+      throw new Error('Failed to search bing');
     }
 
     const json = await response.json();
@@ -51,9 +51,9 @@ async function run(query: string) {
       totalEstimatedMatches: json.webPages.totalEstimatedMatches,
     };
   } catch (error) {
-    console.log("Failed to search bing!");
+    console.log('Failed to search bing!');
     console.log(error);
-    return "Failed to search with bing. Something went wrong.";
+    return 'Failed to search with bing. Something went wrong.';
   }
 }
 

@@ -1,6 +1,6 @@
 # Declarative Agent UI with GitHub Grid Agent
 
-This prototype explores a declarative method of interacting with AI agents where the user merely describes the shape of a data grid and an agent with access to tools populates cell values instantaneously. The agent respects the expected structure of each cell, so the user can easily filter, group, and search against the grid data. 
+This prototype explores a declarative method of interacting with AI agents where the user merely describes the shape of a data grid and an agent with access to tools populates cell values instantaneously. The agent respects the expected structure of each cell, so the user can easily filter, group, and search against the grid data.
 
 Here is an example of the grid triaging all open issues in primer/react, GitHub's design system.
 

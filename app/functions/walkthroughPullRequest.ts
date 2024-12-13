@@ -1,42 +1,42 @@
-import { githubApiRequest } from "@/app/utils/github";
-import { Endpoints } from "@octokit/types";
-import { retrieveDiffContents } from "@/app/utils/github";
-import Anthropic from "@anthropic-ai/sdk";
-const READ_FILE = "GET /repos/{owner}/{repo}/contents/{path}";
-import OpenAI from "openai";
+import { githubApiRequest } from '@/app/utils/github';
+import { Endpoints } from '@octokit/types';
+import { retrieveDiffContents } from '@/app/utils/github';
+import Anthropic from '@anthropic-ai/sdk';
+const READ_FILE = 'GET /repos/{owner}/{repo}/contents/{path}';
+import OpenAI from 'openai';
 
 const meta: OpenAI.FunctionDefinition = {
-  name: "walkthroughPullRequest",
+  name: 'walkthroughPullRequest',
   description: `Retrieves the diff content for a particular pull request and then walks through the content of the diff to provide a summary and answer questions about the diff. Use this to summarize an entire diff.`,
   parameters: {
-    type: "object",
+    type: 'object',
     properties: {
       repository: {
-        type: "string",
+        type: 'string',
         description:
-          "Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.",
+          'Required. The owner and name of a repository represented as :owner/:name. Do not guess. Confirm with the user if you are unsure.',
       },
       pullRequestId: {
-        type: "string",
+        type: 'string',
         description: `The ID of the pull request to walkthrough.`,
       },
     },
-    required: ["repository", "pullRequestId"],
+    required: ['repository', 'pullRequestId'],
   },
 };
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 function extractChangedFiles(diff: string): string[] {
   const changedFiles: string[] = [];
-  const lines = diff.split("\n");
+  const lines = diff.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line.startsWith("diff --git")) {
-      const filePath = line.split(" b/")[1];
+    if (line.startsWith('diff --git')) {
+      const filePath = line.split(' b/')[1];
       changedFiles.push(filePath);
     }
   }
@@ -49,12 +49,9 @@ type HydratedFile = {
   path: string;
 };
 
-async function hydrateFile(
-  repository: string,
-  path: string,
-): Promise<null | HydratedFile> {
-  const [owner, repo] = repository.split("/");
-  type ContentsResponse = Endpoints[typeof READ_FILE]["response"] | undefined;
+async function hydrateFile(repository: string, path: string): Promise<null | HydratedFile> {
+  const [owner, repo] = repository.split('/');
+  type ContentsResponse = Endpoints[typeof READ_FILE]['response'] | undefined;
   try {
     const response = await githubApiRequest<ContentsResponse>(READ_FILE, {
       owner,
@@ -62,18 +59,15 @@ async function hydrateFile(
       path,
     });
 
-    //@ts-ignore
-    if (!response?.data) {
+    if (!response?.data || Array.isArray(response.data) || !('content' in response.data)) {
       return null;
     }
-
     return {
-      // @ts-ignore
-      content: Buffer.from(response.data.content, "base64").toString("utf8"),
+      content: Buffer.from(response.data.content, 'base64').toString('utf8'),
       path,
     };
-  } catch (error) {
-    console.log("Failed to load " + path);
+  } catch {
+    console.log('Failed to load ' + path);
     return null;
   }
 }
@@ -81,11 +75,11 @@ async function hydrateFile(
 async function generatePrompt(
   owner: string,
   repo: string,
-  proposedChanges: string,
+  proposedChanges: string
 ): Promise<string> {
   const changedFiles = extractChangedFiles(proposedChanges);
   const files = await Promise.all(
-    changedFiles.map((path) => hydrateFile(`${owner}/${repo}`, path)),
+    changedFiles.map((path) => hydrateFile(`${owner}/${repo}`, path))
   );
 
   return `
@@ -137,7 +131,7 @@ Format your feedback as follows:
       <name>${f?.path}</name>
       <contents>${f?.content}</contents>
     </file>
-    `,
+    `
     )}
   
 </files>
@@ -148,21 +142,21 @@ Format your feedback as follows:
 }
 
 async function run(repository: string, pullRequestId: string) {
-  const [owner, repo] = repository.split("/");
+  const [owner, repo] = repository.split('/');
   const url = `https://github.com/${owner}/${repo}/pull/${pullRequestId}.diff`;
 
   try {
     const diffContents = await retrieveDiffContents(url);
     const msg = await anthropic.messages.create({
-      model: "claude-3-opus-20240229",
+      model: 'claude-3-opus-20240229',
       max_tokens: 2000,
       temperature: 0.7,
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: [
             {
-              type: "text",
+              type: 'text',
               text: await generatePrompt(owner, repo, diffContents),
             },
           ],
@@ -170,11 +164,11 @@ async function run(repository: string, pullRequestId: string) {
       ],
     });
     return msg.content;
-  } catch (error) {
-    console.log("Failed to perform walkthrough!");
-    console.log(error);
-    return error;
+  } catch {
+    console.log('Failed to perform walkthrough!');
+    return 'Failed to perform walkthrough';
   }
 }
 
-export default { run, meta };
+const walkthroughPullRequestFunction = { run, meta };
+export default walkthroughPullRequestFunction;

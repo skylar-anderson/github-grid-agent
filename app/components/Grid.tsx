@@ -1,22 +1,16 @@
-"use client";
+'use client';
 
-import type {
-  SuccessfulPrimaryColumnResponse,
-  ErrorResponse,
-  GridCell,
-} from "../actions";
-import { GridProvider, useGridContext } from "./GridContext";
-import { Box } from "@primer/react";
-import React, { useEffect } from "react";
-import GridTable from "./GridTable";
-import Home from "./Home";
+import type { SuccessfulPrimaryColumnResponse, ErrorResponse, GridCell } from '../actions';
+import { GridProvider, useGridContext } from './GridContext';
+import { Box } from '@primer/react';
+import React, { useEffect } from 'react';
+import GridTable from './GridTable';
+import Home from './Home';
 
-import "./Grid.css";
+import './Grid.css';
 
 type Props = {
-  createPrimaryColumn: (
-    s: string,
-  ) => Promise<SuccessfulPrimaryColumnResponse | ErrorResponse>;
+  createPrimaryColumn: (s: string) => Promise<SuccessfulPrimaryColumnResponse | ErrorResponse>;
   hydrateCell: (s: GridCell) => Promise<{ promise: Promise<GridCell> }>;
   initialGridId?: string;
 };
@@ -35,12 +29,12 @@ function GridContent({ initialGridId }: { initialGridId?: string }) {
       {gridState || initialGridId ? (
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "row",
-            width: "100vw",
-            height: "100vh",
-            overflow: "hidden",
-            backgroundColor: "canvas.inset",
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden',
+            backgroundColor: 'canvas.inset',
           }}
         >
           <GridTable />
@@ -56,10 +50,7 @@ function GridContent({ initialGridId }: { initialGridId?: string }) {
 
 export default function Grid(props: Props) {
   return (
-    <GridProvider
-      hydrateCell={props.hydrateCell}
-      createPrimaryColumn={props.createPrimaryColumn}
-    >
+    <GridProvider hydrateCell={props.hydrateCell} createPrimaryColumn={props.createPrimaryColumn}>
       <GridContent initialGridId={props.initialGridId} />
     </GridProvider>
   );

@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "🕵🏻‍♂️ Grid Agent",
-  description: "Build a grid.",
+  title: '🕵🏻‍♂️ Grid Agent',
+  description: 'Build a grid.',
 };
 
 export default function RootLayout({

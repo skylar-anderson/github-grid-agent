@@ -1,18 +1,8 @@
-import { IconButton, Box, ActionMenu, ActionList } from "@primer/react";
-import {
-  KebabHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
-} from "@primer/octicons-react";
-import { useGridContext } from "./GridContext";
+import { IconButton, Box, ActionMenu, ActionList } from '@primer/react';
+import { KebabHorizontalIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
+import { useGridContext } from './GridContext';
 
-export default function ColumnTitle({
-  title,
-  index,
-}: {
-  title: string;
-  index?: number;
-}) {
+export default function ColumnTitle({ title, index }: { title: string; index?: number }) {
   const { deleteColumnByIndex } = useGridContext();
   return (
     <Box
@@ -20,20 +10,20 @@ export default function ColumnTitle({
         p: 2,
         pl: 3,
         flex: 1,
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
         zIndex: 2,
-        position: "sticky",
+        position: 'sticky',
         top: 0,
         fontSize: 1,
-        backgroundColor: "white",
-        color: "fg.default",
-        fontWeight: "semibold",
-        borderRight: "1px solid",
-        borderColor: "border.default",
-        minWidth: "260px",
-        "&:last-child": {
+        backgroundColor: 'white',
+        color: 'fg.default',
+        fontWeight: 'semibold',
+        borderRight: '1px solid',
+        borderColor: 'border.default',
+        minWidth: '260px',
+        '&:last-child': {
           border: 0,
         },
       }}
@@ -58,7 +48,7 @@ export default function ColumnTitle({
                 Delete
               </ActionList.Item>
             )}
-            <ActionList.Item onSelect={() => alert("Copy link clicked")}>
+            <ActionList.Item onSelect={() => alert('Copy link clicked')}>
               <ActionList.LeadingVisual>
                 <PencilIcon />
               </ActionList.LeadingVisual>
