@@ -102,13 +102,13 @@ export const CommitColumnType: BaseColumnType<'commit'> = {
       cell.multiple ? 'multiple commits' : 'a commit'
     } and reply with their SHA, repository, and optionally the commit message`,
   parseResponse: (responseContent: string, multiple?: boolean): ColumnResponse['commit'] => {
-  let parsed;
-  try {
-    parsed = JSON.parse(responseContent);
-  } catch (error) {
-    console.error('Failed to parse response content:', error);
-    parsed = multiple ? { commits: [] } : { commit: null };
-  }
-  return multiple ? { commits: parsed.commits } : { commit: parsed.commit };
+    let parsed;
+    try {
+      parsed = JSON.parse(responseContent);
+    } catch (error) {
+      console.error('Failed to parse response content:', error);
+      parsed = multiple ? { commits: [] } : { commit: null };
+    }
+    return multiple ? { commits: parsed.commits } : { commit: parsed.commit };
   },
 };
