@@ -105,7 +105,13 @@ export const IssuePRColumnType: BaseColumnType<'issue-pr'> = {
       cell.multiple ? 'multiple issues or pull requests' : 'an issue or pull request'
     } and reply with their number, repository, and type`,
   parseResponse: (responseContent: string, multiple?: boolean): ColumnResponse['issue-pr'] => {
-    const parsed = JSON.parse(responseContent);
+    let parsed;
+    try {
+      parsed = JSON.parse(responseContent);
+    } catch (error) {
+      console.error('Failed to parse response content:', error);
+      return multiple ? { references: [] } : { reference: null };
+    }
     return multiple ? { references: parsed.references } : { reference: parsed.reference };
   },
 };
