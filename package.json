@@ -35,11 +35,6 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@babel/plugin-transform-class-properties": "^7.25.9",
-    "@babel/plugin-transform-private-methods": "^7.25.9",
-    "@babel/plugin-transform-private-property-in-object": "^7.25.9",
-    "@babel/preset-react": "^7.25.9",
-    "@babel/preset-typescript": "^7.26.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^14.2.1",
     "@types/jest": "^29.5.14",
@@ -48,7 +43,6 @@
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.4",
     "identity-obj-proxy": "^3.0.0",

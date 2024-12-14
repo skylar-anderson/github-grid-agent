@@ -46,8 +46,8 @@ async function run(
   body: string,
   labels: string[],
   assignees: string[]
-) {
-  return await createIssue({ repository, title, body, labels, assignees });
+): Promise<any> {
+  return await createIssue({ title, body, labels, assignees });
 }
 
 export default { run, meta };
