@@ -26,7 +26,7 @@ const meta: OpenAI.FunctionDefinition = {
 };
 
 async function run(repository: string, body: string, issueNumber: number) {
-  return await createIssueComment({ repository, body, issueNumber });
+  return await createIssueComment({ body, issueNumber });
 }
 
 export default { run, meta };

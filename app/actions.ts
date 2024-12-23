@@ -65,6 +65,7 @@ export type GridCell<T extends keyof ColumnResponse = ColumnType> = {
   state: GridCellState;
   errorMessage?: string;
   multiple?: boolean;
+  deleted?: boolean;
 };
 
 export type GridCol = {

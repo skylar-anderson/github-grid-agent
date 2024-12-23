@@ -1,17 +1,23 @@
 import { BaseColumnType } from '../columns/BaseColumnType';
 import React from 'react';
-import { Spinner, Box } from '@primer/react';
+import { Spinner, Box, IconButton, ActionMenu, ActionList } from '@primer/react';
 import type { GridCell, ColumnType } from '../actions';
 import { columnTypes } from '../columns';
+import { useGridContext } from './GridContext';
+import { KebabHorizontalIcon, TrashIcon } from '@primer/octicons-react';
 
 type CellProps = {
   sx?: any;
   cell: GridCell;
   onClick?: () => void;
   isSelected?: boolean;
+  rowIndex?: number;
 };
 
-export default function Cell({ sx, cell, onClick, isSelected = false }: CellProps) {
+export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }: CellProps) {
+  const { deleteRow } = useGridContext();
+  const isPrimaryCell = rowIndex !== undefined;
+
   const hoverProps = onClick
     ? {
         ':hover': {
@@ -51,7 +57,33 @@ export default function Cell({ sx, cell, onClick, isSelected = false }: CellProp
       }}
       onClick={onClick}
     >
-      <GridCellContent cell={cell} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ flex: 1 }}>
+          <GridCellContent cell={cell} />
+        </Box>
+
+        {isPrimaryCell && (
+          <ActionMenu>
+            <ActionMenu.Anchor>
+              <IconButton
+                variant="invisible"
+                aria-labelledby="Row menu"
+                icon={KebabHorizontalIcon}
+              />
+            </ActionMenu.Anchor>
+            <ActionMenu.Overlay width="medium">
+              <ActionList>
+                <ActionList.Item onSelect={() => deleteRow(rowIndex)}>
+                  <ActionList.LeadingVisual>
+                    <TrashIcon />
+                  </ActionList.LeadingVisual>
+                  Delete row
+                </ActionList.Item>
+              </ActionList>
+            </ActionMenu.Overlay>
+          </ActionMenu>
+        )}
+      </Box>
     </Box>
   );
 }

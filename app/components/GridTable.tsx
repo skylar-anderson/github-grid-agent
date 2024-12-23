@@ -155,9 +155,36 @@ function TableHeaderRow({
   );
 }
 
+function TableContent() {
+  const { gridState, selectRow, selectedIndex } = useGridContext();
+  if (!gridState) return null;
+
+  const { columns, primaryColumn } = gridState;
+
+  // Filter out deleted rows
+  const visibleRows = primaryColumn
+    .map((cell, index) => ({ cell, index }))
+    .filter(({ cell }) => !cell.deleted);
+
+  return (
+    <Box>
+      {visibleRows.map(({ cell, index }) => (
+        <Row
+          key={index}
+          rowIndex={index}
+          primaryCell={cell}
+          columns={columns}
+          selectRow={selectRow}
+          selectedIndex={selectedIndex}
+        />
+      ))}
+    </Box>
+  );
+}
+
 export default function GridTable() {
   const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
-  const { gridState, addNewColumn, selectRow, selectedIndex } = useGridContext();
+  const { gridState, addNewColumn, selectedIndex } = useGridContext();
   const groupedRows = useGroupedRows(gridState);
   if (!gridState) {
     return null;
@@ -203,18 +230,9 @@ export default function GridTable() {
                 {group.groupName && (
                   <GroupHeader groupName={group.groupName} count={group.rows.length} />
                 )}
-                {group.rows.map(({ cell, index }) => (
-                  <Row
-                    key={index}
-                    rowIndex={index}
-                    primaryCell={cell}
-                    columns={columns}
-                    selectRow={selectRow}
-                    selectedIndex={selectedIndex}
-                  />
-                ))}
               </Box>
             ))}
+            <TableContent />
           </Box>
         </Panel>
 

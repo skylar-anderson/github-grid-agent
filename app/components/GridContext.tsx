@@ -30,6 +30,7 @@ type GridContextType = {
   deleteGrid: (id: string) => void;
   saveGridAsGist: () => Promise<string | null>;
   isSavingGist: boolean; // Add this new property
+  deleteRow: (index: number) => void;
 };
 
 type NewColumnProps = {
@@ -308,6 +309,22 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
     return [headerRow, separatorRow, ...dataRows].join('\n');
   }
 
+  const deleteRow = useCallback(
+    (index: number) => {
+      setGridState((prevState) => {
+        if (!prevState) return null;
+
+        return {
+          ...prevState,
+          primaryColumn: prevState.primaryColumn.map((cell, i) =>
+            i === index ? { ...cell, deleted: true } : cell
+          ),
+        };
+      });
+    },
+    [setGridState]
+  );
+
   return (
     <GridContext.Provider
       value={{
@@ -327,6 +344,7 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
         deleteGrid,
         saveGridAsGist,
         isSavingGist,
+        deleteRow,
       }}
     >
       {children}
