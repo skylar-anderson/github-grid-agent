@@ -1,9 +1,24 @@
+import React from 'react';
 import { IconButton, Box, ActionMenu, ActionList } from '@primer/react';
-import { KebabHorizontalIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
+import {
+  KebabHorizontalIcon,
+  PencilIcon,
+  TrashIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
 
 export default function ColumnTitle({ title, index }: { title: string; index?: number }) {
-  const { deleteColumnByIndex } = useGridContext();
+  const { deleteColumnByIndex, moveColumnLeft, moveColumnRight, gridState } = useGridContext();
+
+  // Only show move options for non-primary columns
+  const showMoveOptions = index !== undefined;
+  // Disable move left for first column
+  const canMoveLeft = showMoveOptions && index! > 0;
+  // Disable move right for last column
+  const canMoveRight = showMoveOptions && gridState && index! < gridState.columns.length - 1;
+
   return (
     <Box
       sx={{
@@ -32,14 +47,33 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
 
       <ActionMenu>
         <ActionMenu.Anchor>
-          <IconButton
-            variant="invisible"
-            aria-labelledby="Column menu"
-            icon={KebabHorizontalIcon}
-          />
+          <IconButton icon={KebabHorizontalIcon} aria-label="Column menu" variant="invisible" />
         </ActionMenu.Anchor>
         <ActionMenu.Overlay width="medium">
           <ActionList>
+            {showMoveOptions && (
+              <>
+                <ActionList.Item
+                  onSelect={() => canMoveLeft && moveColumnLeft(index!)}
+                  disabled={!canMoveLeft}
+                >
+                  <ActionList.LeadingVisual>
+                    <ChevronLeftIcon />
+                  </ActionList.LeadingVisual>
+                  Move left
+                </ActionList.Item>
+                <ActionList.Item
+                  onSelect={() => canMoveRight && moveColumnRight(index!)}
+                  disabled={!canMoveRight}
+                >
+                  <ActionList.LeadingVisual>
+                    <ChevronRightIcon />
+                  </ActionList.LeadingVisual>
+                  Move right
+                </ActionList.Item>
+                <ActionList.Divider />
+              </>
+            )}
             {index !== undefined && (
               <ActionList.Item onSelect={() => deleteColumnByIndex(index)}>
                 <ActionList.LeadingVisual>

@@ -2,7 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SelectColumnType } from '../Select';
 import { GridCell } from '../../actions';
-import { baseCell } from './test-types';
+
+export const baseCell = {
+  columnTitle: 'Test Column',
+  columnInstructions: 'Test instructions',
+  context: '',
+  hydrationSources: [],
+};
 
 const options = [
   { value: 'Option 1', title: 'Option 1', description: 'Option 1' },

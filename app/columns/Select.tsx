@@ -1,3 +1,4 @@
+import React from 'react';
 import OpenAI from 'openai';
 import { BaseColumnType } from './BaseColumnType';
 import { Option, ColumnResponse, GridCell } from '../actions';

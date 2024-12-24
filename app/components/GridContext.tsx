@@ -13,7 +13,7 @@ export type Grid = {
   createdAt: Date;
 };
 
-type GridContextType = {
+export type GridContextType = {
   gridState: GridState | null;
   setGridState: React.Dispatch<React.SetStateAction<GridState | null>>;
   selectRow: (index: number | null) => void;
@@ -22,6 +22,8 @@ type GridContextType = {
   inititializeGrid: (s: string) => Promise<string>;
   selectedIndex: number | null;
   deleteColumnByIndex: (index: number) => void;
+  moveColumnLeft: (index: number) => void;
+  moveColumnRight: (index: number) => void;
   setGroupBy: (columnTitle: string | undefined) => void;
   setFilterBy: (columnTitle: string | undefined, filterValue: string | undefined) => void;
   currentGridId: string | null;
@@ -29,7 +31,7 @@ type GridContextType = {
   getAllGrids: () => Grid[];
   deleteGrid: (id: string) => void;
   saveGridAsGist: () => Promise<string | null>;
-  isSavingGist: boolean; // Add this new property
+  isSavingGist: boolean;
   deleteRow: (index: number) => void;
 };
 
@@ -42,6 +44,7 @@ type NewColumnProps = {
 };
 
 const GridContext = createContext<GridContextType | undefined>(undefined);
+export { GridContext };
 
 export const useGridContext = () => {
   const context = useContext(GridContext);
@@ -63,17 +66,20 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
 
   const gridState = currentGridId ? grids[currentGridId] : null;
 
-  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = (newState) => {
-    if (currentGridId) {
-      setGrids((prevGrids) => ({
-        ...prevGrids,
-        [currentGridId]:
-          typeof newState === 'function'
-            ? (newState(prevGrids[currentGridId]) ?? prevGrids[currentGridId])
-            : (newState ?? prevGrids[currentGridId]),
-      }));
-    }
-  };
+  const setGridState = useCallback<React.Dispatch<React.SetStateAction<GridState | null>>>(
+    (newState) => {
+      if (currentGridId) {
+        setGrids((prevGrids) => ({
+          ...prevGrids,
+          [currentGridId]:
+            typeof newState === 'function'
+              ? (newState(prevGrids[currentGridId]) ?? prevGrids[currentGridId])
+              : (newState ?? prevGrids[currentGridId]),
+        }));
+      }
+    },
+    [currentGridId, setGrids]
+  );
 
   const getAllGrids = useCallback(() => {
     return Object.entries(grids).map(([id, grid]) => ({
@@ -182,6 +188,37 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
       };
     });
   };
+
+  const moveColumn = (index: number, direction: 'left' | 'right') => {
+    setGridState((prevState) => {
+      if (!prevState) return prevState;
+
+      const targetIndex = direction === 'left' ? index - 1 : index + 1;
+
+      // Check bounds
+      if (
+        index < 0 ||
+        index >= prevState.columns.length ||
+        targetIndex < 0 ||
+        targetIndex >= prevState.columns.length
+      ) {
+        return prevState;
+      }
+
+      const newColumns = [...prevState.columns];
+      const temp = newColumns[index];
+      newColumns[index] = newColumns[targetIndex];
+      newColumns[targetIndex] = temp;
+
+      return {
+        ...prevState,
+        columns: newColumns,
+      };
+    });
+  };
+
+  const moveColumnLeft = (index: number) => moveColumn(index, 'left');
+  const moveColumnRight = (index: number) => moveColumn(index, 'right');
 
   const setGroupBy = (columnTitle: string | undefined) => {
     setGridState((prevState) => {
@@ -336,6 +373,8 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
         updateCellState,
         addNewColumn,
         deleteColumnByIndex,
+        moveColumnLeft,
+        moveColumnRight,
         setGroupBy,
         setFilterBy,
         currentGridId,

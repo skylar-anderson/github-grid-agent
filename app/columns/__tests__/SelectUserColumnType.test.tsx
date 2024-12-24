@@ -2,7 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SelectUserColumnType } from '../SelectUser';
 import { GridCell } from '../../actions';
-import { baseCell } from './test-types';
+
+export const baseCell = {
+  columnTitle: 'Test Column',
+  columnInstructions: 'Test instructions',
+  context: '',
+  hydrationSources: [],
+};
 
 describe('SelectUserColumnType', () => {
   describe('renderCell', () => {

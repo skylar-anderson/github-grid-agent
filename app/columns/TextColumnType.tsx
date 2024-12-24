@@ -1,3 +1,4 @@
+import React from 'react';
 import { BaseColumnType } from './BaseColumnType';
 import { ColumnResponse, GridCell } from '../actions';
 import Markdown from 'react-markdown';

@@ -3,6 +3,16 @@ import { render } from '@testing-library/react';
 import { TextColumnType } from '../TextColumnType';
 import { GridCell } from '../../actions';
 
+jest.mock('react-markdown', () => {
+  return function MockMarkdown({ children }: { children: React.ReactNode }) {
+    return <div data-testid="markdown">{children}</div>;
+  };
+});
+
+jest.mock('remark-gfm', () => {
+  return jest.fn();
+});
+
 describe('TextColumnType', () => {
   const baseCell = {
     columnTitle: 'Test Column',
