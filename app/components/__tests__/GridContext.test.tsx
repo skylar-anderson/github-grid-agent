@@ -7,7 +7,10 @@ import type { GridState } from '../../actions';
 jest.mock('../../utils/local-storage', () => ({
   __esModule: true,
   default: () => {
-    const [state, setState] = React.useState<Record<string, GridState>>({});
+    let state = {};
+    const setState = (newState: Record<string, GridState>) => {
+      state = newState;
+    };
     return [state, setState];
   },
 }));
