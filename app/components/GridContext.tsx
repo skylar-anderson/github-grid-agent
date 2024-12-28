@@ -14,6 +14,8 @@ export type Grid = {
 };
 
 export type GridContextType = {
+  showChat: boolean;
+  setShowChat: (show: boolean) => void;
   gridState: GridState | null;
   setGridState: React.Dispatch<React.SetStateAction<GridState | null>>;
   selectRow: (index: number | null) => void;
@@ -35,7 +37,7 @@ export type GridContextType = {
   deleteRow: (index: number) => void;
 };
 
-type NewColumnProps = {
+export type NewColumnProps = {
   title: string;
   instructions: string;
   type: ColumnType;
@@ -63,6 +65,7 @@ type ProviderProps = {
 export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: ProviderProps) => {
   const [grids, setGrids] = useLocalStorage<Record<string, GridState>>('grids', {});
   const [currentGridId, setCurrentGridId] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(true);
 
   const gridState = currentGridId ? grids[currentGridId] : null;
 
@@ -365,6 +368,8 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
   return (
     <GridContext.Provider
       value={{
+        showChat,
+        setShowChat,
         inititializeGrid,
         selectedIndex,
         gridState,

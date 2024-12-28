@@ -1,16 +1,33 @@
-import { TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from '@primer/react';
-import { ArrowLeftIcon } from '@primer/octicons-react';
-import { SearchIcon } from '@primer/octicons-react';
+import {
+  IconButton,
+  TextInput,
+  Text,
+  ActionMenu,
+  ActionList,
+  Box,
+  Button,
+  CounterLabel,
+} from '@primer/react';
+import {
+  SidebarCollapseIcon,
+  SidebarExpandIcon,
+  ArrowLeftIcon,
+  SearchIcon,
+  KebabHorizontalIcon,
+} from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
 import NextLink from 'next/link';
 
 export function Search() {
   return (
-    <TextInput
-      leadingVisual={SearchIcon}
-      /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
-      placeholder="Search..."
-    />
+    <Box sx={{ flexGrow: 1 }}>
+      <TextInput
+        leadingVisual={SearchIcon}
+        sx={{ flexGrow: 0 }}
+        /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
+        placeholder="Search..."
+      />
+    </Box>
   );
 }
 
@@ -96,7 +113,7 @@ type GridHeaderProps = {
   setShowNewColumnForm: (b: boolean) => void;
 };
 export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderProps) {
-  const { saveGridAsGist, isSavingGist } = useGridContext();
+  const { saveGridAsGist, isSavingGist, setShowChat, showChat } = useGridContext();
 
   const handleSaveGist = async () => {
     const gistUrl = await saveGridAsGist();
@@ -164,15 +181,40 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
         </Box>
       </Box>
       <Box sx={{ display: 'flex', gap: 2 }}>
-        <Search />
-        <GroupBy />
-        <FilterBy />
-        <Button onClick={handleSaveGist} disabled={isSavingGist}>
-          Save to gist
-        </Button>
-        <Button variant="primary" onClick={() => setShowNewColumnForm(true)}>
-          Add column
-        </Button>
+        <Box sx={{ display: ['none', 'none', 'flex'], gap: 2 }}>
+          <Search />
+          <GroupBy />
+          <FilterBy />
+          <Button onClick={handleSaveGist} disabled={isSavingGist}>
+            Save to gist
+          </Button>
+          <Button onClick={() => setShowNewColumnForm(true)}>Add column</Button>
+          <IconButton
+            sx={{ flexShrink: 0 }}
+            aria-labelledby="Toggle chat"
+            icon={showChat ? SidebarCollapseIcon : SidebarExpandIcon}
+            onClick={() => setShowChat(!showChat)}
+          />
+        </Box>
+
+        <Box sx={{ display: ['flex', 'flex', 'none'] }}>
+          <ActionMenu>
+            <ActionMenu.Button variant="invisible" aria-label="More actions">
+              <KebabHorizontalIcon />
+            </ActionMenu.Button>
+            <ActionMenu.Overlay>
+              <ActionList>
+                <ActionList.Item onSelect={handleSaveGist}>Save to gist</ActionList.Item>
+                <ActionList.Item onSelect={() => setShowNewColumnForm(true)}>
+                  Add column
+                </ActionList.Item>
+                <ActionList.Item onSelect={() => setShowChat(!showChat)}>
+                  {showChat ? 'Hide chat' : 'Show chat'}
+                </ActionList.Item>
+              </ActionList>
+            </ActionMenu.Overlay>
+          </ActionMenu>
+        </Box>
       </Box>
     </Box>
   );

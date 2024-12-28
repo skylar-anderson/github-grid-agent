@@ -12,9 +12,8 @@ export type Option = {
   description: string;
 };
 
-export type PrimaryDataType = 'issue' | 'commit' | 'pull-request' | 'snippet' | 'item';
+export type PrimaryDataType = 'issue' | 'commit' | 'pull-request' | 'snippet';
 type GridCellState = 'empty' | 'generating' | 'done' | 'error';
-
 export type ColumnType = 'text' | 'select' | 'select-user' | 'file' | 'issue-pr' | 'commit';
 
 export type ColumnResponse = {

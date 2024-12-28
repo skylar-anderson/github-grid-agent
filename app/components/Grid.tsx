@@ -6,6 +6,7 @@ import { Box } from '@primer/react';
 import React, { useEffect } from 'react';
 import GridTable from './GridTable';
 import Home from './Home';
+import GridChat from './GridChat';
 
 import './Grid.css';
 
@@ -16,7 +17,7 @@ type Props = {
 };
 
 function GridContent({ initialGridId }: { initialGridId?: string }) {
-  const { gridState, setCurrentGridId } = useGridContext();
+  const { gridState, setCurrentGridId, showChat } = useGridContext();
 
   useEffect(() => {
     if (initialGridId) {
@@ -38,6 +39,7 @@ function GridContent({ initialGridId }: { initialGridId?: string }) {
           }}
         >
           <GridTable />
+          {showChat && <GridChat />}
         </Box>
       ) : (
         <div>

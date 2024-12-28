@@ -4,13 +4,13 @@
 
 ### Multi grid
 
-- [ ] allow saving multiple grids
-- [ ] list saved grids on home page
+- [x] allow saving multiple grids
+- [x] list saved grids on home page
 - [ ] delete grid
 
 #### Sync
 
-- [ ] auto paginate primary column
+- [x] auto paginate primary column
 - [ ] When opening the grid, re-sync the primary column
 
 ## Improve columns & column types
@@ -20,8 +20,8 @@ Logic surrounding column types is scattered throughout the codebase. Let's conso
 - [ ] Column sort
 - [ ] Column filter
 - [ ] Column edit
-- [ ] Column type: file list
-- [ ] Column type: user file
+- [x] Column type: file list
+- [x] Column type: user file
 
 ## Done
 
