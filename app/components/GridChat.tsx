@@ -29,40 +29,9 @@ function buildSystemMessage(grid: GridState | null) {
   };
 }
 
-function ToolInvocationMessage({ toolInvocation }: { toolInvocation: ToolInvocation }) {
-  const toolCallId = toolInvocation.toolCallId;
-  //const addResult = (result: string) => addToolResult({ toolCallId, result });
+export function ChatMessage({ message }: { message: Message }) {
+  const { addToolResult } = useChat({});
 
-  // if (toolInvocation.toolName === 'askForConfirmation') {
-  //   return (
-  //     <div key={toolCallId}>
-  //       {toolInvocation.args.message}
-  //       <div>
-  //         {'result' in toolInvocation ? (
-  //           <b>{toolInvocation.result}</b>
-  //         ) : (
-  //           <>
-  //             <button onClick={() => addResult('Yes')}>Yes</button>
-  //             <button onClick={() => addResult('No')}>No</button>
-  //           </>
-  //         )}
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  // other tools:
-  return 'result' in toolInvocation ? (
-    <div key={toolCallId}>
-      Tool call {`${toolInvocation.toolName}: `}
-      {toolInvocation.result}
-    </div>
-  ) : (
-    <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
-  );
-}
-
-function ChatMessage({ message }: { message: Message }) {
   return (
     <Box
       sx={{
@@ -74,8 +43,35 @@ function ChatMessage({ message }: { message: Message }) {
       <Box>{message.content}</Box>
 
       {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
-        return (
-          <ToolInvocationMessage toolInvocation={toolInvocation} key={toolInvocation.toolCallId} />
+        const toolCallId = toolInvocation.toolCallId;
+        const addResult = (result: string) => addToolResult({ toolCallId, result });
+
+        if (toolInvocation.toolName === 'askForConfirmation') {
+          return (
+            <div key={toolCallId}>
+              {toolInvocation.args.message}
+              <div>
+                {'result' in toolInvocation ? (
+                  <b>{toolInvocation.result}</b>
+                ) : (
+                  <>
+                    <button onClick={() => addResult('Yes')}>Yes</button>
+                    <button onClick={() => addResult('No')}>No</button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        // other tools:
+        return 'result' in toolInvocation ? (
+          <div key={toolCallId}>
+            Tool call {`${toolInvocation.toolName}: `}
+            {toolInvocation.result}
+          </div>
+        ) : (
+          <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
         );
       })}
     </Box>
@@ -84,7 +80,7 @@ function ChatMessage({ message }: { message: Message }) {
 
 export default function GridChat() {
   const { gridState, addNewColumn } = useGridContext();
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, addToolResult } = useChat({
     maxSteps: 5,
     initialMessages: [buildSystemMessage(gridState)],
 
@@ -94,12 +90,9 @@ export default function GridChat() {
         const newColumn = toolCall.args as NewColumnProps;
         try {
           await addNewColumn(newColumn);
-          return `Added ${newColumn.title} column successfully. The column will be populated by an AI agent shortly.`;
+          return `Added ${newColumn.title} column successfully`;
         } catch (error) {
-          return {
-            status: 'error',
-            message: `Failed to add ${newColumn.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          };
+          return `Failed to add ${newColumn.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`;
         }
       }
     },
@@ -123,7 +116,51 @@ export default function GridChat() {
       >
         {messages
           ?.filter((m) => m.role !== 'system')
-          .map((m: Message) => <ChatMessage message={m} key={m.id} />)}
+          .map((message: Message) => (
+            <Box
+              key={message.id}
+              sx={{
+                px: 3,
+                fontSize: 1,
+                color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
+              }}
+            >
+              <Box>{message.content}</Box>
+
+              {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
+                const toolCallId = toolInvocation.toolCallId;
+                const addResult = (result: string) => addToolResult({ toolCallId, result });
+
+                if (toolInvocation.toolName === 'askForConfirmation') {
+                  return (
+                    <div key={toolCallId}>
+                      {toolInvocation.args.message}
+                      <div>
+                        {'result' in toolInvocation ? (
+                          <b>{toolInvocation.result}</b>
+                        ) : (
+                          <>
+                            <button onClick={() => addResult('Yes')}>Yes</button>
+                            <button onClick={() => addResult('No')}>No</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // other tools:
+                return 'result' in toolInvocation ? (
+                  <div key={toolCallId}>
+                    Tool call {`${toolInvocation.toolName}: `}
+                    {toolInvocation.result}
+                  </div>
+                ) : (
+                  <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
+                );
+              })}
+            </Box>
+          ))}
       </Box>
 
       <Box as="form" onSubmit={handleSubmit} sx={{ p: 2 }}>

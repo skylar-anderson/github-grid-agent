@@ -16,9 +16,16 @@ export async function POST(req: Request) {
         description: 'Get the user location. Always ask for confirmation before using this tool.',
         parameters: z.object({}),
       },
+      askForConfirmation: {
+        description:
+          'Ask the user for confirmation. Always call this tool before calling other tools. Present the name of tool and the arguments to the user.',
+        parameters: z.object({
+          message: z.string().describe('The message to ask for confirmation.'),
+        }),
+      },
       addColumn: {
         description:
-          'Add a new column to the table. The following parameters will be provided to an AI agent that will populate the column.',
+          'Add a new column to the table. The cells of the column will be populated be a separate AI agent based on the instructions provided. Before calling this tool, you should call askForConfirmation to ensure the user wants to add the column.',
         parameters: z.object({
           title: z
             .string()
