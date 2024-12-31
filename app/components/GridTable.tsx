@@ -15,21 +15,6 @@ import type { GridState, PrimaryDataType } from '../actions';
 import Row from './Row';
 import GridChat from './GridChat';
 
-function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
-  return (
-    <Box
-      sx={{
-        flex: 1,
-        backgroundColor: 'white',
-
-        ...sx,
-      }}
-    >
-      {children}
-    </Box>
-  );
-}
-
 function GroupHeader({ groupName, count }: { groupName: string; count: number }) {
   return (
     <Box
@@ -237,19 +222,7 @@ export default function GridTable() {
           </Box>
         </Box>
 
-        {selectedIndex !== null && (
-          <Box
-            sx={{
-              overflow: 'scroll',
-              flex: 0,
-              minWidth: '480px',
-              maxWidth: '640px',
-              height: '100%',
-            }}
-          >
-            <SelectedRowPanel />
-          </Box>
-        )}
+        {selectedIndex !== null && <SelectedRowPanel />}
       </Box>
 
       {showNewColumnForm ? (

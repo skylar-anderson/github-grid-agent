@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { IconButton, Box, Avatar, Text } from '@primer/react';
+import { Dialog } from '@primer/react/experimental';
 import DebugDialog from './DebugDialog';
 import { XIcon, ChevronDownIcon, ChevronUpIcon } from '@primer/octicons-react';
 import { GridCol, GridCell } from '../actions';
@@ -21,26 +22,53 @@ type Issue = {
   number: string;
   url: string;
 };
+
 function IssueDetails({ issue }: { issue: Issue }) {
   const [open, setOpen] = useState<boolean>(false);
-
+  const tokenStyle = {
+    fontSize: 0,
+    color: 'fg.muted',
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline',
+    },
+  };
   return (
-    <Box sx={{ p: 3 }}>
-      <Box
-        as="a"
-        href={issue.url}
-        sx={{
-          display: 'block',
-          color: 'fg.default',
-          textDecoration: 'none',
-          fontSize: 4,
-          fontWeight: 'semibold',
-          lineHeight: 1.33,
-          mb: 3,
-        }}
-      >
-        {issue.title}
-        <Text sx={{ color: 'fg.muted' }}>(#{issue.number})</Text>
+    <Box sx={{}}>
+      <Box sx={{ mb: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1,
+            width: 'fit-content',
+            mb: 2,
+          }}
+        >
+          <Avatar src={avatarUrl('primer')} size={16} square={true} sx={{ mr: 1 }} />
+          <Box sx={tokenStyle} as="a" href="#">
+            primer
+          </Box>
+          <Box sx={tokenStyle}>/</Box>
+          <Box sx={tokenStyle} as="a" href="#">
+            react
+          </Box>
+        </Box>
+        <Box
+          as="a"
+          href={issue.url}
+          sx={{
+            display: 'block',
+            color: 'fg.default',
+            textDecoration: 'none',
+            fontSize: 3,
+            fontWeight: 'semibold',
+            lineHeight: 1.33,
+            mb: 1,
+          }}
+        >
+          {issue.title}
+          <Text sx={{ color: 'fg.muted' }}> #{issue.number}</Text>
+        </Box>
       </Box>
       <Box
         sx={{
@@ -129,9 +157,7 @@ function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
         overflow: 'hidden',
       }}
     >
-      <Box sx={{ fontSize: 1, fontWeight: 'semibold', px: 3, pt: 3 }}>
-        Original {context.type} details
-      </Box>
+      <Box sx={{ fontSize: 1, fontWeight: 'semibold', pt: 3 }}>Original {context.type} details</Box>
 
       {open && (
         <Box sx={{ p: 3 }}>
@@ -179,12 +205,13 @@ type HeaderProps = {
   close: () => void;
   title: string;
 };
-function ContextHeader({ title, next, previous, close }: HeaderProps) {
+function DialogHeader({ title, next, previous, close }: HeaderProps) {
   return (
     <Box
       sx={{
         display: 'flex',
         p: 2,
+        pl: 3,
         gap: 2,
         borderBottom: '1px solid',
         borderColor: 'border.default',
@@ -192,11 +219,23 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
         position: 'sticky',
         top: 0,
         left: 0,
-        backgroundColor: 'canvas.default',
         height: '48px',
       }}
     >
-      <Box sx={{ display: 'flex', gap: 0 }}>
+      <Box
+        sx={{
+          flex: 1,
+          fontSize: 1,
+          fontWeight: 'semibold',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {title}
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 0, alignItems: 'center' }}>
         <IconButton
           aria-label="Previous"
           size="small"
@@ -211,28 +250,15 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
           icon={ChevronDownIcon}
           onClick={next}
         />
+        <Box sx={{ height: '16px', mx: 2, borderLeft: '1px solid', borderColor: 'border.muted' }} />
+        <IconButton
+          icon={XIcon}
+          size="small"
+          variant="invisible"
+          aria-label="Close"
+          onClick={close}
+        />
       </Box>
-
-      <Box
-        sx={{
-          flex: 1,
-          fontSize: 1,
-          fontWeight: 'semibold',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {title}
-      </Box>
-
-      <IconButton
-        icon={XIcon}
-        size="small"
-        variant="invisible"
-        aria-label="Close"
-        onClick={close}
-      />
     </Box>
   );
 }
@@ -268,20 +294,19 @@ export default function SelectedRowPanel() {
   }
 
   return (
-    <Box
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+    <Dialog
+      renderHeader={() => (
+        <DialogHeader
+          title={primaryCell.response as string}
+          next={nextRow}
+          previous={previousRow}
+          close={() => selectRow(null)}
+        />
+      )}
+      title={primaryCell.response as string}
+      position="right"
+      onClose={() => selectRow(null)}
     >
-      <ContextHeader
-        title={primaryCell.response as string}
-        next={nextRow}
-        previous={previousRow}
-        close={() => selectRow(null)}
-      />
-
       <Box
         sx={{
           flex: 1,
@@ -299,6 +324,6 @@ export default function SelectedRowPanel() {
           </Box>
         ))}
       </Box>
-    </Box>
+    </Dialog>
   );
 }
