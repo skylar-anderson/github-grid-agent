@@ -11,18 +11,15 @@ import { useGridContext } from './GridContext';
 
 export default function ColumnTitle({ title, index }: { title: string; index?: number }) {
   const { deleteColumnByIndex, moveColumnLeft, moveColumnRight, gridState } = useGridContext();
-
-  // Only show move options for non-primary columns
   const showMoveOptions = index !== undefined;
-  // Disable move left for first column
   const canMoveLeft = showMoveOptions && index! > 0;
-  // Disable move right for last column
   const canMoveRight = showMoveOptions && gridState && index! < gridState.columns.length - 1;
 
   return (
     <Box
       sx={{
-        p: 2,
+        pr: 2,
+        py: 1,
         pl: 3,
         flex: 1,
         display: 'flex',
@@ -43,7 +40,7 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
         },
       }}
     >
-      <Box sx={{ flex: 1 }}>{title}</Box>
+      <Box sx={{ color: 'fg.muted', fontSize: 0, fontWeight: 'bold', flex: 1 }}>{title}</Box>
 
       <ActionMenu>
         <ActionMenu.Anchor>

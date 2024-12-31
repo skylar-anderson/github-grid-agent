@@ -1,9 +1,11 @@
 'use client';
-import { Box } from '@primer/react';
+import { Box, IconButton, TextInput } from '@primer/react';
 import { ToolInvocation } from 'ai';
 import { Message, useChat } from 'ai/react';
 import type { GridState } from '@/app/actions';
 import { useGridContext, NewColumnProps } from '@/app/components/GridContext';
+import { useState } from 'react';
+import { CommentDiscussionIcon } from '@primer/octicons-react';
 
 function buildSystemMessage(grid: GridState | null) {
   const role = 'system' as const;
@@ -29,62 +31,69 @@ function buildSystemMessage(grid: GridState | null) {
   };
 }
 
-export function ChatMessage({ message }: { message: Message }) {
-  const { addToolResult } = useChat({});
+function ToolCall({
+  toolInvocation,
+  addToolResult,
+}: {
+  toolInvocation: ToolInvocation;
+  addToolResult: (call: { toolCallId: string; result: string }) => void;
+}) {
+  const toolCallId = toolInvocation.toolCallId;
+  const addResult = (result: string) => addToolResult({ toolCallId, result });
 
-  return (
-    <Box
-      sx={{
-        px: 3,
-        fontSize: 1,
-        color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
-      }}
-    >
-      <Box>{message.content}</Box>
+  if (toolInvocation.toolName === 'askForConfirmation') {
+    return (
+      <div key={toolCallId}>
+        {toolInvocation.args.message}
+        <div>
+          {'result' in toolInvocation ? (
+            <b>{toolInvocation.result}</b>
+          ) : (
+            <>
+              <button onClick={() => addResult('Yes')}>Yes</button>
+              <button onClick={() => addResult('No')}>No</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
-      {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
-        const toolCallId = toolInvocation.toolCallId;
-        const addResult = (result: string) => addToolResult({ toolCallId, result });
-
-        if (toolInvocation.toolName === 'askForConfirmation') {
-          return (
-            <div key={toolCallId}>
-              {toolInvocation.args.message}
-              <div>
-                {'result' in toolInvocation ? (
-                  <b>{toolInvocation.result}</b>
-                ) : (
-                  <>
-                    <button onClick={() => addResult('Yes')}>Yes</button>
-                    <button onClick={() => addResult('No')}>No</button>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        }
-
-        // other tools:
-        return 'result' in toolInvocation ? (
-          <div key={toolCallId}>
-            Tool call {`${toolInvocation.toolName}: `}
-            {toolInvocation.result}
-          </div>
-        ) : (
-          <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
-        );
-      })}
-    </Box>
+  return 'result' in toolInvocation ? (
+    <div key={toolCallId}>
+      Tool call {`${toolInvocation.toolName}: `}
+      {toolInvocation.result}
+    </div>
+  ) : (
+    <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
   );
 }
 
+// export function ChatMessage({ message }: { message: Message }) {
+//   return (
+//     <Box
+//       sx={{
+//         px: 3,
+//         fontSize: 1,
+//         color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
+//       }}
+//     >
+//       <Box>{message.content}</Box>
+
+//       {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
+//         return <ToolCall toolInvocation={toolInvocation} addToolResult={addToolResult} />;
+//       })}
+//     </Box>
+//   );
+// }
+
 export default function GridChat() {
-  const { gridState, addNewColumn } = useGridContext();
+  const [open, setOpen] = useState(false);
+  const { currentGridId, gridState, addNewColumn } = useGridContext();
   const { messages, input, handleInputChange, handleSubmit, addToolResult } = useChat({
+    id: currentGridId || 'chat',
     maxSteps: 5,
     initialMessages: [buildSystemMessage(gridState)],
-
-    // run client-side tools that are automatically executed:
     async onToolCall({ toolCall }) {
       if (toolCall.toolName === 'addColumn') {
         const newColumn = toolCall.args as NewColumnProps;
@@ -98,85 +107,78 @@ export default function GridChat() {
     },
   });
 
+  const visibleMessages = messages?.filter((m) => m.role !== 'system');
+  const lastMessage = visibleMessages?.[visibleMessages.length - 1];
+
   return (
     <Box
       sx={{
         backgroundColor: 'canvas.default',
-        flex: 1,
-        display: 'flex',
-        height: '100%',
-        maxWidth: '360px',
-        borderLeft: '1px solid',
+        position: 'sticky',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        borderTop: '1px solid',
         borderColor: 'border.default',
-        flexDirection: 'column',
+        fontSize: 0,
       }}
     >
-      <Box
-        sx={{ flex: 1, overflow: 'auto', pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-      >
-        {messages
-          ?.filter((m) => m.role !== 'system')
-          .map((message: Message) => (
-            <Box
-              key={message.id}
-              sx={{
-                px: 3,
-                fontSize: 1,
-                color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
-              }}
-            >
-              <Box>{message.content}</Box>
-
-              {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
-                const toolCallId = toolInvocation.toolCallId;
-                const addResult = (result: string) => addToolResult({ toolCallId, result });
-
-                if (toolInvocation.toolName === 'askForConfirmation') {
-                  return (
-                    <div key={toolCallId}>
-                      {toolInvocation.args.message}
-                      <div>
-                        {'result' in toolInvocation ? (
-                          <b>{toolInvocation.result}</b>
-                        ) : (
-                          <>
-                            <button onClick={() => addResult('Yes')}>Yes</button>
-                            <button onClick={() => addResult('No')}>No</button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-
-                // other tools:
-                return 'result' in toolInvocation ? (
-                  <div key={toolCallId}>
-                    Tool call {`${toolInvocation.toolName}: `}
-                    {toolInvocation.result}
-                  </div>
-                ) : (
-                  <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
-                );
-              })}
-            </Box>
-          ))}
-      </Box>
-
-      <Box as="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
+      {open ? (
         <Box
-          as="input"
+          sx={{
+            flex: 1,
+            overflow: 'auto',
+            pt: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          <Box>
+            {visibleMessages?.map((message: Message) => (
+              <Box
+                key={message.id}
+                sx={{
+                  px: 3,
+                  fontSize: 1,
+                  color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
+                }}
+              >
+                <Box>{message.content}</Box>
+
+                {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
+                  return <ToolCall addToolResult={addToolResult} toolInvocation={toolInvocation} />;
+                })}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ) : (
+        <Box>
+          {lastMessage ? (
+            <Box sx={{ py: 1 }}>{lastMessage.content}</Box>
+          ) : (
+            <Box sx={{ py: 1 }}>No messages to display</Box>
+          )}
+        </Box>
+      )}
+
+      <Box
+        as="form"
+        onSubmit={handleSubmit}
+        sx={{ p: 1, display: 'flex', flexDirection: 'row', gap: 1 }}
+      >
+        <IconButton
+          aria-labelledby="Show chat"
+          icon={CommentDiscussionIcon}
+          onClick={() => setOpen(!open)}
+        />
+
+        <TextInput
           value={input}
           onChange={handleInputChange}
           placeholder="Ask a question..."
-          sx={{
-            width: '100%',
-            borderRadius: 2,
-            borderColor: 'border.default',
-            border: '1px solid',
-            color: 'fg.deault',
-            p: 2,
-          }}
+          sx={{ flex: 1 }}
         />
       </Box>
     </Box>

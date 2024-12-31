@@ -4,31 +4,11 @@ import DebugDialog from './DebugDialog';
 import { XIcon, ChevronDownIcon, ChevronUpIcon } from '@primer/octicons-react';
 import { GridCol, GridCell } from '../actions';
 import { useGridContext } from './GridContext';
-import './SelectedContext.css';
 import { GridCellContent } from './Cell';
 import { marked } from 'marked';
 
 const avatarUrl = (handle: string, size: number = 200) =>
   `https://github.com/${handle}.png?size=${size}`;
-/*
-assignee_handle
-siddharthkp
-assignee_avatar
-https://avatars.githubusercontent.com/u/1863771?v=4
-assignee_url
-https://github.com/siddharthkp
-opener_handle
-DavidMeu
-state
-open
-title
-[ActionMenu.Button] onClick doesn't function
-body
-### Description When trying to pass a function to `ActionMenu.Button ` it doesn't get invoked. ![Image](https://github.com/primer/react/assets/35102691/c6d77c3e-64b5-43c1-9d78-c3e28fa235ef) ### Steps to reproduce 1. Goto: https://primer.style/react/ActionMenu 2. Overload `onClick` and see it doesn't get invoked on clicking. ### Version ^36.19.1 ### Browser _No response_
-number
-4647
-url
-https://github.com/primer/react/issues/4647*/
 
 type Issue = {
   assignee_handle: string;

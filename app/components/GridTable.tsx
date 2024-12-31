@@ -5,7 +5,7 @@ import { Dialog } from '@primer/react/experimental';
 import { Text, Box, CounterLabel } from '@primer/react';
 import { GridHeader } from './GridHeader';
 import { useGridContext } from './GridContext';
-import SelectedContext from './SelectedRowPanel';
+import SelectedRowPanel from './SelectedRowPanel';
 import NewColumnForm from './NewColumnForm';
 import './Grid.css';
 import ColumnTitle from './ColumnTitle';
@@ -13,6 +13,7 @@ import { pluralize } from '../utils/pluralize';
 import { capitalize } from '../utils/capitalize';
 import type { GridState, PrimaryDataType } from '../actions';
 import Row from './Row';
+import GridChat from './GridChat';
 
 function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   return (
@@ -20,11 +21,7 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
       sx={{
         flex: 1,
         backgroundColor: 'white',
-        borderRadius: 2,
-        border: '1px solid',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        borderColor: 'border.default',
-        overflow: 'scroll',
+
         ...sx,
       }}
     >
@@ -191,31 +188,34 @@ export default function GridTable() {
   }
 
   const { columns, title, primaryColumn, primaryColumnType } = gridState;
-
+  const subtitle = `${primaryColumn.length} ${primaryColumnType}${primaryColumn.length === 1 ? '' : 's'}`;
   return (
     <Box
       sx={{
         flex: 1,
-        p: 2,
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
       }}
     >
-      <GridHeader
-        title={title}
-        setShowNewColumnForm={setShowNewColumnForm}
-        count={primaryColumn.length}
-      />
+      <GridHeader title={title} subtitle={subtitle} setShowNewColumnForm={setShowNewColumnForm} />
       <Box
         sx={{
           display: 'flex',
           flex: 1,
           overflow: 'scroll',
-          gap: 2,
         }}
       >
-        <Panel sx={{ flex: 1, height: '100%', overflowX: 'scroll' }}>
+        <Box
+          sx={{
+            borderTop: '1px solid',
+            borderColor: 'border.default',
+            backgroundColor: 'canvas.default',
+            flex: 1,
+            height: '100%',
+            overflowX: 'scroll',
+          }}
+        >
           <Box
             sx={{
               minWidth: '100%',
@@ -233,13 +233,22 @@ export default function GridTable() {
               </Box>
             ))}
             <TableContent />
+            <GridChat />
           </Box>
-        </Panel>
+        </Box>
 
         {selectedIndex !== null && (
-          <Panel sx={{ flex: 0, minWidth: '640px', height: '100%' }}>
-            <SelectedContext />
-          </Panel>
+          <Box
+            sx={{
+              overflow: 'scroll',
+              flex: 0,
+              minWidth: '480px',
+              maxWidth: '640px',
+              height: '100%',
+            }}
+          >
+            <SelectedRowPanel />
+          </Box>
         )}
       </Box>
 

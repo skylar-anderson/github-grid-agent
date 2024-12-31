@@ -23,11 +23,10 @@ export default function Row({
         display: 'flex',
         flexDirection: 'row',
         borderBottom: '1px solid',
-        borderColor: '#f0f0f0',
+        borderColor: 'rgba(0,0,0,0.09)',
         transition: 'background-color 300ms ease-in-out',
         '&:hover': {
           backgroundColor: 'canvas.inset',
-          borderColor: 'border.default',
           cursor: 'pointer',
         },
       }}

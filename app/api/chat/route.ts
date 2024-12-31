@@ -63,7 +63,7 @@ export async function POST(req: Request) {
             .boolean()
             .optional()
             .describe(
-              'For select, select-user, and file types: set to true to allow multiple selections'
+              'For select, select-user, and file types. Set to true if the user is requesting multiple items. '
             ),
         }),
       },

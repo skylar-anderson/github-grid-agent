@@ -1,4 +1,5 @@
 import {
+  ActionBar,
   IconButton,
   TextInput,
   Text,
@@ -6,14 +7,16 @@ import {
   ActionList,
   Box,
   Button,
-  CounterLabel,
 } from '@primer/react';
 import {
-  SidebarCollapseIcon,
-  SidebarExpandIcon,
-  ArrowLeftIcon,
+  ThreeBarsIcon,
+  RowsIcon,
+  FilterIcon,
   SearchIcon,
+  ShareIcon,
   KebabHorizontalIcon,
+  PlusIcon,
+  ColumnsIcon,
 } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
 import NextLink from 'next/link';
@@ -23,7 +26,7 @@ export function Search() {
     <Box sx={{ flexGrow: 1 }}>
       <TextInput
         leadingVisual={SearchIcon}
-        sx={{ flexGrow: 0 }}
+        sx={{ flexGrow: 0, backgroundColor: 'canvas.inset' }}
         /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
         placeholder="Search..."
       />
@@ -47,19 +50,24 @@ export function GroupBy() {
 
   return (
     <ActionMenu>
-      <ActionMenu.Button>
-        {groupBy ? (
-          <>
-            <Text sx={{ color: 'fg.muted', fontWeight: 'semibold' }}>Group by:</Text>
-            &nbsp;
-            <Text>{groupBy}</Text>
-          </>
-        ) : (
-          <Text>Group by</Text>
-        )}
-      </ActionMenu.Button>
+      <ActionMenu.Anchor>
+        <IconButton aria-labelledby="Group by" icon={RowsIcon} />
+      </ActionMenu.Anchor>
       <ActionMenu.Overlay width="medium">
         <ActionList selectionVariant="single">
+          <Box
+            as="h3"
+            sx={{
+              m: 0,
+              p: 2,
+              px: 3,
+              fontSize: 0,
+              fontWeight: 'bold',
+              color: 'fg.muted',
+            }}
+          >
+            Group rows by
+          </Box>
           {groupableColumns.map((column, index) => (
             <ActionList.Item
               selected={groupBy === column.title}
@@ -69,8 +77,9 @@ export function GroupBy() {
               {column.title}
             </ActionList.Item>
           ))}
+          <ActionList.Divider />
           <ActionList.Item selected={groupBy === undefined} onSelect={() => setGroupBy(undefined)}>
-            Ungrouped
+            Don't group rows
           </ActionList.Item>
         </ActionList>
       </ActionMenu.Overlay>
@@ -93,7 +102,9 @@ export function FilterBy() {
   }
   return (
     <ActionMenu>
-      <ActionMenu.Button>Filter</ActionMenu.Button>
+      <ActionMenu.Anchor>
+        <IconButton aria-labelledby="Filter" icon={FilterIcon} />
+      </ActionMenu.Anchor>
       <ActionMenu.Overlay width="medium">
         <ActionList>
           {filterableColumns.map((column, index) => (
@@ -109,11 +120,11 @@ export function FilterBy() {
 
 type GridHeaderProps = {
   title: string;
-  count: number;
+  subtitle: string;
   setShowNewColumnForm: (b: boolean) => void;
 };
-export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderProps) {
-  const { saveGridAsGist, isSavingGist, setShowChat, showChat } = useGridContext();
+export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeaderProps) {
+  const { saveGridAsGist, isSavingGist } = useGridContext();
 
   const handleSaveGist = async () => {
     const gistUrl = await saveGridAsGist();
@@ -125,7 +136,8 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
   return (
     <Box
       sx={{
-        pb: 2,
+        py: 3,
+        px: 3,
         pl: 2,
         display: 'flex',
         flexDirection: 'row',
@@ -138,63 +150,54 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
           display: 'flex',
           alignItems: 'center',
           flex: 1,
-          gap: 2,
+          gap: 3,
         }}
       >
         <NextLink href={`/`} passHref>
-          <Box
-            sx={{
-              cursor: 'pointer',
-              height: '28px',
-              width: '28px',
-              color: 'fg.muted',
-              fontWeight: 'semibold',
-              backgroundColor: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: '#e0e0e0',
-                color: 'fg.default',
-                cursor: 'pointer',
-              },
-            }}
-          >
-            <ArrowLeftIcon />
-          </Box>
+          <IconButton icon={ThreeBarsIcon} aria-label="Back to home" />
         </NextLink>
 
-        <Box>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', flexDirection: 'row' }}>
           <Box
             sx={{
               display: 'inline-block',
               fontSize: 2,
               fontWeight: 'semibold',
               color: 'fg.default',
-              mr: 1,
+              mr: 2,
             }}
           >
             {title}
           </Box>
-          <CounterLabel>{count}</CounterLabel>
+          <Box sx={{ color: 'fg.muted', fontSize: 1 }}>{subtitle}</Box>
         </Box>
       </Box>
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <Box sx={{ display: ['none', 'none', 'flex'], gap: 2 }}>
+      <Box sx={{ display: 'flex', gap: 0 }}>
+        <Box sx={{ display: ['none', 'none', 'flex'], gap: 2, alignItems: 'center' }}>
           <Search />
           <GroupBy />
           <FilterBy />
-          <Button onClick={handleSaveGist} disabled={isSavingGist}>
-            Save to gist
-          </Button>
-          <Button onClick={() => setShowNewColumnForm(true)}>Add column</Button>
+          <Box
+            sx={{ height: '16px', mx: 2, borderLeft: '1px solid', borderColor: 'border.muted' }}
+          />
           <IconButton
+            aria-label="Save to gist"
+            onClick={handleSaveGist}
+            icon={ShareIcon}
+            disabled={isSavingGist}
+          />
+
+          <IconButton
+            aria-labelledby="Add column"
+            icon={PlusIcon}
+            onClick={() => setShowNewColumnForm(true)}
+          />
+          {/* <IconButton
             sx={{ flexShrink: 0 }}
             aria-labelledby="Toggle chat"
             icon={showChat ? SidebarCollapseIcon : SidebarExpandIcon}
             onClick={() => setShowChat(!showChat)}
-          />
+          /> */}
         </Box>
 
         <Box sx={{ display: ['flex', 'flex', 'none'] }}>
@@ -208,9 +211,9 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
                 <ActionList.Item onSelect={() => setShowNewColumnForm(true)}>
                   Add column
                 </ActionList.Item>
-                <ActionList.Item onSelect={() => setShowChat(!showChat)}>
+                {/* <ActionList.Item onSelect={() => setShowChat(!showChat)}>
                   {showChat ? 'Hide chat' : 'Show chat'}
-                </ActionList.Item>
+                </ActionList.Item> */}
               </ActionList>
             </ActionMenu.Overlay>
           </ActionMenu>
