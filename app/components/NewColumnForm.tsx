@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Box, Button, TextInput, Textarea, FormControl, Select, Checkbox } from '@primer/react';
 import { columnTypes } from '../columns';
+import { Dialog } from '@primer/react/experimental';
 import type { Option, ColumnType } from '../actions';
 
 type Props = {
+  onDialogClose: () => void;
   addNewColumn: ({
     title,
     instructions,
@@ -20,7 +22,7 @@ type Props = {
   errorMessage?: string;
 };
 
-export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
+export default function NewColumnForm({ onDialogClose, addNewColumn, errorMessage }: Props) {
   const [title, setTitle] = useState<string>('');
   const [instructions, setInstructions] = useState<string>('');
   const [type, setType] = useState<ColumnType>('text');
@@ -48,6 +50,14 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
     });
   }
 
+  function reset() {
+    setTitle('');
+    setInstructions('');
+    setType('text');
+    setOptions([]);
+    setMultiple(false);
+  }
+
   function addNewHandler(e: React.FormEvent) {
     e.preventDefault();
     setMessage('');
@@ -65,71 +75,78 @@ export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
       options: filteredOptions,
       multiple,
     });
-    setTitle('');
-    setInstructions('');
-    setType('text');
-    setOptions([]);
-    setMultiple(false);
+
+    reset();
   }
 
   return (
-    <Box
-      as="form"
-      sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}
-      onSubmit={addNewHandler}
+    <Dialog
+      title="Add new column"
+      position="right"
+      onClose={onDialogClose}
+      footerButtons={[
+        {
+          content: 'Cancel',
+          onClick: () => {
+            reset();
+            onDialogClose();
+          },
+        },
+        { onClick: addNewHandler, content: 'Submit', buttonType: 'primary' },
+      ]}
     >
-      {message && <Box sx={{ color: 'danger.fg' }}>{message}</Box>}
+      <Box
+        as="form"
+        sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}
+        onSubmit={addNewHandler}
+      >
+        {message && <Box sx={{ color: 'danger.fg' }}>{message}</Box>}
 
-      <FormControl>
-        <FormControl.Label>Title</FormControl.Label>
-        <TextInput type="text" value={title} onChange={(e) => setTitle(e.target.value)} block />
-      </FormControl>
-
-      <FormControl>
-        <FormControl.Label>Type</FormControl.Label>
-        <Select value={type} onChange={handleTypeChange}>
-          <Select.Option value="text">Text</Select.Option>
-          <Select.Option value="select">Select</Select.Option>
-          <Select.Option value="select-user">User</Select.Option>
-          <Select.Option value="file">File</Select.Option>
-          <Select.Option value="boolean">Boolean</Select.Option>
-        </Select>
-      </FormControl>
-
-      {(type === 'select' || type === 'select-user' || type === 'file') && (
         <FormControl>
-          <Checkbox checked={multiple} onChange={(e) => setMultiple(e.target.checked)} />
-          <FormControl.Label>Allow multiple</FormControl.Label>
+          <FormControl.Label>Title</FormControl.Label>
+          <TextInput type="text" value={title} onChange={(e) => setTitle(e.target.value)} block />
         </FormControl>
-      )}
 
-      {selectedColumnType.formFields && (
         <FormControl>
-          <FormControl.Label>Options</FormControl.Label>
-          <FormControl.Caption>
-            If options are not provided, then the model will choose its own. Make sure to add
-            instructions to help increase accuracy.
-          </FormControl.Caption>
-          {selectedColumnType.formFields({ options, setOptions })}
+          <FormControl.Label>Type</FormControl.Label>
+          <Select value={type} onChange={handleTypeChange}>
+            <Select.Option value="text">Text</Select.Option>
+            <Select.Option value="select">Select</Select.Option>
+            <Select.Option value="select-user">User</Select.Option>
+            <Select.Option value="file">File</Select.Option>
+            <Select.Option value="boolean">Boolean</Select.Option>
+          </Select>
         </FormControl>
-      )}
 
-      <FormControl>
-        <FormControl.Label>Instructions</FormControl.Label>
-        <Textarea
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          placeholder="Describe how this field should be populated..."
-          rows={6}
-          block
-        />
-      </FormControl>
+        {(type === 'select' || type === 'select-user' || type === 'file') && (
+          <FormControl>
+            <Checkbox checked={multiple} onChange={(e) => setMultiple(e.target.checked)} />
+            <FormControl.Label>Allow multiple</FormControl.Label>
+          </FormControl>
+        )}
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button type="submit" variant="primary">
-          Submit
-        </Button>
+        {selectedColumnType.formFields && (
+          <FormControl>
+            <FormControl.Label>Options</FormControl.Label>
+            <FormControl.Caption>
+              If options are not provided, then the model will choose its own. Make sure to add
+              instructions to help increase accuracy.
+            </FormControl.Caption>
+            {selectedColumnType.formFields({ options, setOptions })}
+          </FormControl>
+        )}
+
+        <FormControl>
+          <FormControl.Label>Instructions</FormControl.Label>
+          <Textarea
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="Describe how this field should be populated..."
+            rows={6}
+            block
+          />
+        </FormControl>
       </Box>
-    </Box>
+    </Dialog>
   );
 }

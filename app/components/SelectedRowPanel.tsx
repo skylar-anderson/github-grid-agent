@@ -23,8 +23,7 @@ type Issue = {
   url: string;
 };
 
-function IssueDetails({ issue }: { issue: Issue }) {
-  const [open, setOpen] = useState<boolean>(false);
+function RepoDetails({ organization, repository }: { organization: string; repository: string }) {
   const tokenStyle = {
     fontSize: 0,
     color: 'fg.muted',
@@ -33,26 +32,35 @@ function IssueDetails({ issue }: { issue: Issue }) {
       textDecoration: 'underline',
     },
   };
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 1,
+        width: 'fit-content',
+        alignItems: 'center',
+        mb: 2,
+      }}
+    >
+      <Avatar src={avatarUrl(organization)} size={16} square={true} sx={{ mr: 1 }} />
+      <Box sx={tokenStyle} as="a" href="#">
+        {organization}
+      </Box>
+      <Box sx={tokenStyle}>/</Box>
+      <Box sx={tokenStyle} as="a" href="#">
+        {repository}
+      </Box>
+    </Box>
+  );
+}
+
+function IssueDetails({ issue }: { issue: Issue }) {
+  const [open, setOpen] = useState<boolean>(false);
+
   return (
     <Box sx={{}}>
       <Box sx={{ mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 1,
-            width: 'fit-content',
-            mb: 2,
-          }}
-        >
-          <Avatar src={avatarUrl('primer')} size={16} square={true} sx={{ mr: 1 }} />
-          <Box sx={tokenStyle} as="a" href="#">
-            primer
-          </Box>
-          <Box sx={tokenStyle}>/</Box>
-          <Box sx={tokenStyle} as="a" href="#">
-            react
-          </Box>
-        </Box>
         <Box
           as="a"
           href={issue.url}
@@ -69,6 +77,7 @@ function IssueDetails({ issue }: { issue: Issue }) {
           {issue.title}
           <Text sx={{ color: 'fg.muted' }}> #{issue.number}</Text>
         </Box>
+        <RepoDetails organization="primer" repository="react" />
       </Box>
       <Box
         sx={{
@@ -319,7 +328,7 @@ export default function SelectedRowPanel() {
         <ContextDetails primaryCell={primaryCell} />
 
         {columns.map((c, i) => (
-          <Box key={`cell-${i}`} sx={{ p: 3 }}>
+          <Box key={`cell-${i}`} sx={{ py: 3 }}>
             <CellValue column={c} cell={c.cells[selectedIndex]} />
           </Box>
         ))}

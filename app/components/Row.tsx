@@ -25,6 +25,9 @@ export default function Row({
         borderBottom: '1px solid',
         borderColor: 'rgba(0,0,0,0.09)',
         transition: 'background-color 300ms ease-in-out',
+        '&:last-child': {
+          borderBottom: 'none',
+        },
         '&:hover': {
           backgroundColor: 'canvas.inset',
           cursor: 'pointer',

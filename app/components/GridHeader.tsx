@@ -1,13 +1,4 @@
-import {
-  ActionBar,
-  IconButton,
-  TextInput,
-  Text,
-  ActionMenu,
-  ActionList,
-  Box,
-  Button,
-} from '@primer/react';
+import { IconButton, TextInput, ActionMenu, ActionList, Box } from '@primer/react';
 import {
   ThreeBarsIcon,
   RowsIcon,
@@ -16,7 +7,6 @@ import {
   ShareIcon,
   KebabHorizontalIcon,
   PlusIcon,
-  ColumnsIcon,
 } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
 import NextLink from 'next/link';
@@ -79,7 +69,7 @@ export function GroupBy() {
           ))}
           <ActionList.Divider />
           <ActionList.Item selected={groupBy === undefined} onSelect={() => setGroupBy(undefined)}>
-            Don't group rows
+            Don&apos;t group rows
           </ActionList.Item>
         </ActionList>
       </ActionMenu.Overlay>
@@ -138,7 +128,6 @@ export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeader
       sx={{
         py: 3,
         px: 3,
-        pl: 2,
         display: 'flex',
         flexDirection: 'row',
         gap: 2,
@@ -192,12 +181,6 @@ export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeader
             icon={PlusIcon}
             onClick={() => setShowNewColumnForm(true)}
           />
-          {/* <IconButton
-            sx={{ flexShrink: 0 }}
-            aria-labelledby="Toggle chat"
-            icon={showChat ? SidebarCollapseIcon : SidebarExpandIcon}
-            onClick={() => setShowChat(!showChat)}
-          /> */}
         </Box>
 
         <Box sx={{ display: ['flex', 'flex', 'none'] }}>

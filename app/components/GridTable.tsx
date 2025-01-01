@@ -1,7 +1,6 @@
 'use client';
 import { useMemo, useCallback, useState } from 'react';
 import type { GridCol, GridCell, ColumnResponse } from '../actions';
-import { Dialog } from '@primer/react/experimental';
 import { Text, Box, CounterLabel } from '@primer/react';
 import { GridHeader } from './GridHeader';
 import { useGridContext } from './GridContext';
@@ -19,18 +18,16 @@ function GroupHeader({ groupName, count }: { groupName: string; count: number })
   return (
     <Box
       sx={{
-        backgroundColor: 'canvas.subtle',
         fontSize: 1,
-        p: 2,
-        px: 3,
-        color: 'fg.muted',
+        p: 3,
+        color: 'fg.default',
         fontWeight: 'bold',
         borderBottom: '1px solid',
-        flex: 2,
-        position: 'sticky',
-        top: '49px',
-        zIndex: 1,
+        flex: 1,
         borderColor: 'border.default',
+        //position: 'sticky',
+        //top: '49px',
+        //zIndex: 1,
       }}
     >
       <Text sx={{ mr: 2 }}>{count === 1 ? groupName : pluralize(groupName)}</Text>
@@ -119,14 +116,11 @@ function TableHeaderRow({
     <Box
       sx={{
         display: 'flex',
-        position: 'sticky',
-        top: 0,
         flexDirection: 'row',
         borderBottom: '1px solid',
         borderColor: 'border.default',
         background: 'canvas.default',
         flex: 1,
-        zIndex: 1,
       }}
     >
       <ColumnTitle title={capitalize(primaryColumnType)} />
@@ -137,20 +131,15 @@ function TableHeaderRow({
   );
 }
 
-function TableContent() {
+function RowsContent({ rows }: { rows: { cell: GridCell; index: number }[] }) {
   const { gridState, selectRow, selectedIndex } = useGridContext();
   if (!gridState) return null;
 
-  const { columns, primaryColumn } = gridState;
-
-  // Filter out deleted rows
-  const visibleRows = primaryColumn
-    .map((cell, index) => ({ cell, index }))
-    .filter(({ cell }) => !cell.deleted);
+  const { columns } = gridState;
 
   return (
     <Box>
-      {visibleRows.map(({ cell, index }) => (
+      {rows.map(({ cell, index }) => (
         <Row
           key={index}
           rowIndex={index}
@@ -167,12 +156,13 @@ function TableContent() {
 export default function GridTable() {
   const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
   const { gridState, addNewColumn, selectedIndex } = useGridContext();
+
   const groupedRows = useGroupedRows(gridState);
   if (!gridState) {
     return null;
   }
 
-  const { columns, title, primaryColumn, primaryColumnType } = gridState;
+  const { columns, title, primaryColumn, primaryColumnType, groupBy } = gridState;
   const subtitle = `${primaryColumn.length} ${primaryColumnType}${primaryColumn.length === 1 ? '' : 's'}`;
   return (
     <Box
@@ -193,7 +183,7 @@ export default function GridTable() {
       >
         <Box
           sx={{
-            borderTop: '1px solid',
+            //borderTop: '1px solid',
             borderColor: 'border.default',
             backgroundColor: 'canvas.default',
             flex: 1,
@@ -207,17 +197,36 @@ export default function GridTable() {
               display: 'flex',
               flex: 1,
               flexDirection: 'column',
+              p: 3,
+              pt: 0,
+              backgroundColor: 'canvas.inset',
+              gap: 3,
             }}
           >
-            <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
             {groupedRows.map((group, groupIndex) => (
-              <Box key={groupIndex}>
+              <Box
+                key={groupIndex}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  border: '1px solid',
+                  borderColor: 'border.default',
+                  borderRadius: 2,
+                  backgroundColor: 'canvas.default',
+                  overflow: 'hidden',
+                }}
+              >
                 {group.groupName && (
-                  <GroupHeader groupName={group.groupName} count={group.rows.length} />
+                  <GroupHeader
+                    groupName={`${groupBy} is ${group.groupName}`}
+                    count={group.rows.length}
+                  />
                 )}
+                <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
+                <RowsContent rows={group.rows} />
               </Box>
             ))}
-            <TableContent />
+
             <GridChat />
           </Box>
         </Box>
@@ -226,15 +235,14 @@ export default function GridTable() {
       </Box>
 
       {showNewColumnForm ? (
-        <Dialog title="Add new column" position="right" onClose={onDialogClose}>
-          <NewColumnForm
-            addNewColumn={({ title, instructions, type, options, multiple }) => {
-              addNewColumn({ title, instructions, type, options, multiple });
-              setShowNewColumnForm(false);
-              return;
-            }}
-          />
-        </Dialog>
+        <NewColumnForm
+          onDialogClose={onDialogClose}
+          addNewColumn={({ title, instructions, type, options, multiple }) => {
+            addNewColumn({ title, instructions, type, options, multiple });
+            setShowNewColumnForm(false);
+            return;
+          }}
+        />
       ) : null}
     </Box>
   );

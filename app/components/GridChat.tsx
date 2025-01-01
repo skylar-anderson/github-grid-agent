@@ -1,11 +1,11 @@
 'use client';
-import { Box, IconButton, TextInput } from '@primer/react';
+import { Box, IconButton } from '@primer/react';
 import { ToolInvocation } from 'ai';
 import { Message, useChat } from 'ai/react';
 import type { GridState } from '@/app/actions';
 import { useGridContext, NewColumnProps } from '@/app/components/GridContext';
 import { useState } from 'react';
-import { CommentDiscussionIcon } from '@primer/octicons-react';
+import { PaperAirplaneIcon, HistoryIcon } from '@primer/octicons-react';
 
 function buildSystemMessage(grid: GridState | null) {
   const role = 'system' as const;
@@ -146,8 +146,14 @@ export default function GridChat() {
               >
                 <Box>{message.content}</Box>
 
-                {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
-                  return <ToolCall addToolResult={addToolResult} toolInvocation={toolInvocation} />;
+                {message.toolInvocations?.map((toolInvocation: ToolInvocation, index: number) => {
+                  return (
+                    <ToolCall
+                      key={index}
+                      addToolResult={addToolResult}
+                      toolInvocation={toolInvocation}
+                    />
+                  );
                 })}
               </Box>
             ))}
@@ -166,19 +172,46 @@ export default function GridChat() {
       <Box
         as="form"
         onSubmit={handleSubmit}
-        sx={{ p: 1, display: 'flex', flexDirection: 'row', gap: 1 }}
+        sx={{
+          py: 3,
+          px: 2,
+          display: 'flex',
+          flexDirection: 'row',
+          gap: 1,
+          borderTop: '2px solid',
+          borderColor: 'transparent',
+          alignItems: 'center',
+          '&:focus-within': {
+            borderColor: 'blue',
+          },
+        }}
       >
         <IconButton
+          variant="invisible"
           aria-labelledby="Show chat"
-          icon={CommentDiscussionIcon}
+          icon={HistoryIcon}
           onClick={() => setOpen(!open)}
         />
 
-        <TextInput
+        <Box
+          as="input"
           value={input}
           onChange={handleInputChange}
-          placeholder="Ask a question..."
-          sx={{ flex: 1 }}
+          placeholder="Enter instructions to add a new column or modify the current grid..."
+          sx={{
+            flex: 1,
+            border: 0,
+            fontSize: 2,
+            '&:focus': { border: 0, outline: 0, outlineColor: 'transparent' },
+          }}
+        />
+
+        <IconButton
+          variant="invisible"
+          size="large"
+          aria-labelledby="Show chat"
+          icon={PaperAirplaneIcon}
+          onClick={() => setOpen(!open)}
         />
       </Box>
     </Box>
