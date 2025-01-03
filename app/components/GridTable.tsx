@@ -36,6 +36,8 @@ function GroupHeader({ groupName, count }: { groupName: string; count: number })
   );
 }
 
+GroupHeader.displayName = 'GroupHeader';
+
 function useColumnDialog() {
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
   const onDialogClose = useCallback(() => setShowNewColumnForm(false), []);
@@ -112,6 +114,8 @@ function TableHeaderRow({
   columns: GridCol[];
   primaryColumnType: PrimaryDataType;
 }) {
+  const { gridState } = useGridContext();
+  const isGrouped = gridState?.groupBy !== undefined;
   return (
     <Box
       sx={{
@@ -119,8 +123,11 @@ function TableHeaderRow({
         flexDirection: 'row',
         borderBottom: '1px solid',
         borderColor: 'border.default',
-        background: 'canvas.default',
+        backgroundColor: 'canvas.default',
+        minWidth: 'fit-content',
+        width: '100%',
         flex: 1,
+        ...(isGrouped ? {} : { zIndex: 1, position: 'sticky', top: 0 }),
       }}
     >
       <ColumnTitle title={capitalize(primaryColumnType)} />
@@ -131,6 +138,8 @@ function TableHeaderRow({
   );
 }
 
+TableHeaderRow.displayName = 'TableHeaderRow';
+
 function RowsContent({ rows }: { rows: { cell: GridCell; index: number }[] }) {
   const { gridState, selectRow, selectedIndex } = useGridContext();
   if (!gridState) return null;
@@ -138,7 +147,7 @@ function RowsContent({ rows }: { rows: { cell: GridCell; index: number }[] }) {
   const { columns } = gridState;
 
   return (
-    <Box>
+    <Box sx={{ minWidth: 'fit-content', width: '100%' }}>
       {rows.map(({ cell, index }) => (
         <Row
           key={index}
@@ -153,17 +162,19 @@ function RowsContent({ rows }: { rows: { cell: GridCell; index: number }[] }) {
   );
 }
 
-export default function GridTable() {
-  const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
-  const { gridState, addNewColumn, selectedIndex } = useGridContext();
+RowsContent.displayName = 'RowsContent';
 
-  const groupedRows = useGroupedRows(gridState);
+export default function GridMain() {
+  const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
+  const { gridState, addNewColumn, showChat } = useGridContext();
+
   if (!gridState) {
     return null;
   }
 
-  const { columns, title, primaryColumn, primaryColumnType, groupBy } = gridState;
+  const { title, primaryColumn, primaryColumnType } = gridState;
   const subtitle = `${primaryColumn.length} ${primaryColumnType}${primaryColumn.length === 1 ? '' : 's'}`;
+
   return (
     <Box
       sx={{
@@ -174,64 +185,18 @@ export default function GridTable() {
       }}
     >
       <GridHeader title={title} subtitle={subtitle} setShowNewColumnForm={setShowNewColumnForm} />
+
       <Box
         sx={{
           display: 'flex',
+          flexDirection: 'row',
+          width: '100%',
           flex: 1,
-          overflow: 'scroll',
+          overflow: 'hidden',
         }}
       >
-        <Box
-          sx={{
-            //borderTop: '1px solid',
-            borderColor: 'border.default',
-            backgroundColor: 'canvas.default',
-            flex: 1,
-            height: '100%',
-            overflowX: 'scroll',
-          }}
-        >
-          <Box
-            sx={{
-              minWidth: '100%',
-              display: 'flex',
-              flex: 1,
-              flexDirection: 'column',
-              p: 3,
-              pt: 0,
-              backgroundColor: 'canvas.inset',
-              gap: 3,
-            }}
-          >
-            {groupedRows.map((group, groupIndex) => (
-              <Box
-                key={groupIndex}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  border: '1px solid',
-                  borderColor: 'border.default',
-                  borderRadius: 2,
-                  backgroundColor: 'canvas.default',
-                  overflow: 'hidden',
-                }}
-              >
-                {group.groupName && (
-                  <GroupHeader
-                    groupName={`${groupBy} is ${group.groupName}`}
-                    count={group.rows.length}
-                  />
-                )}
-                <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
-                <RowsContent rows={group.rows} />
-              </Box>
-            ))}
-
-            <GridChat />
-          </Box>
-        </Box>
-
-        {selectedIndex !== null && <SelectedRowPanel />}
+        <GridTableContent />
+        {showChat && <GridChat />}
       </Box>
 
       {showNewColumnForm ? (
@@ -247,3 +212,96 @@ export default function GridTable() {
     </Box>
   );
 }
+
+GridMain.displayName = 'GridMain';
+
+function GridTableContent() {
+  const { gridState, selectedIndex, showChat } = useGridContext();
+  const groupedRows = useGroupedRows(gridState);
+
+  if (!gridState) {
+    return null;
+  }
+
+  const { columns, primaryColumnType, groupBy } = gridState;
+  const isGrouped = gridState?.groupBy !== undefined;
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flex: 1,
+        overflow: 'scroll',
+        ...(showChat
+          ? {
+              borderRight: '1px solid',
+              borderTop: '1px solid',
+              borderBottom: '1px solid',
+              borderColor: 'border.default',
+              borderTopRightRadius: '6px',
+              borderBottomRightRadius: '6px',
+              width: 'calc(100% - 360px)',
+            }
+          : {
+              width: '100%',
+              zIndex: 2,
+              boxShadow: '3px 3px 12px rgba(0,0,0,0.3)',
+            }),
+      }}
+    >
+      <Box
+        sx={{
+          backgroundColor: 'canvas.default',
+          flex: 1,
+          height: '100%',
+          overflowX: 'scroll',
+          boxShadow: '0 0 4px rgba(0,0,0,0.1)',
+          ...(isGrouped || showChat
+            ? {}
+            : { borderTop: '1px solid', borderColor: 'border.default' }),
+        }}
+      >
+        <Box
+          sx={{
+            minWidth: '100%',
+            display: 'flex',
+            flex: 1,
+            flexDirection: 'column',
+            ...(isGrouped ? { p: 3, pt: 0, gap: 3, backgroundColor: 'canvas.inset' } : {}),
+          }}
+        >
+          {groupedRows.map((group, groupIndex) => (
+            <Box
+              key={groupIndex}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                ...(isGrouped
+                  ? {
+                      border: '1px solid',
+                      borderColor: 'border.default',
+                      borderRadius: 2,
+                    }
+                  : {}),
+                backgroundColor: 'canvas.default',
+              }}
+            >
+              {group.groupName && (
+                <GroupHeader
+                  groupName={`${groupBy} is ${group.groupName}`}
+                  count={group.rows.length}
+                />
+              )}
+              <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
+              <RowsContent rows={group.rows} />
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {selectedIndex !== null && <SelectedRowPanel />}
+    </Box>
+  );
+}
+
+GridTableContent.displayName = 'GridTableContent';

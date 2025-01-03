@@ -7,6 +7,8 @@ import {
   ShareIcon,
   KebabHorizontalIcon,
   PlusIcon,
+  SidebarCollapseIcon,
+  SidebarExpandIcon,
 } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
 import NextLink from 'next/link';
@@ -17,7 +19,6 @@ export function Search() {
       <TextInput
         leadingVisual={SearchIcon}
         sx={{ flexGrow: 0, backgroundColor: 'canvas.inset' }}
-        /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
         placeholder="Search..."
       />
     </Box>
@@ -77,6 +78,12 @@ export function GroupBy() {
   );
 }
 
+function Divider() {
+  return (
+    <Box sx={{ height: '16px', mx: 2, borderLeft: '1px solid', borderColor: 'border.muted' }} />
+  );
+}
+
 export function FilterBy() {
   const { gridState } = useGridContext();
   if (!gridState) {
@@ -114,7 +121,7 @@ type GridHeaderProps = {
   setShowNewColumnForm: (b: boolean) => void;
 };
 export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeaderProps) {
-  const { saveGridAsGist, isSavingGist } = useGridContext();
+  const { saveGridAsGist, isSavingGist, showChat, setShowChat } = useGridContext();
 
   const handleSaveGist = async () => {
     const gistUrl = await saveGridAsGist();
@@ -166,9 +173,7 @@ export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeader
           <Search />
           <GroupBy />
           <FilterBy />
-          <Box
-            sx={{ height: '16px', mx: 2, borderLeft: '1px solid', borderColor: 'border.muted' }}
-          />
+          <Divider />
           <IconButton
             aria-label="Save to gist"
             onClick={handleSaveGist}
@@ -180,6 +185,14 @@ export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeader
             aria-labelledby="Add column"
             icon={PlusIcon}
             onClick={() => setShowNewColumnForm(true)}
+          />
+
+          <Divider />
+
+          <IconButton
+            aria-labelledby="Chat"
+            icon={showChat ? SidebarCollapseIcon : SidebarExpandIcon}
+            onClick={() => setShowChat(!showChat)}
           />
         </Box>
 
@@ -194,9 +207,9 @@ export function GridHeader({ title, setShowNewColumnForm, subtitle }: GridHeader
                 <ActionList.Item onSelect={() => setShowNewColumnForm(true)}>
                   Add column
                 </ActionList.Item>
-                {/* <ActionList.Item onSelect={() => setShowChat(!showChat)}>
+                <ActionList.Item onSelect={() => setShowChat(!showChat)}>
                   {showChat ? 'Hide chat' : 'Show chat'}
-                </ActionList.Item> */}
+                </ActionList.Item>
               </ActionList>
             </ActionMenu.Overlay>
           </ActionMenu>

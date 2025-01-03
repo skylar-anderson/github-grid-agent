@@ -1,11 +1,10 @@
 'use client';
-import { Box, IconButton } from '@primer/react';
+import { Box, Button, IconButton } from '@primer/react';
 import { ToolInvocation } from 'ai';
 import { Message, useChat } from 'ai/react';
 import type { GridState } from '@/app/actions';
 import { useGridContext, NewColumnProps } from '@/app/components/GridContext';
-import { useState } from 'react';
-import { PaperAirplaneIcon, HistoryIcon } from '@primer/octicons-react';
+import { PaperAirplaneIcon } from '@primer/octicons-react';
 
 function buildSystemMessage(grid: GridState | null) {
   const role = 'system' as const;
@@ -21,6 +20,8 @@ function buildSystemMessage(grid: GridState | null) {
     role,
     id: 'system-1',
     content: `You are a helpful assistant that helps users work with a data table. The contents of the data table are automatically populated by an AI agent with tools for interacting with the GitHub API. You have been given access to a number of tools for interacting with the table in order to better assist the user. In many cases, such as when a new column is added, a separate AI agent will be used to populate the column. You just need to make sure the user's request is clear and that the table is updated correctly. If you are unsure of the user's request, ask for clarification. I would also like you to avoid unneccessary conversation and just get to the point. 
+
+    Only use plain text. Do not use markdown.
     
     The user is currently working with a table of titled "${grid.title}". This table contains the following columns: 
     ${grid.columns.map((c, index) => `Index: ${index} Name: ${c.title}\n`).join(', ')}
@@ -49,10 +50,14 @@ function ToolCall({
           {'result' in toolInvocation ? (
             <b>{toolInvocation.result}</b>
           ) : (
-            <>
-              <button onClick={() => addResult('Yes')}>Yes</button>
-              <button onClick={() => addResult('No')}>No</button>
-            </>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, mt: 1 }}>
+              <Button variant="primary" size="small" onClick={() => addResult('Yes')}>
+                Yes
+              </Button>
+              <Button size="small" onClick={() => addResult('No')}>
+                Cancel
+              </Button>
+            </Box>
           )}
         </div>
       </div>
@@ -88,130 +93,158 @@ function ToolCall({
 // }
 
 export default function GridChat() {
-  const [open, setOpen] = useState(false);
   const { currentGridId, gridState, addNewColumn } = useGridContext();
-  const { messages, input, handleInputChange, handleSubmit, addToolResult } = useChat({
-    id: currentGridId || 'chat',
-    maxSteps: 5,
-    initialMessages: [buildSystemMessage(gridState)],
-    async onToolCall({ toolCall }) {
-      if (toolCall.toolName === 'addColumn') {
-        const newColumn = toolCall.args as NewColumnProps;
-        try {
-          await addNewColumn(newColumn);
-          return `Added ${newColumn.title} column successfully`;
-        } catch (error) {
-          return `Failed to add ${newColumn.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  const systemMessage = buildSystemMessage(gridState);
+  const { messages, input, handleInputChange, handleSubmit, addToolResult, append, setMessages } =
+    useChat({
+      id: currentGridId || 'chat',
+      maxSteps: 5,
+      initialMessages: [systemMessage],
+      async onToolCall({ toolCall }) {
+        if (toolCall.toolName === 'addColumn') {
+          const newColumn = toolCall.args as NewColumnProps;
+          try {
+            await addNewColumn(newColumn);
+            return `Added ${newColumn.title} column successfully`;
+          } catch (error) {
+            return `Failed to add ${newColumn.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
         }
-      }
-    },
-  });
+      },
+    });
 
   const visibleMessages = messages?.filter((m) => m.role !== 'system');
-  const lastMessage = visibleMessages?.[visibleMessages.length - 1];
 
   return (
     <Box
       sx={{
-        backgroundColor: 'canvas.default',
-        position: 'sticky',
-        bottom: 0,
-        left: 0,
-        width: '100%',
-        borderTop: '1px solid',
-        borderColor: 'border.default',
+        backgroundColor: 'canvas.inset',
+        width: '360px',
         fontSize: 0,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        px: 3,
+        pb: 3,
+        pt: 2,
       }}
     >
-      {open ? (
-        <Box
-          sx={{
-            flex: 1,
-            overflow: 'auto',
-            pt: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
-          }}
-        >
-          <Box>
-            {visibleMessages?.map((message: Message) => (
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        {visibleMessages.length ? (
+          <>
+            {visibleMessages.map((message: Message) => (
               <Box
                 key={message.id}
                 sx={{
-                  px: 3,
                   fontSize: 1,
                   color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
                 }}
               >
-                <Box>{message.content}</Box>
+                <Box>
+                  {message.role === 'user' ? '' : '🕵🏻‍♂️'} {message.content}
+                </Box>
 
-                {message.toolInvocations?.map((toolInvocation: ToolInvocation, index: number) => {
-                  return (
-                    <ToolCall
-                      key={index}
-                      addToolResult={addToolResult}
-                      toolInvocation={toolInvocation}
-                    />
-                  );
-                })}
+                {message.toolInvocations?.map((toolInvocation: ToolInvocation, index: number) => (
+                  <ToolCall
+                    key={index}
+                    addToolResult={addToolResult}
+                    toolInvocation={toolInvocation}
+                  />
+                ))}
               </Box>
             ))}
+            <Box>
+              <Button
+                sx={{ mt: 2, flexGrow: 'none' }}
+                variant="invisible"
+                size="small"
+                onClick={() => setMessages([systemMessage])}
+              >
+                Clear
+              </Button>
+            </Box>
+          </>
+        ) : (
+          <Box sx={{ fontSize: 1, color: 'fg.default', py: 2 }}>
+            Hello! I&apos;m an AI assistant here to help you work with your data table. Ask me to
+            add or modify columns in the prompt below.
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
+              <Button
+                onClick={() => append({ role: 'user', content: 'Add a new column' })}
+                size="small"
+                sx={{ flexGrow: 0 }}
+              >
+                Add a new column
+              </Button>
+              <Button
+                onClick={() => append({ role: 'user', content: 'Edit an existing column' })}
+                size="small"
+              >
+                Edit an existing column
+              </Button>
+              <Button onClick={() => append({ role: 'user', content: 'Filter rows' })} size="small">
+                Filter rows
+              </Button>
+              <Button onClick={() => append({ role: 'user', content: 'Group rows' })} size="small">
+                Group rows
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      ) : (
-        <Box>
-          {lastMessage ? (
-            <Box sx={{ py: 1 }}>{lastMessage.content}</Box>
-          ) : (
-            <Box sx={{ py: 1 }}>No messages to display</Box>
-          )}
-        </Box>
-      )}
+        )}
+      </Box>
 
       <Box
         as="form"
         onSubmit={handleSubmit}
         sx={{
-          py: 3,
+          p: 1,
           px: 2,
+          pr: 1,
+          backgroundColor: 'canvas.default',
           display: 'flex',
           flexDirection: 'row',
           gap: 1,
-          borderTop: '2px solid',
+          border: '2px solid',
           borderColor: 'transparent',
           alignItems: 'center',
+          borderRadius: '6px',
+          boxShadow: '0 0 6px rgba(0,0,0,0.08), 0 0 3px rgba(0,0,0,0.12), 0 0 1px rgba(0,0,0,0.45)',
+          transition: 'border 0.2s ease-in-out',
           '&:focus-within': {
-            borderColor: 'blue',
+            border: '2px solid',
+            borderColor: 'accent.emphasis',
+            boxShadow: '0 0 16px rgba(0,0,200,0.08), 0 0 6px rgba(0,0,200,0.12)',
           },
         }}
       >
-        <IconButton
-          variant="invisible"
-          aria-labelledby="Show chat"
-          icon={HistoryIcon}
-          onClick={() => setOpen(!open)}
-        />
-
         <Box
           as="input"
           value={input}
           onChange={handleInputChange}
-          placeholder="Enter instructions to add a new column or modify the current grid..."
+          placeholder="Enter instructions to modify the grid..."
+          autoFocus
           sx={{
             flex: 1,
             border: 0,
-            fontSize: 2,
+            fontSize: 1,
             '&:focus': { border: 0, outline: 0, outlineColor: 'transparent' },
           }}
         />
 
         <IconButton
           variant="invisible"
-          size="large"
-          aria-labelledby="Show chat"
+          type="submit"
+          aria-labelledby="Submit"
           icon={PaperAirplaneIcon}
-          onClick={() => setOpen(!open)}
+          onClick={handleSubmit}
         />
       </Box>
     </Box>

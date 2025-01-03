@@ -44,7 +44,7 @@ export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }
         fontSize: 1,
         flex: 1,
         boxSizing: 'border-box',
-        minWidth: '260px',
+        width: '260px',
         borderRight: '1px solid',
         borderColor: '#f0f0f0',
         overflow: 'hidden',

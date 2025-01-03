@@ -14,6 +14,7 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
   const showMoveOptions = index !== undefined;
   const canMoveLeft = showMoveOptions && index! > 0;
   const canMoveRight = showMoveOptions && gridState && index! < gridState.columns.length - 1;
+  const isGrouped = gridState?.groupBy !== undefined;
 
   return (
     <Box
@@ -25,16 +26,14 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        //zIndex: 2,
-        //position: 'sticky',
-        //top: 0,
+        ...(isGrouped ? {} : { zIndex: 2, position: 'sticky', top: 0 }),
         fontSize: 1,
         backgroundColor: 'white',
         color: 'fg.default',
         fontWeight: 'semibold',
         borderRight: '1px solid',
         borderColor: 'border.default',
-        minWidth: '260px',
+        width: '260px',
         '&:last-child': {
           border: 0,
         },
@@ -44,7 +43,12 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
 
       <ActionMenu>
         <ActionMenu.Anchor>
-          <IconButton icon={KebabHorizontalIcon} aria-label="Column menu" variant="invisible" />
+          <IconButton
+            icon={KebabHorizontalIcon}
+            aria-label="Column menu"
+            size="small"
+            variant="invisible"
+          />
         </ActionMenu.Anchor>
         <ActionMenu.Overlay width="medium">
           <ActionList>

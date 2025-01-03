@@ -164,17 +164,16 @@ export default function Home() {
     }
   }
 
-  const suggestions = [
-    'Merged PRs in primer/design',
-    'Open issues in primer/design',
-    'The action list component in primer/react',
-    'Closed PRs in vercel/swr',
-    'Files from last merged PR in primer/react',
-  ];
-
   const selectedSuggestions = useMemo(() => {
+    const suggestions = [
+      'Merged PRs in primer/design',
+      'Open issues in primer/design',
+      'The action list component in primer/react',
+      'Closed PRs in vercel/swr',
+      'Files from last merged PR in primer/react',
+    ];
     return shuffleArray([...suggestions]).slice(0, 3);
-  }, [suggestions]);
+  }, []);
 
   if (state === 'loading') {
     return <GridLoading />;
@@ -190,9 +189,6 @@ export default function Home() {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'canvas.inset',
-        // backgroundImage:
-        //   "linear-gradient(to right, #f3f3f3 1px, transparent 1px), linear-gradient(to bottom, #f3f3f3 1px, transparent 1px)",
-        // backgroundSize: "8px 8px"
       }}
     >
       <Box sx={{ width: '740' }}>
