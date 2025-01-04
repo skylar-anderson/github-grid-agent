@@ -6,9 +6,7 @@ import { Box } from '@primer/react';
 import React, { useEffect } from 'react';
 import GridTable from './GridTable';
 import Home from './Home';
-
 import './Grid.css';
-import GridChat from './GridChat';
 
 type Props = {
   createPrimaryColumn: (s: string) => Promise<SuccessfulPrimaryColumnResponse | ErrorResponse>;

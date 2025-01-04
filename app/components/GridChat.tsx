@@ -5,8 +5,10 @@ import { Message, useChat } from 'ai/react';
 import type { GridState } from '@/app/actions';
 import { useGridContext, NewColumnProps } from '@/app/components/GridContext';
 import { PaperAirplaneIcon } from '@primer/octicons-react';
+import { ToolParameters } from '@/app/api/chat/route';
 
 function buildSystemMessage(grid: GridState | null) {
+  console.log('system message', grid);
   const role = 'system' as const;
   if (!grid) {
     return {
@@ -24,7 +26,7 @@ function buildSystemMessage(grid: GridState | null) {
     Only use plain text. Do not use markdown.
     
     The user is currently working with a table of titled "${grid.title}". This table contains the following columns: 
-    ${grid.columns.map((c, index) => `Index: ${index} Name: ${c.title}\n`).join(', ')}
+    ${grid.columns.map((c, index) => `Index: ${index}\nName: ${c.title}\nType: ${c.type}\nInstructions: ${c.instructions}\nOptions: ${c.options}\nMultiple: ${c.multiple} \n`).join(', ')}
 
     The first column is the primary column, which is of type "${grid.primaryColumnType}". The primary column contains the following entries:
     ${grid.primaryColumn.map((entry, index) => `Index: ${index} Value: ${entry.response}\n`).join(', ')}
@@ -48,7 +50,7 @@ function ToolCall({
         {toolInvocation.args.message}
         <div>
           {'result' in toolInvocation ? (
-            <b>{toolInvocation.result}</b>
+            <Box sx={{ fontSize: 1, color: 'fg.muted' }}>{toolInvocation.result}</Box>
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, mt: 1 }}>
               <Button variant="primary" size="small" onClick={() => addResult('Yes')}>
@@ -65,12 +67,9 @@ function ToolCall({
   }
 
   return 'result' in toolInvocation ? (
-    <div key={toolCallId}>
-      Tool call {`${toolInvocation.toolName}: `}
-      {toolInvocation.result}
-    </div>
+    <Box key={toolCallId}>🛠️ {toolInvocation.result}</Box>
   ) : (
-    <div key={toolCallId}>Calling {toolInvocation.toolName}...</div>
+    <Box key={toolCallId}>Calling {toolInvocation.toolName}...</Box>
   );
 }
 
@@ -93,7 +92,10 @@ function ToolCall({
 // }
 
 export default function GridChat() {
-  const { currentGridId, gridState, addNewColumn } = useGridContext();
+  const { currentGridId, gridState, addNewColumn, moveColumnLeft, moveColumnRight, editColumn } =
+    useGridContext();
+
+  const columns = gridState?.columns;
   const systemMessage = buildSystemMessage(gridState);
   const { messages, input, handleInputChange, handleSubmit, addToolResult, append, setMessages } =
     useChat({
@@ -101,13 +103,38 @@ export default function GridChat() {
       maxSteps: 5,
       initialMessages: [systemMessage],
       async onToolCall({ toolCall }) {
+        if (toolCall.toolName === 'moveColumnLeft') {
+          const args = toolCall.args as ToolParameters['moveColumnLeft'];
+          moveColumnLeft(args.index);
+          return `Moved column ${columns?.[args.index]?.title} left`;
+        }
+
+        if (toolCall.toolName === 'moveColumnRight') {
+          const args = toolCall.args as ToolParameters['moveColumnRight'];
+          moveColumnRight(args.index);
+          return `Moved column ${columns?.[args.index]?.title} right`;
+        }
+
         if (toolCall.toolName === 'addColumn') {
-          const newColumn = toolCall.args as NewColumnProps;
+          const args = toolCall.args as NewColumnProps;
           try {
-            await addNewColumn(newColumn);
-            return `Added ${newColumn.title} column successfully`;
+            await addNewColumn(args);
+            return `Added ${args.title} column successfully`;
           } catch (error) {
-            return `Failed to add ${newColumn.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            return `Failed to add ${args.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
+        }
+
+        if (toolCall.toolName === 'editColumn') {
+          const args = toolCall.args as NewColumnProps & {
+            index: number;
+          };
+          try {
+            const { index, ...columnProps } = args;
+            await editColumn(index, columnProps);
+            return `Edited column ${args.title} successfully`;
+          } catch (error) {
+            return `Failed to edit ${args.title} column: ${error instanceof Error ? error.message : 'Unknown error'}`;
           }
         }
       },
@@ -135,7 +162,7 @@ export default function GridChat() {
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1,
+          gap: 2,
         }}
       >
         {visibleMessages.length ? (
@@ -148,9 +175,7 @@ export default function GridChat() {
                   color: message?.role === 'user' ? 'fg.muted' : 'fg.default',
                 }}
               >
-                <Box>
-                  {message.role === 'user' ? '' : '🕵🏻‍♂️'} {message.content}
-                </Box>
+                <Box>{message.content}</Box>
 
                 {message.toolInvocations?.map((toolInvocation: ToolInvocation, index: number) => (
                   <ToolCall
@@ -173,9 +198,12 @@ export default function GridChat() {
             </Box>
           </>
         ) : (
-          <Box sx={{ fontSize: 1, color: 'fg.default', py: 2 }}>
-            Hello! I&apos;m an AI assistant here to help you work with your data table. Ask me to
-            add or modify columns in the prompt below.
+          <Box sx={{ fontSize: 1, color: 'fg.default' }}>
+            <Box>
+              Hello! I&apos;m an 🕵🏻‍♂️ AI agent here to help you work with your data table. I have a
+              number of 🛠️ tools that I can use to help add or modify columns in the grid.
+            </Box>
+            <Box sx={{ mt: 2 }}>Here are some sample prompts you can try:</Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
               <Button
                 onClick={() => append({ role: 'user', content: 'Add a new column' })}

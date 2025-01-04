@@ -35,6 +35,7 @@ export type GridContextType = {
   saveGridAsGist: () => Promise<string | null>;
   isSavingGist: boolean;
   deleteRow: (index: number) => void;
+  editColumn: (index: number, props: NewColumnProps) => void;
 };
 
 export type NewColumnProps = {
@@ -250,30 +251,33 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
     });
   };
 
-  const updateCellState = (columnTitle: string, cellIndex: number, newCellContents: GridCell) => {
-    setGridState((prevState) => {
-      if (prevState === null) {
-        return null;
-      }
-      return {
-        ...prevState,
-        columns: prevState.columns.map((column) => {
-          if (column.title === columnTitle) {
-            return {
-              ...column,
-              cells: column.cells.map((c, i) => {
-                if (i === cellIndex) {
-                  return newCellContents;
-                }
-                return c;
-              }),
-            };
-          }
-          return column;
-        }),
-      };
-    });
-  };
+  const updateCellState = useCallback(
+    (columnTitle: string, cellIndex: number, newCellContents: GridCell) => {
+      setGridState((prevState) => {
+        if (prevState === null) {
+          return null;
+        }
+        return {
+          ...prevState,
+          columns: prevState.columns.map((column) => {
+            if (column.title === columnTitle) {
+              return {
+                ...column,
+                cells: column.cells.map((c, i) => {
+                  if (i === cellIndex) {
+                    return newCellContents;
+                  }
+                  return c;
+                }),
+              };
+            }
+            return column;
+          }),
+        };
+      });
+    },
+    [setGridState]
+  );
 
   const [isSavingGist, setIsSavingGist] = useState(false);
 
@@ -365,6 +369,70 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
     [setGridState]
   );
 
+  const editColumn = useCallback(
+    (index: number, { title, instructions, type, options, multiple }: NewColumnProps) => {
+      if (!gridState) {
+        alert("Can't edit column without grid state!");
+        return;
+      }
+
+      setGridState((prevState) => {
+        if (!prevState) return null;
+
+        const updatedColumns = [...prevState.columns];
+        const existingColumn = updatedColumns[index];
+        const rehydrateCells =
+          existingColumn.instructions !== instructions ||
+          existingColumn.type !== type ||
+          existingColumn.multiple !== multiple ||
+          JSON.stringify(existingColumn.options) !== JSON.stringify(options);
+
+        // Update the column properties
+        updatedColumns[index] = {
+          ...existingColumn,
+          title,
+          type,
+          options,
+          instructions,
+          multiple,
+          cells: existingColumn.cells.map((cell) => ({
+            ...cell,
+            state: rehydrateCells ? 'empty' : cell.state,
+            columnTitle: title,
+            columnType: type,
+            options,
+            multiple,
+            columnInstructions: instructions,
+          })),
+        };
+
+        return {
+          ...prevState,
+          columns: updatedColumns,
+        };
+      });
+
+      // Re-hydrate cells if needed
+      gridState.columns[index].cells.forEach((cell, cellIndex) => {
+        if (cell.state === 'empty') {
+          hydrateCell({
+            ...cell,
+            columnTitle: title,
+            columnType: type,
+            options,
+            multiple,
+            columnInstructions: instructions,
+          })
+            .then((c) => c.promise)
+            .then((hydratedCell) => {
+              updateCellState(title, cellIndex, hydratedCell);
+            });
+        }
+      });
+    },
+    [gridState, setGridState, hydrateCell, updateCellState]
+  );
+
   return (
     <GridContext.Provider
       value={{
@@ -389,6 +457,7 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
         saveGridAsGist,
         isSavingGist,
         deleteRow,
+        editColumn,
       }}
     >
       {children}

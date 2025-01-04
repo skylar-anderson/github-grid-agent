@@ -66,10 +66,10 @@ export const SelectUserColumnType: BaseColumnType<'select-user'> = {
             <User handle={handle} key={index} />
           ))
         ) : (
-          <Box sx={{ color: 'fg.default', fontSize: 1 }}>No users selected</Box>
+          <Box sx={{ color: 'fg.muted', fontSize: 0 }}>No users selected</Box>
         )
       ) : cell.response.user === 'no-user' ? (
-        <Box sx={{ color: 'fg.default', fontSize: 1 }}>No user selected</Box>
+        <Box sx={{ color: 'fg.muted', fontSize: 0 }}>No user selected</Box>
       ) : (
         <User handle={cell.response.user} />
       )}

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { OpenAI } from 'openai';
 const matches = 12;
-const indexedRepositories = {};
+const indexedRepositories = { 'primer/react': 'primer/react' };
 
 const meta: OpenAI.FunctionDefinition = {
   name: 'semanticCodeSearch',
