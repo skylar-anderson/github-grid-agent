@@ -3,6 +3,17 @@ import { OpenAI } from 'openai';
 const matches = 12;
 const indexedRepositories = { 'primer/react': 'primer/react' };
 
+export type Snippet = {
+  chunk: string;
+  path: string;
+  similarity: number;
+  title: string;
+  content: string;
+  type: 'snippet';
+  repo: string;
+  owner: string;
+};
+
 const meta: OpenAI.FunctionDefinition = {
   name: 'semanticCodeSearch',
   description: `Performs a semantic code search of the provided repository. Returns chunks of code that are semantically similar to the query. Results are ordered by cosine similarity.
@@ -43,7 +54,7 @@ async function embedQuery(query: string): Promise<number[]> {
   return embedding;
 }
 
-async function run(repository: string, query: string): Promise<any> {
+async function run(repository: string, query: string): Promise<Snippet> {
   const queryEmbedding = await embedQuery(query);
 
   const supabase = createClient(
@@ -58,8 +69,9 @@ async function run(repository: string, query: string): Promise<any> {
   });
 
   if (!result.data) {
-    return 'No matches could be found for this query';
+    throw new Error('No matches could be found for this query');
   }
+
   const answer = result.data.map((chunk: any) => {
     return {
       chunk: chunk.chunk,
@@ -67,7 +79,10 @@ async function run(repository: string, query: string): Promise<any> {
       similarity: chunk.similarity,
       title: chunk.title,
       value: chunk.path,
+      //content: chunk.content,
       type: 'snippet',
+      repo: chunk.repo,
+      owner: chunk.owner,
     };
   });
   return answer;

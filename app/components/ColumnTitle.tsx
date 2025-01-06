@@ -26,7 +26,7 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        ...(isGrouped ? {} : { zIndex: 2, position: 'sticky', top: 0 }),
+        ...(isGrouped ? {} : { zIndex: 1, position: 'sticky', top: 0 }),
         fontSize: 1,
         backgroundColor: 'white',
         color: 'fg.default',
