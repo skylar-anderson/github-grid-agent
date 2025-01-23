@@ -77,7 +77,7 @@ function useGroupedRows(gridState: GridState | null) {
       let groupValues: string[] = [];
       let optionRes;
       let userRes;
-      debugger;
+
       switch (groupColumn.type) {
         case 'select':
           optionRes = groupCell.response as ColumnResponse['select'];
@@ -258,7 +258,7 @@ function GridTableContent() {
           boxShadow: '0 0 4px rgba(0,0,0,0.1)',
           ...(isGrouped || showChat
             ? {}
-            : { borderTop: '1px solid', borderColor: 'border.default' }),
+            : { borderTop: '1px solid', borderColor: 'border.default', pt: 3 }),
         }}
       >
         <Box

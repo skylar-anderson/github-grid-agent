@@ -206,8 +206,14 @@ export default function Home() {
           🕵🏻‍♂️ Grid Agent
         </Box>
         <Box as="p" sx={{ color: 'fg.muted', textAlign: 'center' }}>
-          Build your grid. Just describe the data you want to see and let 🕵🏻‍♂️ Grid Agent do the rest.{' '}
-          <a href="https://github.com/skylar-anderson/github-grid-agent">Source</a>
+          Describe the data you want to see and let Grid Agent do the rest.{' '}
+          <Box
+            as="a"
+            sx={{ color: 'fg.muted' }}
+            href="https://github.com/skylar-anderson/github-grid-agent"
+          >
+            Source
+          </Box>
         </Box>
         <Box
           sx={{
