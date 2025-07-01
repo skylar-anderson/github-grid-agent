@@ -2,6 +2,7 @@ import { TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } fr
 import { ArrowLeftIcon } from '@primer/octicons-react';
 import { SearchIcon } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
+import { ThemeSwitcher } from './ThemeSwitcher';
 import NextLink from 'next/link';
 
 export function Search() {
@@ -167,6 +168,7 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
         <Search />
         <GroupBy />
         <FilterBy />
+        <ThemeSwitcher />
         <Button onClick={handleSaveGist} disabled={isSavingGist}>
           Save to gist
         </Button>
