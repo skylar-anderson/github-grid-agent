@@ -110,7 +110,7 @@ export const IssuePRColumnType: BaseColumnType<'issue-pr'> = {
       parsed = JSON.parse(responseContent);
     } catch (error) {
       console.error('Failed to parse response content:', error);
-      return multiple ? { references: [] } : { reference: null };
+      return multiple ? { references: [] } : { reference: undefined };
     }
     return multiple ? { references: parsed.references } : { reference: parsed.reference };
   },
