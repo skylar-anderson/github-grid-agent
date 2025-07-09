@@ -5,6 +5,7 @@ import { useGridContext } from './GridContext';
 import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 import type { Grid } from './GridContext';
+import { ThemeToggle } from './ThemeToggle';
 
 const shuffleArray = (array: string[]) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -195,6 +196,9 @@ export default function Home() {
         // backgroundSize: "8px 8px"
       }}
     >
+      <Box sx={{ position: 'absolute', top: 2, right: 2 }}>
+        <ThemeToggle />
+      </Box>
       <Box sx={{ width: '740' }}>
         <Box
           as="h1"

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { ThemeProvider } from './utils/theme-context';
+import { BaseStyles } from '@primer/react';
 
 export const metadata: Metadata = {
   title: '🕵🏻‍♂️ Grid Agent',
@@ -12,7 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>
+          <BaseStyles>
+            {children}
+          </BaseStyles>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
