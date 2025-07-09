@@ -65,7 +65,6 @@ async function run(
   stateReason?: 'completed' | 'not_planned' | 'reopened'
 ) {
   return await updateIssue({
-    repository,
     title,
     body,
     labels,
