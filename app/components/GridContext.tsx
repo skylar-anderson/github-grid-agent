@@ -63,7 +63,7 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
 
   const gridState = currentGridId ? grids[currentGridId] : null;
 
-  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = (newState) => {
+  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = useCallback((newState) => {
     if (currentGridId) {
       setGrids((prevGrids) => ({
         ...prevGrids,
@@ -73,7 +73,7 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
             : (newState ?? prevGrids[currentGridId]),
       }));
     }
-  };
+  }, [currentGridId, setGrids]);
 
   const getAllGrids = useCallback(() => {
     return Object.entries(grids).map(([id, grid]) => ({
@@ -116,13 +116,13 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const selectRow = (index: number | null) => {
+  const selectRow = useCallback((index: number | null) => {
     if (!gridState) {
       console.warn("Can't select row without grid state!");
       return;
     }
     setSelectedIndex(index);
-  };
+  }, [gridState]);
 
   function addNewColumn({ title, instructions, type, options, multiple }: NewColumnProps) {
     if (!gridState) {
@@ -210,30 +210,42 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
     });
   };
 
-  const updateCellState = (columnTitle: string, cellIndex: number, newCellContents: GridCell) => {
+  const updateCellState = useCallback((columnTitle: string, cellIndex: number, newCellContents: GridCell) => {
     setGridState((prevState) => {
       if (prevState === null) {
         return null;
       }
+      
+      // Find the column index to avoid mapping over all columns unnecessarily
+      const columnIndex = prevState.columns.findIndex(col => col.title === columnTitle);
+      if (columnIndex === -1) {
+        return prevState; // Column not found, return unchanged state
+      }
+      
+      const targetColumn = prevState.columns[columnIndex];
+      
+      // Only update if the cell actually changed
+      if (targetColumn.cells[cellIndex] === newCellContents) {
+        return prevState;
+      }
+      
+      // Create new cells array with only the changed cell
+      const newCells = [...targetColumn.cells];
+      newCells[cellIndex] = newCellContents;
+      
+      // Create new columns array with only the changed column
+      const newColumns = [...prevState.columns];
+      newColumns[columnIndex] = {
+        ...targetColumn,
+        cells: newCells,
+      };
+      
       return {
         ...prevState,
-        columns: prevState.columns.map((column) => {
-          if (column.title === columnTitle) {
-            return {
-              ...column,
-              cells: column.cells.map((c, i) => {
-                if (i === cellIndex) {
-                  return newCellContents;
-                }
-                return c;
-              }),
-            };
-          }
-          return column;
-        }),
+        columns: newColumns,
       };
     });
-  };
+  }, [setGridState]);
 
   const [isSavingGist, setIsSavingGist] = useState(false);
 

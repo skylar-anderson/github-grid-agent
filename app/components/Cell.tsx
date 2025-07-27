@@ -14,7 +14,7 @@ type CellProps = {
   rowIndex?: number;
 };
 
-export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }: CellProps) {
+const Cell = React.memo(function Cell({ sx, cell, onClick, isSelected = false, rowIndex }: CellProps) {
   const { deleteRow } = useGridContext();
   const isPrimaryCell = rowIndex !== undefined;
 
@@ -86,9 +86,9 @@ export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }
       </Box>
     </Box>
   );
-}
+});
 
-export function GridCellContent({ cell }: { cell: GridCell }) {
+const GridCellContent = React.memo(function GridCellContent({ cell }: { cell: GridCell }) {
   if (cell.state === 'error') {
     return cell.errorMessage;
   }
@@ -98,4 +98,7 @@ export function GridCellContent({ cell }: { cell: GridCell }) {
 
   const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnType>;
   return columnType.renderCell(cell);
-}
+});
+
+export default Cell;
+export { GridCellContent };

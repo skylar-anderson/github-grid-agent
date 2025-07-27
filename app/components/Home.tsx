@@ -164,13 +164,13 @@ export default function Home() {
     }
   }
 
-  const suggestions = [
+  const suggestions = useMemo(() => [
     'Merged PRs in primer/design',
     'Open issues in primer/design',
     'The action list component in primer/react',
     'Closed PRs in vercel/swr',
     'Files from last merged PR in primer/react',
-  ];
+  ], []);
 
   const selectedSuggestions = useMemo(() => {
     return shuffleArray([...suggestions]).slice(0, 3);
