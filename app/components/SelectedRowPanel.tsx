@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { IconButton, Box, Avatar, Text } from '@primer/react';
 import DebugDialog from './DebugDialog';
 import { XIcon, ChevronDownIcon, ChevronUpIcon } from '@primer/octicons-react';
@@ -43,6 +43,8 @@ type Issue = {
 };
 function IssueDetails({ issue }: { issue: Issue }) {
   const [open, setOpen] = useState<boolean>(false);
+  
+  const parsedBody = useMemo(() => marked.parse(issue.body), [issue.body]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -102,7 +104,7 @@ function IssueDetails({ issue }: { issue: Issue }) {
         >
           <div
             className="markdownContainer"
-            dangerouslySetInnerHTML={{ __html: marked.parse(issue.body) }}
+            dangerouslySetInnerHTML={{ __html: parsedBody }}
           />
           {open ? (
             <IconButton

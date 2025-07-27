@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import type { GridCol, GridCell, ColumnResponse } from '../actions';
 import { Dialog } from '@primer/react/experimental';
 import { Text, Box, CounterLabel } from '@primer/react';
@@ -155,7 +155,7 @@ function TableHeaderRow({
   );
 }
 
-function TableContent() {
+const TableContent = React.memo(function TableContent() {
   const { gridState, selectRow, selectedIndex } = useGridContext();
   if (!gridState) return null;
 
@@ -180,7 +180,7 @@ function TableContent() {
       ))}
     </Box>
   );
-}
+});
 
 export default function GridTable() {
   const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();

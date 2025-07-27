@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box } from '@primer/react';
 import Cell from './Cell';
 import type { GridCol, GridCell } from '../actions';
@@ -10,7 +11,7 @@ type RowProps = {
   selectedIndex: number | null;
 };
 
-export default function Row({
+const Row = React.memo(function Row({
   rowIndex,
   primaryCell,
   columns,
@@ -43,4 +44,6 @@ export default function Row({
       ))}
     </Box>
   );
-}
+});
+
+export default Row;
