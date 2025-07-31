@@ -43,6 +43,7 @@ type Issue = {
 };
 function IssueDetails({ issue }: { issue: Issue }) {
   const [open, setOpen] = useState<boolean>(false);
+  const contentId = `issue-content-${issue.number}`;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -58,6 +59,7 @@ function IssueDetails({ issue }: { issue: Issue }) {
           lineHeight: 1.33,
           mb: 3,
         }}
+        aria-label={`View issue ${issue.title} on GitHub`}
       >
         {issue.title}
         <Text sx={{ color: 'fg.muted' }}>(#{issue.number})</Text>
@@ -70,8 +72,11 @@ function IssueDetails({ issue }: { issue: Issue }) {
           borderRadius: 2,
           overflow: 'hidden',
         }}
+        role="region"
+        aria-labelledby={`issue-header-${issue.number}`}
       >
         <Box
+          id={`issue-header-${issue.number}`}
           sx={{
             px: 3,
             py: 2,
@@ -101,13 +106,18 @@ function IssueDetails({ issue }: { issue: Issue }) {
           }}
         >
           <div
+            id={contentId}
             className="markdownContainer"
             dangerouslySetInnerHTML={{ __html: marked.parse(issue.body) }}
+            role="region"
+            aria-label="Issue description"
           />
           {open ? (
             <IconButton
               icon={ChevronUpIcon}
-              aria-label="Show less"
+              aria-label="Collapse issue description"
+              aria-expanded={open}
+              aria-controls={contentId}
               onClick={() => setOpen(false)}
               sx={{
                 position: 'absolute',
@@ -119,7 +129,9 @@ function IssueDetails({ issue }: { issue: Issue }) {
           ) : (
             <IconButton
               icon={ChevronDownIcon}
-              aria-label="Show more"
+              aria-label="Expand issue description"
+              aria-expanded={open}
+              aria-controls={contentId}
               onClick={() => setOpen(true)}
               sx={{
                 position: 'absolute',
@@ -215,17 +227,19 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
         backgroundColor: 'canvas.default',
         height: '48px',
       }}
+      role="banner"
+      aria-label="Selected row details"
     >
-      <Box sx={{ display: 'flex', gap: 0 }}>
+      <Box sx={{ display: 'flex', gap: 0 }} role="group" aria-label="Navigate between rows">
         <IconButton
-          aria-label="Previous"
+          aria-label="Go to previous row"
           size="small"
           variant="invisible"
           icon={ChevronUpIcon}
           onClick={previous}
         />
         <IconButton
-          aria-label="Next"
+          aria-label="Go to next row"
           size="small"
           variant="invisible"
           icon={ChevronDownIcon}
@@ -242,6 +256,8 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}
+        role="heading"
+        aria-level={1}
       >
         {title}
       </Box>
@@ -250,7 +266,7 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
         icon={XIcon}
         size="small"
         variant="invisible"
-        aria-label="Close"
+        aria-label="Close row details panel"
         onClick={close}
       />
     </Box>
@@ -294,6 +310,8 @@ export default function SelectedRowPanel() {
         display: 'flex',
         flexDirection: 'column',
       }}
+      role="complementary"
+      aria-label="Row details panel"
     >
       <ContextHeader
         title={primaryCell.response as string}
@@ -310,6 +328,8 @@ export default function SelectedRowPanel() {
           display: 'flex',
           flexDirection: 'column',
         }}
+        role="main"
+        aria-label="Row content"
       >
         <ContextDetails primaryCell={primaryCell} />
 

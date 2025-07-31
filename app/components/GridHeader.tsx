@@ -10,6 +10,7 @@ export function Search() {
       leadingVisual={SearchIcon}
       /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
       placeholder="Search..."
+      aria-label="Search grid content"
     />
   );
 }
@@ -30,7 +31,7 @@ export function GroupBy() {
 
   return (
     <ActionMenu>
-      <ActionMenu.Button>
+      <ActionMenu.Button aria-label="Group by column">
         {groupBy ? (
           <>
             <Text sx={{ color: 'fg.muted', fontWeight: 'semibold' }}>Group by:</Text>
@@ -76,7 +77,7 @@ export function FilterBy() {
   }
   return (
     <ActionMenu>
-      <ActionMenu.Button>Filter</ActionMenu.Button>
+      <ActionMenu.Button aria-label="Filter by column">Filter</ActionMenu.Button>
       <ActionMenu.Overlay width="medium">
         <ActionList>
           {filterableColumns.map((column, index) => (
@@ -143,6 +144,9 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
                 cursor: 'pointer',
               },
             }}
+            aria-label="Go back to home"
+            role="button"
+            tabIndex={0}
           >
             <ArrowLeftIcon />
           </Box>

@@ -34,7 +34,7 @@ export default function ColumnTitle({ title, index }: { title: string; index?: n
         <ActionMenu.Anchor>
           <IconButton
             variant="invisible"
-            aria-labelledby="Column menu"
+            aria-label={`Column menu for ${title}`}
             icon={KebabHorizontalIcon}
           />
         </ActionMenu.Anchor>
