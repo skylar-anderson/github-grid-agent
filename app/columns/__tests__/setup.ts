@@ -7,6 +7,13 @@ Object.defineProperty(window, 'CSS', {
   },
 });
 
+// Mock ResizeObserver for @primer/react components
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 // Mock react-markdown
 jest.mock('react-markdown', () => {
   return function MockMarkdown({ children }: { children: string }) {
