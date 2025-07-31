@@ -12,9 +12,10 @@ import ColumnTitle from './ColumnTitle';
 import { pluralize } from '../utils/pluralize';
 import { capitalize } from '../utils/capitalize';
 import type { GridState, PrimaryDataType } from '../actions';
-import Row from './Row';
+import React from 'react';
+import VirtualizedTable from './VirtualizedTable';
 
-function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
+const Panel = React.memo(function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
   return (
     <Box
       sx={{
@@ -31,9 +32,9 @@ function Panel({ children, sx = {} }: { children: React.ReactNode; sx?: any }) {
       {children}
     </Box>
   );
-}
+});
 
-function GroupHeader({ groupName, count }: { groupName: string; count: number }) {
+const GroupHeader = React.memo(function GroupHeader({ groupName, count }: { groupName: string; count: number }) {
   return (
     <Box
       sx={{
@@ -55,7 +56,7 @@ function GroupHeader({ groupName, count }: { groupName: string; count: number })
       <CounterLabel>{count}</CounterLabel>
     </Box>
   );
-}
+});
 
 function useColumnDialog() {
   const [showNewColumnForm, setShowNewColumnForm] = useState<boolean | null>();
@@ -75,9 +76,15 @@ function useGroupedRows(gridState: GridState | null) {
     }
 
     const { columns, primaryColumn, groupBy } = gridState;
+    
+    // Filter out deleted rows early
+    const visiblePrimaryRows = primaryColumn
+      .map((cell, index) => ({ cell, index }))
+      .filter(({ cell }) => !cell.deleted);
+
     const defaultGroup = {
       groupName: '',
-      rows: primaryColumn.map((cell, index) => ({ cell, index })),
+      rows: visiblePrimaryRows,
     };
 
     if (!groupBy) {
@@ -91,7 +98,7 @@ function useGroupedRows(gridState: GridState | null) {
 
     const groups: { [key: string]: { cell: GridCell; index: number }[] } = {};
 
-    primaryColumn.forEach((cell, index) => {
+    visiblePrimaryRows.forEach(({ cell, index }) => {
       const groupCell = groupColumn.cells[index];
       let groupValues: string[] = [];
       let optionRes;
@@ -126,7 +133,7 @@ function useGroupedRows(gridState: GridState | null) {
   }, [gridState]);
 }
 
-function TableHeaderRow({
+const TableHeaderRow = React.memo(function TableHeaderRow({
   columns,
   primaryColumnType,
 }: {
@@ -149,43 +156,60 @@ function TableHeaderRow({
     >
       <ColumnTitle title={capitalize(primaryColumnType)} />
       {columns.map((column: GridCol, index: number) => (
-        <ColumnTitle key={index} title={column.title} index={index} />
+        <ColumnTitle key={`${column.title}-${index}`} title={column.title} index={index} />
       ))}
     </Box>
   );
-}
+});
 
-function TableContent() {
+const TableContent = React.memo(function TableContent() {
   const { gridState, selectRow, selectedIndex } = useGridContext();
+  const groupedRows = useGroupedRows(gridState);
+  
   if (!gridState) return null;
 
-  const { columns, primaryColumn } = gridState;
+  const { columns } = gridState;
 
-  // Filter out deleted rows
-  const visibleRows = primaryColumn
-    .map((cell, index) => ({ cell, index }))
-    .filter(({ cell }) => !cell.deleted);
+  // If we have groups, render them separately
+  if (groupedRows.length > 1 || (groupedRows.length === 1 && groupedRows[0].groupName)) {
+    return (
+      <Box>
+        {groupedRows.map((group, groupIndex) => (
+          <Box key={`group-${groupIndex}-${group.groupName}`}>
+            {group.groupName && (
+              <GroupHeader groupName={group.groupName} count={group.rows.length} />
+            )}
+            <VirtualizedTable
+              rows={group.rows}
+              columns={columns}
+              selectRow={selectRow}
+              selectedIndex={selectedIndex}
+              containerHeight={400}
+            />
+          </Box>
+        ))}
+      </Box>
+    );
+  }
 
+  // For simple case without grouping, use virtualization directly
+  const allRows = groupedRows[0]?.rows || [];
+  
   return (
-    <Box>
-      {visibleRows.map(({ cell, index }) => (
-        <Row
-          key={index}
-          rowIndex={index}
-          primaryCell={cell}
-          columns={columns}
-          selectRow={selectRow}
-          selectedIndex={selectedIndex}
-        />
-      ))}
-    </Box>
+    <VirtualizedTable
+      rows={allRows}
+      columns={columns}
+      selectRow={selectRow}
+      selectedIndex={selectedIndex}
+      containerHeight={600}
+    />
   );
-}
+});
 
 export default function GridTable() {
   const { showNewColumnForm, setShowNewColumnForm, onDialogClose } = useColumnDialog();
   const { gridState, addNewColumn, selectedIndex } = useGridContext();
-  const groupedRows = useGroupedRows(gridState);
+  
   if (!gridState) {
     return null;
   }
@@ -205,34 +229,30 @@ export default function GridTable() {
       <GridHeader
         title={title}
         setShowNewColumnForm={setShowNewColumnForm}
-        count={primaryColumn.length}
+        count={primaryColumn.filter(cell => !cell.deleted).length}
       />
       <Box
         sx={{
           display: 'flex',
           flex: 1,
-          overflow: 'scroll',
+          overflow: 'hidden',
           gap: 2,
         }}
       >
-        <Panel sx={{ flex: 1, height: '100%', overflowX: 'scroll' }}>
+        <Panel sx={{ flex: 1, height: '100%', overflow: 'hidden' }}>
           <Box
             sx={{
               minWidth: '100%',
               display: 'flex',
               flex: 1,
               flexDirection: 'column',
+              height: '100%',
             }}
           >
             <TableHeaderRow primaryColumnType={primaryColumnType} columns={columns} />
-            {groupedRows.map((group, groupIndex) => (
-              <Box key={groupIndex}>
-                {group.groupName && (
-                  <GroupHeader groupName={group.groupName} count={group.rows.length} />
-                )}
-              </Box>
-            ))}
-            <TableContent />
+            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+              <TableContent />
+            </Box>
           </Box>
         </Panel>
 

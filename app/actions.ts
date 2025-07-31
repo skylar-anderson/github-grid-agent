@@ -15,7 +15,7 @@ export type Option = {
 export type PrimaryDataType = 'issue' | 'commit' | 'pull-request' | 'snippet' | 'item';
 type GridCellState = 'empty' | 'generating' | 'done' | 'error';
 
-export type ColumnType = 'text' | 'select' | 'select-user' | 'file' | 'issue-pr' | 'commit';
+export type ColumnType = 'text' | 'select' | 'select-user' | 'file' | 'boolean' | 'issue-pr' | 'commit';
 
 export type ColumnResponse = {
   text: string;
@@ -24,6 +24,7 @@ export type ColumnResponse = {
   file:
     | { file: { path: string; repository: string } }
     | { files: { path: string; repository: string }[] };
+  boolean: { value: boolean };
   'issue-pr': {
     reference?: {
       number: number;
@@ -50,7 +51,6 @@ export type ColumnResponse = {
       message?: string;
     }>;
   };
-  boolean: boolean;
 };
 
 export type GridCell<T extends keyof ColumnResponse = ColumnType> = {

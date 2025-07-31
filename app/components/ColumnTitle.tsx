@@ -1,62 +1,74 @@
-import { IconButton, Box, ActionMenu, ActionList } from '@primer/react';
-import { KebabHorizontalIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
+import React, { useCallback } from 'react';
+import { Box, Text, IconButton, ActionMenu, ActionList } from '@primer/react';
+import { KebabHorizontalIcon, TrashIcon } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
 
-export default function ColumnTitle({ title, index }: { title: string; index?: number }) {
-  const { deleteColumnByIndex } = useGridContext();
+type ColumnTitleProps = {
+  title: string;
+  index?: number;
+};
+
+function ColumnTitle({ title, index }: ColumnTitleProps) {
+  const { deleteColumnByIndex, setGroupBy, setFilterBy } = useGridContext();
+  const hasIndex = index !== undefined;
+
+  const handleDeleteColumn = useCallback(() => {
+    if (index !== undefined) {
+      deleteColumnByIndex(index);
+    }
+  }, [deleteColumnByIndex, index]);
+
+  const handleGroupBy = useCallback(() => {
+    setGroupBy(title);
+  }, [setGroupBy, title]);
+
+  const handleClearFilters = useCallback(() => {
+    setFilterBy(undefined, undefined);
+  }, [setFilterBy]);
+
   return (
     <Box
       sx={{
-        p: 2,
-        pl: 3,
-        flex: 1,
+        position: 'relative',
         display: 'flex',
-        flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 2,
-        position: 'sticky',
-        top: 0,
+        justifyContent: 'space-between',
+        p: 3,
         fontSize: 1,
-        backgroundColor: 'white',
-        color: 'fg.default',
-        fontWeight: 'semibold',
-        borderRight: '1px solid',
-        borderColor: 'border.default',
+        flex: 1,
+        boxSizing: 'border-box',
         minWidth: '260px',
+        borderRight: '1px solid',
+        borderColor: '#f0f0f0',
+        fontWeight: 'bold',
         '&:last-child': {
           border: 0,
         },
       }}
     >
-      <Box sx={{ flex: 1 }}>{title}</Box>
-
-      <ActionMenu>
-        <ActionMenu.Anchor>
-          <IconButton
-            variant="invisible"
-            aria-labelledby="Column menu"
-            icon={KebabHorizontalIcon}
-          />
-        </ActionMenu.Anchor>
-        <ActionMenu.Overlay width="medium">
-          <ActionList>
-            {index !== undefined && (
-              <ActionList.Item onSelect={() => deleteColumnByIndex(index)}>
+      <Text>{title}</Text>
+      {hasIndex && (
+        <ActionMenu>
+          <ActionMenu.Anchor>
+            <IconButton variant="invisible" aria-labelledby="Column menu" icon={KebabHorizontalIcon} />
+          </ActionMenu.Anchor>
+          <ActionMenu.Overlay width="medium">
+            <ActionList>
+              <ActionList.Item onSelect={handleGroupBy}>Group by {title}</ActionList.Item>
+              <ActionList.Item onSelect={handleClearFilters}>Clear filters</ActionList.Item>
+              <ActionList.Divider />
+              <ActionList.Item variant="danger" onSelect={handleDeleteColumn}>
                 <ActionList.LeadingVisual>
                   <TrashIcon />
                 </ActionList.LeadingVisual>
-                Delete
+                Delete column
               </ActionList.Item>
-            )}
-            <ActionList.Item onSelect={() => alert('Copy link clicked')}>
-              <ActionList.LeadingVisual>
-                <PencilIcon />
-              </ActionList.LeadingVisual>
-              Edit
-            </ActionList.Item>
-          </ActionList>
-        </ActionMenu.Overlay>
-      </ActionMenu>
+            </ActionList>
+          </ActionMenu.Overlay>
+        </ActionMenu>
+      )}
     </Box>
   );
 }
+
+export default React.memo(ColumnTitle);

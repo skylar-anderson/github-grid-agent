@@ -14,7 +14,7 @@ type CellProps = {
   rowIndex?: number;
 };
 
-export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }: CellProps) {
+function Cell({ sx, cell, onClick, isSelected = false, rowIndex }: CellProps) {
   const { deleteRow } = useGridContext();
   const isPrimaryCell = rowIndex !== undefined;
 
@@ -30,6 +30,12 @@ export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }
   const selectedProps = {
     backgroundColor: 'canvas.inset',
   };
+
+  const handleDeleteRow = React.useCallback(() => {
+    if (rowIndex !== undefined) {
+      deleteRow(rowIndex);
+    }
+  }, [deleteRow, rowIndex]);
 
   return (
     <Box
@@ -73,7 +79,7 @@ export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }
             </ActionMenu.Anchor>
             <ActionMenu.Overlay width="medium">
               <ActionList>
-                <ActionList.Item onSelect={() => deleteRow(rowIndex)}>
+                <ActionList.Item onSelect={handleDeleteRow}>
                   <ActionList.LeadingVisual>
                     <TrashIcon />
                   </ActionList.LeadingVisual>
@@ -88,7 +94,7 @@ export default function Cell({ sx, cell, onClick, isSelected = false, rowIndex }
   );
 }
 
-export function GridCellContent({ cell }: { cell: GridCell }) {
+const GridCellContent = React.memo(function GridCellContent({ cell }: { cell: GridCell }) {
   if (cell.state === 'error') {
     return cell.errorMessage;
   }
@@ -98,4 +104,8 @@ export function GridCellContent({ cell }: { cell: GridCell }) {
 
   const columnType = columnTypes[cell.columnType] as BaseColumnType<ColumnType>;
   return columnType.renderCell(cell);
-}
+});
+
+// Memoize Cell component to prevent unnecessary re-renders
+export default React.memo(Cell);
+export { GridCellContent };

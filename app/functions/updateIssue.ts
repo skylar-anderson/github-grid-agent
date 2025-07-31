@@ -62,16 +62,14 @@ async function run(
   labels?: string[],
   assignees?: string[],
   state?: 'open' | 'closed',
-  stateReason?: 'completed' | 'not_planned' | 'reopened'
+  _stateReason?: 'completed' | 'not_planned' | 'reopened'
 ) {
   return await updateIssue({
-    repository,
     title,
     body,
     labels,
     assignees,
     state,
-    stateReason,
     issueNumber,
   });
 }

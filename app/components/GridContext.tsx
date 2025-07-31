@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react';
 import { SuccessfulPrimaryColumnResponse, ErrorResponse, GridState, GridCell } from '../actions';
 import type { ColumnResponse, ColumnType, GridCol, Option } from '../actions';
 import useLocalStorage from '../utils/local-storage';
@@ -13,23 +13,26 @@ export type Grid = {
   createdAt: Date;
 };
 
-type GridContextType = {
+type GridStateContextType = {
   gridState: GridState | null;
+  selectedIndex: number | null;
+  currentGridId: string | null;
+  isSavingGist: boolean;
+};
+
+type GridActionsContextType = {
   setGridState: React.Dispatch<React.SetStateAction<GridState | null>>;
   selectRow: (index: number | null) => void;
   updateCellState: (columnTitle: string, cellIndex: number, newCellContents: GridCell) => void;
   addNewColumn: (props: NewColumnProps) => void;
   inititializeGrid: (s: string) => Promise<string>;
-  selectedIndex: number | null;
   deleteColumnByIndex: (index: number) => void;
   setGroupBy: (columnTitle: string | undefined) => void;
   setFilterBy: (columnTitle: string | undefined, filterValue: string | undefined) => void;
-  currentGridId: string | null;
   setCurrentGridId: (id: string) => void;
   getAllGrids: () => Grid[];
   deleteGrid: (id: string) => void;
   saveGridAsGist: () => Promise<string | null>;
-  isSavingGist: boolean; // Add this new property
   deleteRow: (index: number) => void;
 };
 
@@ -41,14 +44,30 @@ type NewColumnProps = {
   multiple?: boolean;
 };
 
-const GridContext = createContext<GridContextType | undefined>(undefined);
+const GridStateContext = createContext<GridStateContextType | undefined>(undefined);
+const GridActionsContext = createContext<GridActionsContextType | undefined>(undefined);
 
-export const useGridContext = () => {
-  const context = useContext(GridContext);
+export const useGridState = () => {
+  const context = useContext(GridStateContext);
   if (context === undefined) {
-    throw new Error('useGridContext must be used within a GridProvider');
+    throw new Error('useGridState must be used within a GridProvider');
   }
   return context;
+};
+
+export const useGridActions = () => {
+  const context = useContext(GridActionsContext);
+  if (context === undefined) {
+    throw new Error('useGridActions must be used within a GridProvider');
+  }
+  return context;
+};
+
+// Legacy hook for backward compatibility
+export const useGridContext = () => {
+  const state = useGridState();
+  const actions = useGridActions();
+  return { ...state, ...actions };
 };
 
 type ProviderProps = {
@@ -57,13 +76,18 @@ type ProviderProps = {
   children: ReactNode;
 };
 
-export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: ProviderProps) => {
+export const GridProvider = React.memo(function GridProvider({ createPrimaryColumn, hydrateCell, children }: ProviderProps) {
   const [grids, setGrids] = useLocalStorage<Record<string, GridState>>('grids', {});
   const [currentGridId, setCurrentGridId] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isSavingGist, setIsSavingGist] = useState(false);
 
-  const gridState = currentGridId ? grids[currentGridId] : null;
+  const gridState = useMemo(() => 
+    currentGridId ? grids[currentGridId] : null, 
+    [currentGridId, grids]
+  );
 
-  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = (newState) => {
+  const setGridState: React.Dispatch<React.SetStateAction<GridState | null>> = useCallback((newState) => {
     if (currentGridId) {
       setGrids((prevGrids) => ({
         ...prevGrids,
@@ -73,13 +97,13 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
             : (newState ?? prevGrids[currentGridId]),
       }));
     }
-  };
+  }, [currentGridId, setGrids]);
 
   const getAllGrids = useCallback(() => {
     return Object.entries(grids).map(([id, grid]) => ({
       id,
       title: grid.title,
-      rowCount: grid.primaryColumn.length,
+      rowCount: grid.primaryColumn.filter(cell => !cell.deleted).length,
       columnCount: grid.columns.length + 1,
       createdAt: new Date(),
     }));
@@ -99,7 +123,7 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
     [setGrids, currentGridId]
   );
 
-  async function inititializeGrid(title: string): Promise<string> {
+  const inititializeGrid = useCallback(async (title: string): Promise<string> => {
     const result = await createPrimaryColumn(title);
     if (!result.success) {
       throw new Error(result.message);
@@ -112,19 +136,42 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
     }));
     setCurrentGridId(newGridId);
     return newGridId;
-  }
+  }, [createPrimaryColumn, setGrids]);
 
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-  const selectRow = (index: number | null) => {
+  const selectRow = useCallback((index: number | null) => {
     if (!gridState) {
       console.warn("Can't select row without grid state!");
       return;
     }
     setSelectedIndex(index);
-  };
+  }, [gridState]);
 
-  function addNewColumn({ title, instructions, type, options, multiple }: NewColumnProps) {
+  const updateCellState = useCallback((columnTitle: string, cellIndex: number, newCellContents: GridCell) => {
+    setGridState((prevState) => {
+      if (prevState === null) {
+        return null;
+      }
+      return {
+        ...prevState,
+        columns: prevState.columns.map((column) => {
+          if (column.title === columnTitle) {
+            return {
+              ...column,
+              cells: column.cells.map((c, i) => {
+                if (i === cellIndex) {
+                  return newCellContents;
+                }
+                return c;
+              }),
+            };
+          }
+          return column;
+        }),
+      };
+    });
+  }, [setGridState]);
+
+  const addNewColumn = useCallback(({ title, instructions, type, options, multiple }: NewColumnProps) => {
     if (!gridState) {
       alert("Can't add column without grid state!");
       return;
@@ -169,9 +216,9 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
           updateCellState(title, cellIndex, hydratedCell);
         });
     });
-  }
+  }, [gridState, setGridState, hydrateCell, updateCellState]);
 
-  const deleteColumnByIndex = (index: number) => {
+  const deleteColumnByIndex = useCallback((index: number) => {
     setGridState((prevState) => {
       if (prevState === null) {
         return null;
@@ -181,9 +228,9 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
         columns: prevState.columns.filter((_, colIndex) => colIndex !== index),
       };
     });
-  };
+  }, [setGridState]);
 
-  const setGroupBy = (columnTitle: string | undefined) => {
+  const setGroupBy = useCallback((columnTitle: string | undefined) => {
     setGridState((prevState) => {
       if (prevState === null) {
         return null;
@@ -193,9 +240,9 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
         groupBy: columnTitle,
       };
     });
-  };
+  }, [setGridState]);
 
-  const setFilterBy = (columnTitle: string | undefined, filterValue: string | undefined) => {
+  const setFilterBy = useCallback((columnTitle: string | undefined, filterValue: string | undefined) => {
     setGridState((prevState) => {
       if (prevState === null) {
         return null;
@@ -208,66 +255,36 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
         },
       };
     });
-  };
+  }, [setGridState]);
 
-  const updateCellState = (columnTitle: string, cellIndex: number, newCellContents: GridCell) => {
-    setGridState((prevState) => {
-      if (prevState === null) {
-        return null;
-      }
-      return {
-        ...prevState,
-        columns: prevState.columns.map((column) => {
-          if (column.title === columnTitle) {
-            return {
-              ...column,
-              cells: column.cells.map((c, i) => {
-                if (i === cellIndex) {
-                  return newCellContents;
-                }
-                return c;
-              }),
-            };
-          }
-          return column;
-        }),
-      };
-    });
-  };
+  const deleteRow = useCallback(
+    (index: number) => {
+      setGridState((prevState) => {
+        if (!prevState) return null;
 
-  const [isSavingGist, setIsSavingGist] = useState(false);
+        return {
+          ...prevState,
+          primaryColumn: prevState.primaryColumn.map((cell, i) =>
+            i === index ? { ...cell, deleted: true } : cell
+          ),
+        };
+      });
+    },
+    [setGridState]
+  );
 
-  const saveGridAsGist = async (): Promise<string | null> => {
-    if (!gridState) {
-      console.warn("Can't save grid without grid state!");
-      return null;
-    }
-
-    setIsSavingGist(true);
-    try {
-      const markdownTable = generateMarkdownTable(gridState);
-      const filename = `${gridState.title}.md`;
-      const gistUrl = await createGist(filename, markdownTable);
-      return gistUrl;
-    } catch (error) {
-      console.error('Failed to save grid as gist:', error);
-      return null;
-    } finally {
-      setIsSavingGist(false);
-    }
-  };
-
-  const fileToMd = (file: { path: string; repository: string }) => {
-    const href = `https://github.com/${file.repository}/blob/${file.path}`;
-    return `[${file.path}](${href})`;
-  };
-
-  function generateMarkdownTable(gridState: GridState): string {
+  // Memoize markdown generation to avoid expensive recalculations
+  const generateMarkdownTable = useCallback((gridState: GridState): string => {
     const headers = ['Primary Column', ...gridState.columns.map((col) => col.title)];
 
     function escapeMarkdown(text: string): string {
       return text.replace(/\|/g, '\\|').replace(/\n/g, '<br>');
     }
+
+    const fileToMd = (file: { path: string; repository: string }) => {
+      const href = `https://github.com/${file.repository}/blob/${file.path}`;
+      return `[${file.path}](${href})`;
+    };
 
     function formatCell(response: ColumnResponse[keyof ColumnResponse]): string {
       if (!response) return '';
@@ -292,62 +309,89 @@ export const GridProvider = ({ createPrimaryColumn, hydrateCell, children }: Pro
       }
     }
 
-    const rows = gridState.primaryColumn.map((primaryCell, index) => {
-      return [
-        formatCell(primaryCell.response),
-        ...gridState.columns.map((col) => {
-          const cell = col.cells[index];
-          return formatCell(cell.response as ColumnResponse[keyof ColumnResponse]);
-        }),
-      ];
-    });
+    const rows = gridState.primaryColumn
+      .filter(cell => !cell.deleted)
+      .map((primaryCell, index) => {
+        return [
+          formatCell(primaryCell.response),
+          ...gridState.columns.map((col) => {
+            const cell = col.cells[index];
+            return formatCell(cell.response as ColumnResponse[keyof ColumnResponse]);
+          }),
+        ];
+      });
 
     const headerRow = `| ${headers.map(escapeMarkdown).join(' | ')} |`;
     const separatorRow = `| ${headers.map(() => '---').join(' | ')} |`;
     const dataRows = rows.map((row) => `| ${row.join(' | ')} |`);
 
     return [headerRow, separatorRow, ...dataRows].join('\n');
-  }
+  }, []);
 
-  const deleteRow = useCallback(
-    (index: number) => {
-      setGridState((prevState) => {
-        if (!prevState) return null;
+  const saveGridAsGist = useCallback(async (): Promise<string | null> => {
+    if (!gridState) {
+      console.warn("Can't save grid without grid state!");
+      return null;
+    }
 
-        return {
-          ...prevState,
-          primaryColumn: prevState.primaryColumn.map((cell, i) =>
-            i === index ? { ...cell, deleted: true } : cell
-          ),
-        };
-      });
-    },
-    [setGridState]
-  );
+    setIsSavingGist(true);
+    try {
+      const markdownTable = generateMarkdownTable(gridState);
+      const filename = `${gridState.title}.md`;
+      const gistUrl = await createGist(filename, markdownTable);
+      return gistUrl;
+    } catch (error) {
+      console.error('Failed to save grid as gist:', error);
+      return null;
+    } finally {
+      setIsSavingGist(false);
+    }
+  }, [gridState, generateMarkdownTable]);
+
+  // Memoize state context value
+  const stateValue = useMemo(() => ({
+    gridState,
+    selectedIndex,
+    currentGridId,
+    isSavingGist,
+  }), [gridState, selectedIndex, currentGridId, isSavingGist]);
+
+  // Memoize actions context value
+  const actionsValue = useMemo(() => ({
+    setGridState,
+    selectRow,
+    updateCellState,
+    addNewColumn,
+    inititializeGrid,
+    deleteColumnByIndex,
+    setGroupBy,
+    setFilterBy,
+    setCurrentGridId,
+    getAllGrids,
+    deleteGrid,
+    saveGridAsGist,
+    deleteRow,
+  }), [
+    setGridState,
+    selectRow,
+    updateCellState,
+    addNewColumn,
+    inititializeGrid,
+    deleteColumnByIndex,
+    setGroupBy,
+    setFilterBy,
+    setCurrentGridId,
+    getAllGrids,
+    deleteGrid,
+    saveGridAsGist,
+    deleteRow,
+  ]);
 
   return (
-    <GridContext.Provider
-      value={{
-        inititializeGrid,
-        selectedIndex,
-        gridState,
-        setGridState,
-        selectRow,
-        updateCellState,
-        addNewColumn,
-        deleteColumnByIndex,
-        setGroupBy,
-        setFilterBy,
-        currentGridId,
-        setCurrentGridId,
-        getAllGrids,
-        deleteGrid,
-        saveGridAsGist,
-        isSavingGist,
-        deleteRow,
-      }}
-    >
-      {children}
-    </GridContext.Provider>
+    <GridStateContext.Provider value={stateValue}>
+      <GridActionsContext.Provider value={actionsValue}>
+        {children}
+      </GridActionsContext.Provider>
+    </GridStateContext.Provider>
   );
-};
+});
