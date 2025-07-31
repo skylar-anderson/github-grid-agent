@@ -1,135 +1,135 @@
-import React, { useState } from 'react';
-import { Box, Button, TextInput, Textarea, FormControl, Select, Checkbox } from '@primer/react';
-import { columnTypes } from '../columns';
-import type { Option, ColumnType } from '../actions';
+import React, { useState, useCallback } from 'react';
+import {
+  Box,
+  Button,
+  FormControl,
+  Select,
+  TextInput,
+  Textarea,
+  Checkbox,
+  Text,
+} from '@primer/react';
+import type { ColumnType, Option } from '../actions';
 
-type Props = {
-  addNewColumn: ({
-    title,
-    instructions,
-    type,
-    options,
-    multiple,
-  }: {
+interface NewColumnFormProps {
+  addNewColumn: (data: {
     title: string;
     instructions: string;
     type: ColumnType;
     options: Option[];
-    multiple: boolean;
+    multiple?: boolean;
   }) => void;
-  errorMessage?: string;
-};
+}
 
-export default function NewColumnForm({ addNewColumn, errorMessage }: Props) {
-  const [title, setTitle] = useState<string>('');
-  const [instructions, setInstructions] = useState<string>('');
-  const [type, setType] = useState<ColumnType>('text');
-  const [options, setOptions] = useState<Option[]>([]);
-  const [multiple, setMultiple] = useState<boolean>(false);
-  const [message, setMessage] = useState<string>(errorMessage || '');
+const NewColumnForm = React.memo(function NewColumnForm({ addNewColumn }: NewColumnFormProps) {
+  const [title, setTitle] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [type, setType] = useState<ColumnType>('boolean');
+  const [options, setOptions] = useState<string>('');
+  const [multiple, setMultiple] = useState(false);
 
-  const selectedColumnType = columnTypes[type];
-
-  function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newType = e.target.value as ColumnType;
-    setType((currentType) => {
-      if (
-        currentType === 'text' &&
-        (newType === 'select' || newType === 'select-user' || newType === 'file')
-      ) {
-        setOptions([{ title: '', description: '' }]);
-      } else if (
-        (currentType === 'select' || currentType === 'select-user' || currentType === 'file') &&
-        newType === 'text'
-      ) {
-        setOptions([]);
-      }
-      return newType;
-    });
-  }
-
-  function addNewHandler(e: React.FormEvent) {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
+    
+    const optionsList: Option[] = options
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line) => ({ title: line.trim(), description: '' }));
 
-    if (title === '') {
-      setMessage('Enter a title');
-      return;
-    }
-
-    const filteredOptions = options.filter((option) => option.title !== '');
     addNewColumn({
       title,
       instructions,
       type,
-      options: filteredOptions,
+      options: optionsList,
       multiple,
     });
+
+    // Reset form
     setTitle('');
     setInstructions('');
-    setType('text');
-    setOptions([]);
+    setType('boolean');
+    setOptions('');
     setMultiple(false);
-  }
+  }, [addNewColumn, title, instructions, type, options, multiple]);
+
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  }, []);
+
+  const handleInstructionsChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInstructions(e.target.value);
+  }, []);
+
+  const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setType(e.target.value as ColumnType);
+  }, []);
+
+  const handleOptionsChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setOptions(e.target.value);
+  }, []);
+
+  const handleMultipleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setMultiple(e.target.checked);
+  }, []);
+
+  const showOptions = type === 'select' || type === 'select-user';
 
   return (
-    <Box
-      as="form"
-      sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}
-      onSubmit={addNewHandler}
-    >
-      {message && <Box sx={{ color: 'danger.fg' }}>{message}</Box>}
-
-      <FormControl>
-        <FormControl.Label>Title</FormControl.Label>
-        <TextInput type="text" value={title} onChange={(e) => setTitle(e.target.value)} block />
+    <Box as="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
+      <FormControl required>
+        <FormControl.Label>Column Title</FormControl.Label>
+        <TextInput value={title} onChange={handleTitleChange} />
       </FormControl>
 
-      <FormControl>
-        <FormControl.Label>Type</FormControl.Label>
-        <Select value={type} onChange={handleTypeChange}>
-          <Select.Option value="text">Text</Select.Option>
-          <Select.Option value="select">Select</Select.Option>
-          <Select.Option value="select-user">User</Select.Option>
-          <Select.Option value="file">File</Select.Option>
-          <Select.Option value="boolean">Boolean</Select.Option>
-        </Select>
-      </FormControl>
-
-      {(type === 'select' || type === 'select-user' || type === 'file') && (
-        <FormControl>
-          <Checkbox checked={multiple} onChange={(e) => setMultiple(e.target.checked)} />
-          <FormControl.Label>Allow multiple</FormControl.Label>
-        </FormControl>
-      )}
-
-      {selectedColumnType.formFields && (
-        <FormControl>
-          <FormControl.Label>Options</FormControl.Label>
-          <FormControl.Caption>
-            If options are not provided, then the model will choose its own. Make sure to add
-            instructions to help increase accuracy.
-          </FormControl.Caption>
-          {selectedColumnType.formFields({ options, setOptions })}
-        </FormControl>
-      )}
-
-      <FormControl>
+      <FormControl required sx={{ mt: 3 }}>
         <FormControl.Label>Instructions</FormControl.Label>
         <Textarea
           value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          placeholder="Describe how this field should be populated..."
-          rows={6}
-          block
+          onChange={handleInstructionsChange}
+          placeholder="Instructions for what this column should contain..."
         />
       </FormControl>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button type="submit" variant="primary">
-          Submit
-        </Button>
-      </Box>
+      <FormControl required sx={{ mt: 3 }}>
+        <FormControl.Label>Column Type</FormControl.Label>
+        <Select value={type} onChange={handleTypeChange}>
+          <Select.Option value="boolean">Boolean (Yes/No)</Select.Option>
+          <Select.Option value="select">Select from options</Select.Option>
+          <Select.Option value="select-user">Select GitHub user</Select.Option>
+          <Select.Option value="text">Text</Select.Option>
+          <Select.Option value="file">GitHub file</Select.Option>
+          <Select.Option value="commit">Git commit</Select.Option>
+        </Select>
+      </FormControl>
+
+      {showOptions && (
+        <>
+          <FormControl sx={{ mt: 3 }}>
+            <FormControl.Label>Options (one per line)</FormControl.Label>
+            <Textarea
+              value={options}
+              onChange={handleOptionsChange}
+              placeholder="Option 1&#10;Option 2&#10;Option 3"
+            />
+          </FormControl>
+
+          <FormControl sx={{ mt: 3 }}>
+            <Checkbox
+              checked={multiple}
+              onChange={handleMultipleChange}
+            />
+            <FormControl.Label sx={{ ml: 2 }}>
+              <Text>Allow multiple selections</Text>
+            </FormControl.Label>
+          </FormControl>
+        </>
+      )}
+
+      <Button type="submit" variant="primary" sx={{ mt: 3, width: '100%' }}>
+        Add Column
+      </Button>
     </Box>
   );
-}
+});
+
+export default NewColumnForm;

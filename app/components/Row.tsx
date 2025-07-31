@@ -1,6 +1,7 @@
 import { Box } from '@primer/react';
 import Cell from './Cell';
 import type { GridCol, GridCell } from '../actions';
+import React from 'react';
 
 type RowProps = {
   rowIndex: number;
@@ -10,7 +11,7 @@ type RowProps = {
   selectedIndex: number | null;
 };
 
-export default function Row({
+function Row({
   rowIndex,
   primaryCell,
   columns,
@@ -33,10 +34,10 @@ export default function Row({
       }}
       onClick={() => selectRow(rowIndex)}
     >
-      <Cell cell={primaryCell} isSelected={selectedIndex === rowIndex} />
-      {columns.map((column, colIndex) => (
+      <Cell cell={primaryCell} isSelected={selectedIndex === rowIndex} rowIndex={rowIndex} />
+      {columns.map((column) => (
         <Cell
-          key={colIndex}
+          key={`${column.title}-${rowIndex}`}
           cell={column.cells[rowIndex]}
           isSelected={selectedIndex === rowIndex}
         />
@@ -44,3 +45,6 @@ export default function Row({
     </Box>
   );
 }
+
+// Memoize Row component to prevent unnecessary re-renders
+export default React.memo(Row);

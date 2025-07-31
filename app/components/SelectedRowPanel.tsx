@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { IconButton, Box, Avatar, Text } from '@primer/react';
 import DebugDialog from './DebugDialog';
 import { XIcon, ChevronDownIcon, ChevronUpIcon } from '@primer/octicons-react';
@@ -41,8 +41,27 @@ type Issue = {
   number: string;
   url: string;
 };
-function IssueDetails({ issue }: { issue: Issue }) {
+
+const IssueDetails = React.memo(function IssueDetails({ issue }: { issue: Issue }) {
   const [open, setOpen] = useState<boolean>(false);
+
+  const handleToggleOpen = useCallback(() => setOpen(prev => !prev), []);
+
+  const parsedMarkdown = useMemo(() => {
+    try {
+      return marked.parse(issue.body);
+    } catch {
+      return issue.body;
+    }
+  }, [issue.body]);
+
+  const formattedDate = useMemo(() => {
+    try {
+      return new Date(issue.url).toLocaleDateString();
+    } catch {
+      return 'Unknown date';
+    }
+  }, [issue.url]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -88,7 +107,7 @@ function IssueDetails({ issue }: { issue: Issue }) {
             {issue.opener_handle}
           </Text>{' '}
           <Text sx={{ color: 'fg.muted' }}>
-            opened this issue on {new Date(issue.url).toLocaleDateString()}
+            opened this issue on {formattedDate}
           </Text>
         </Box>
         <Box
@@ -102,46 +121,37 @@ function IssueDetails({ issue }: { issue: Issue }) {
         >
           <div
             className="markdownContainer"
-            dangerouslySetInnerHTML={{ __html: marked.parse(issue.body) }}
+            dangerouslySetInnerHTML={{ __html: parsedMarkdown }}
           />
-          {open ? (
-            <IconButton
-              icon={ChevronUpIcon}
-              aria-label="Show less"
-              onClick={() => setOpen(false)}
-              sx={{
-                position: 'absolute',
-                bottom: 2,
-                right: 2,
-                backgroundColor: 'canvas.default',
-              }}
-            />
-          ) : (
-            <IconButton
-              icon={ChevronDownIcon}
-              aria-label="Show more"
-              onClick={() => setOpen(true)}
-              sx={{
-                position: 'absolute',
-                bottom: 2,
-                right: 2,
-                backgroundColor: 'canvas.default',
-              }}
-            />
-          )}
+          <IconButton
+            icon={open ? ChevronUpIcon : ChevronDownIcon}
+            aria-label={open ? "Show less" : "Show more"}
+            onClick={handleToggleOpen}
+            sx={{
+              position: 'absolute',
+              bottom: 2,
+              right: 2,
+              backgroundColor: 'canvas.default',
+            }}
+          />
         </Box>
       </Box>
     </Box>
   );
-}
+});
 
-function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
+const ContextDetails = React.memo(function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
   const [open] = useState<boolean>(true);
   const { context } = primaryCell;
+
+  const contextEntries = useMemo(() => {
+    return Object.entries(context).filter(([key]) => key !== 'type' && key !== 'value');
+  }, [context]);
 
   if (context.type === 'issue') {
     return <IssueDetails issue={context as Issue} />;
   }
+
   return (
     <Box
       sx={{
@@ -155,24 +165,19 @@ function ContextDetails({ primaryCell }: { primaryCell: GridCell }) {
 
       {open && (
         <Box sx={{ p: 3 }}>
-          {Object.keys(context).map((key) => {
-            const value = context[key];
-            if (key === 'type' || key === 'value') return null;
-            return (
-              <Box sx={{ pb: 3, '&:last-child': { pb: 0 } }} key={key}>
-                <Box sx={{ fontSize: 0, fontWeight: 'semibold', m: 0, pb: 0 }}>{key}</Box>
-
-                <Box sx={{ fontSize: 0, color: 'fg.muted' }}>{value}</Box>
-              </Box>
-            );
-          })}
+          {contextEntries.map(([key, value]) => (
+            <Box sx={{ pb: 3, '&:last-child': { pb: 0 } }} key={key}>
+              <Box sx={{ fontSize: 0, fontWeight: 'semibold', m: 0, pb: 0 }}>{key}</Box>
+              <Box sx={{ fontSize: 0, color: 'fg.muted' }}>{value}</Box>
+            </Box>
+          ))}
         </Box>
       )}
     </Box>
   );
-}
+});
 
-function CellValue({ column, cell }: { column: GridCol; cell: GridCell }) {
+const CellValue = React.memo(function CellValue({ column, cell }: { column: GridCol; cell: GridCell }) {
   const sources = cell.hydrationSources;
   return (
     <Box
@@ -191,7 +196,7 @@ function CellValue({ column, cell }: { column: GridCol; cell: GridCell }) {
       </Box>
     </Box>
   );
-}
+});
 
 type HeaderProps = {
   next: () => void;
@@ -199,38 +204,62 @@ type HeaderProps = {
   close: () => void;
   title: string;
 };
-function ContextHeader({ title, next, previous, close }: HeaderProps) {
+
+const ContextHeader = React.memo(function ContextHeader({ next, previous, close, title }: HeaderProps) {
   return (
     <Box
       sx={{
         display: 'flex',
-        p: 2,
-        gap: 2,
+        alignItems: 'center',
+        gap: 1,
+        px: 3,
+        py: 2,
         borderBottom: '1px solid',
         borderColor: 'border.default',
-        alignItems: 'center',
-        position: 'sticky',
-        top: 0,
-        left: 0,
-        backgroundColor: 'canvas.default',
-        height: '48px',
+        backgroundColor: 'canvas.subtle',
       }}
     >
-      <Box sx={{ display: 'flex', gap: 0 }}>
-        <IconButton
-          aria-label="Previous"
-          size="small"
-          variant="invisible"
-          icon={ChevronUpIcon}
-          onClick={previous}
-        />
-        <IconButton
-          aria-label="Next"
-          size="small"
-          variant="invisible"
-          icon={ChevronDownIcon}
-          onClick={next}
-        />
+      <Box
+        as="button"
+        onClick={previous}
+        sx={{
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 1,
+          p: 1,
+          borderRadius: 1,
+          '&:hover': {
+            backgroundColor: 'canvas.inset',
+          },
+        }}
+        aria-label="Previous"
+      >
+        ←
+      </Box>
+      <Box
+        as="button"
+        onClick={next}
+        sx={{
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 1,
+          p: 1,
+          borderRadius: 1,
+          '&:hover': {
+            backgroundColor: 'canvas.inset',
+          },
+        }}
+        aria-label="Next"
+      >
+        →
       </Box>
 
       <Box
@@ -255,37 +284,33 @@ function ContextHeader({ title, next, previous, close }: HeaderProps) {
       />
     </Box>
   );
-}
+});
 
 export default function SelectedRowPanel() {
   const { gridState, selectRow, selectedIndex } = useGridContext();
-  if (!gridState) {
-    return null;
-  }
-  if (selectedIndex === null) {
+  
+  const previousRow = useCallback(() => {
+    if (selectedIndex === null || !gridState) return;
+    const targetRow = selectedIndex === 0 ? gridState.primaryColumn.length - 1 : selectedIndex - 1;
+    selectRow(targetRow);
+  }, [selectedIndex, gridState, selectRow]);
+
+  const nextRow = useCallback(() => {
+    if (selectedIndex === null || !gridState) return;
+    const targetRow = selectedIndex === gridState.primaryColumn.length - 1 ? 0 : selectedIndex + 1;
+    selectRow(targetRow);
+  }, [selectedIndex, gridState, selectRow]);
+
+  const closePanel = useCallback(() => {
+    selectRow(null);
+  }, [selectRow]);
+
+  if (!gridState || selectedIndex === null) {
     return null;
   }
 
-  const { columns } = gridState;
-
-  const primaryColumn = gridState.primaryColumn;
+  const { columns, primaryColumn } = gridState;
   const primaryCell = primaryColumn[selectedIndex];
-
-  function previousRow() {
-    if (selectedIndex === null) {
-      return null;
-    }
-    const targetRow = selectedIndex === 0 ? primaryColumn.length - 1 : selectedIndex - 1;
-    selectRow(targetRow);
-  }
-
-  function nextRow() {
-    if (selectedIndex === null) {
-      return null;
-    }
-    const targetRow = selectedIndex === primaryColumn.length - 1 ? 0 : selectedIndex + 1;
-    selectRow(targetRow);
-  }
 
   return (
     <Box
@@ -299,7 +324,7 @@ export default function SelectedRowPanel() {
         title={primaryCell.response as string}
         next={nextRow}
         previous={previousRow}
-        close={() => selectRow(null)}
+        close={closePanel}
       />
 
       <Box
@@ -314,7 +339,7 @@ export default function SelectedRowPanel() {
         <ContextDetails primaryCell={primaryCell} />
 
         {columns.map((c, i) => (
-          <Box key={`cell-${i}`} sx={{ p: 3 }}>
+          <Box key={`cell-${c.title}-${i}`} sx={{ p: 3 }}>
             <CellValue column={c} cell={c.cells[selectedIndex]} />
           </Box>
         ))}

@@ -1,29 +1,79 @@
+import React, { useCallback } from 'react';
 import { TextInput, Text, ActionMenu, ActionList, Box, Button, CounterLabel } from '@primer/react';
-import { ArrowLeftIcon } from '@primer/octicons-react';
+import { ArrowLeftIcon, XIcon } from '@primer/octicons-react';
 import { SearchIcon } from '@primer/octicons-react';
 import { useGridContext } from './GridContext';
+import { useSearch } from '../hooks/useSearch';
 import NextLink from 'next/link';
 
-export function Search() {
-  return (
-    <TextInput
-      leadingVisual={SearchIcon}
-      /*trailingAction={<IconButton variant="invisible" aria-labelledby="Clear search" icon={XCircleFillIcon} />}*/
-      placeholder="Search..."
-    />
-  );
-}
+const Search = React.memo(function Search() {
+  const { gridState } = useGridContext();
+  const { searchTerm, handleSearchChange, clearSearch, isSearching } = useSearch(gridState);
 
-export function GroupBy() {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange(e.target.value);
+  }, [handleSearchChange]);
+
+  return (
+    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <TextInput
+        leadingVisual={SearchIcon}
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={handleInputChange}
+        sx={{ pr: isSearching ? '32px' : '12px' }}
+      />
+      {isSearching && (
+        <Box
+          as="button"
+          onClick={clearSearch}
+          sx={{
+            position: 'absolute',
+            right: '8px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            color: 'fg.muted',
+            '&:hover': {
+              color: 'fg.default',
+              backgroundColor: 'canvas.inset',
+            },
+          }}
+        >
+          <XIcon size={12} />
+        </Box>
+      )}
+    </Box>
+  );
+});
+
+const GroupBy = React.memo(function GroupBy() {
   const { gridState, setGroupBy } = useGridContext();
+  
+  const handleGroupBySelect = useCallback((columnTitle: string) => {
+    setGroupBy(columnTitle);
+  }, [setGroupBy]);
+
+  const handleClearGroupBy = useCallback(() => {
+    setGroupBy(undefined);
+  }, [setGroupBy]);
+
   if (!gridState) {
     return null;
   }
+  
   const { groupBy } = gridState;
   const groupableColumnTypes = ['select', 'select-user'];
   const groupableColumns = gridState.columns.filter((column) =>
     groupableColumnTypes.includes(column.type)
   );
+  
   if (gridState && groupableColumns.length === 0) {
     return null;
   }
@@ -46,74 +96,115 @@ export function GroupBy() {
           {groupableColumns.map((column, index) => (
             <ActionList.Item
               selected={groupBy === column.title}
-              key={index}
-              onSelect={() => setGroupBy(column.title)}
+              key={`${column.title}-${index}`}
+              onSelect={() => handleGroupBySelect(column.title)}
             >
               {column.title}
             </ActionList.Item>
           ))}
-          <ActionList.Item selected={groupBy === undefined} onSelect={() => setGroupBy(undefined)}>
-            Ungrouped
-          </ActionList.Item>
+          {groupBy && (
+            <ActionList.Item onSelect={handleClearGroupBy}>
+              <Text sx={{ color: 'fg.muted', fontStyle: 'italic' }}>Clear grouping</Text>
+            </ActionList.Item>
+          )}
         </ActionList>
       </ActionMenu.Overlay>
     </ActionMenu>
   );
-}
+});
 
-export function FilterBy() {
-  const { gridState } = useGridContext();
+const FilterBy = React.memo(function FilterBy() {
+  const { gridState, setFilterBy } = useGridContext();
+  
+  const handleFilterBySelect = useCallback((columnTitle: string, filterValue: string) => {
+    setFilterBy(columnTitle, filterValue);
+  }, [setFilterBy]);
+
+  const handleClearFilter = useCallback(() => {
+    setFilterBy(undefined, undefined);
+  }, [setFilterBy]);
+
   if (!gridState) {
     return null;
   }
-
-  const filterableColumnTypes = ['select', 'select-user'];
+  
+  const { filterByKey, filterByValue: _filterByValue } = gridState;
+  const filterableColumnTypes = ['select', 'select-user', 'text'];
   const filterableColumns = gridState.columns.filter((column) =>
     filterableColumnTypes.includes(column.type)
   );
+  
   if (gridState && filterableColumns.length === 0) {
     return null;
   }
+
   return (
     <ActionMenu>
-      <ActionMenu.Button>Filter</ActionMenu.Button>
+      <ActionMenu.Button>
+        {filterByKey ? (
+          <>
+            <Text sx={{ color: 'fg.muted', fontWeight: 'semibold' }}>Filter by:</Text>
+            &nbsp;
+            <Text>{filterByKey}</Text>
+          </>
+        ) : (
+          <Text>Filter by</Text>
+        )}
+      </ActionMenu.Button>
       <ActionMenu.Overlay width="medium">
-        <ActionList>
+        <ActionList selectionVariant="single">
           {filterableColumns.map((column, index) => (
-            <ActionList.Item key={index} onSelect={() => alert(`Group by ${column.title}`)}>
+            <ActionList.Item
+              selected={filterByKey === column.title}
+              key={`${column.title}-${index}`}
+              onSelect={() => handleFilterBySelect(column.title, '')}
+            >
               {column.title}
             </ActionList.Item>
           ))}
+          {filterByKey && (
+            <ActionList.Item onSelect={handleClearFilter}>
+              <Text sx={{ color: 'fg.muted', fontStyle: 'italic' }}>Clear filter</Text>
+            </ActionList.Item>
+          )}
         </ActionList>
       </ActionMenu.Overlay>
     </ActionMenu>
   );
-}
+});
 
-type GridHeaderProps = {
+export function GridHeader({
+  title,
+  setShowNewColumnForm,
+  count,
+}: {
   title: string;
+  setShowNewColumnForm: (value: boolean) => void;
   count: number;
-  setShowNewColumnForm: (b: boolean) => void;
-};
-export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderProps) {
+}) {
   const { saveGridAsGist, isSavingGist } = useGridContext();
 
-  const handleSaveGist = async () => {
-    const gistUrl = await saveGridAsGist();
-    if (gistUrl) {
-      window.open(gistUrl, '_blank');
-    }
-  };
+  const handleSaveGist = useCallback(async () => {
+    await saveGridAsGist();
+  }, [saveGridAsGist]);
+
+  const handleAddColumn = useCallback(() => {
+    setShowNewColumnForm(true);
+  }, [setShowNewColumnForm]);
 
   return (
     <Box
       sx={{
-        pb: 2,
-        pl: 2,
         display: 'flex',
-        flexDirection: 'row',
-        gap: 2,
-        justifyContent: 'center',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        p: 2,
+        borderBottom: '1px solid',
+        borderColor: 'border.default',
+        backgroundColor: 'canvas.default',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1,
       }}
     >
       <Box
@@ -170,7 +261,7 @@ export function GridHeader({ title, setShowNewColumnForm, count }: GridHeaderPro
         <Button onClick={handleSaveGist} disabled={isSavingGist}>
           Save to gist
         </Button>
-        <Button variant="primary" onClick={() => setShowNewColumnForm(true)}>
+        <Button variant="primary" onClick={handleAddColumn}>
           Add column
         </Button>
       </Box>
