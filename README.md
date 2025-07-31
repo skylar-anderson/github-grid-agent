@@ -37,3 +37,31 @@ GITHUB_MODELS=1
 Note, when using GitHub Models, a 5 second timeout is added to cell hydration in order to prevent rate limit errors.
 
 Start your local dev server: `npm run dev`
+
+## Testing
+
+This project includes comprehensive testing to catch major potential issues. See [TESTING.md](./TESTING.md) for detailed information about:
+
+- Running tests and viewing coverage
+- Adding new tests for components and utilities  
+- Testing best practices and patterns
+- Debugging test issues
+
+### Quick Test Commands
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+Current test coverage focuses on:
+- ✅ All column type components (100% coverage)
+- ✅ Utility functions (capitalize, pluralize, URL params, localStorage)
+- ✅ Basic component integration
+- ⚠️ Server actions and main components need additional testing
