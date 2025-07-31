@@ -1,9 +1,18 @@
-import { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box } from '@primer/react';
 import { Dialog } from '@primer/react/experimental';
 
-export default function DebugDialog({ prompt, sources }: { prompt: string; sources: string[] }) {
+interface DebugDialogProps {
+  prompt: string;
+  sources: string[];
+}
+
+const DebugDialog = React.memo(function DebugDialog({ prompt, sources }: DebugDialogProps) {
   const [open, setOpen] = useState<boolean>(false);
+  
+  const handleOpen = useCallback(() => setOpen(true), []);
+  const handleClose = useCallback(() => setOpen(false), []);
+
   return (
     <>
       <Box
@@ -19,20 +28,20 @@ export default function DebugDialog({ prompt, sources }: { prompt: string; sourc
             color: 'fg.default',
           },
         }}
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
       >
         Debug
       </Box>
 
       {open && (
-        <Dialog title="Debug" onClose={() => setOpen(false)}>
+        <Dialog title="Debug" onClose={handleClose}>
           {sources.length > 0 && (
             <>
               <Box sx={{ fontSize: 0, pb: 2, fontWeight: 'semibold', color: 'fg.muted' }}>
                 Sources used:
               </Box>
-              {sources.map((source) => (
-                <Box key={source} sx={{ fontSize: 0, pb: 2, color: 'fg.muted' }}>
+              {sources.map((source, index) => (
+                <Box key={`${source}-${index}`} sx={{ fontSize: 0, pb: 2, color: 'fg.muted' }}>
                   {source}
                 </Box>
               ))}
@@ -66,4 +75,6 @@ export default function DebugDialog({ prompt, sources }: { prompt: string; sourc
       )}
     </>
   );
-}
+});
+
+export default DebugDialog;

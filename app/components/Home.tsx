@@ -5,50 +5,15 @@ import { useGridContext } from './GridContext';
 import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 import type { Grid } from './GridContext';
+import { shuffleArray } from '../utils/shuffle';
 
-const shuffleArray = (array: string[]) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
-
-function GridLoading() {
-  return (
-    <Box
-      sx={{
-        height: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          flexDirection: 'column',
-        }}
-      >
-        <Box
-          sx={{
-            fontSize: 2,
-            fontWeight: 'semibold',
-            textAlign: 'center',
-            pb: 3,
-          }}
-        >
-          Starting grid...
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Spinner size="medium" />
-        </Box>
-      </Box>
-    </Box>
-  );
-}
+const GRID_SUGGESTIONS = [
+  'Merged PRs in primer/design',
+  'Open issues in primer/design',
+  'The action list component in primer/react',
+  'Closed PRs in vercel/swr',
+  'Files from last merged PR in primer/react',
+];
 
 const SuggestionItem = ({ children, onClick }: { children: string; onClick: () => void }) => (
   <Box
@@ -93,7 +58,6 @@ const GridItem = ({ id, title, subtitle }: { id: string; title: string; subtitle
           '&:hover': {
             textDecoration: 'none',
             boxShadow: '0 1px 6px rgba(0,0,0,0.16)',
-            //boxShadow: '0 0 2px rgba(0,0,0,0.14), 0 1px 6px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12)',
           },
         }}
       >
@@ -131,10 +95,10 @@ function ExistingGrids({ grids }: { grids: Grid[]; deleteGrid: (id: string) => v
 }
 
 export default function Home() {
+  const { inititializeGrid, getAllGrids, setCurrentGridId, deleteGrid } = useGridContext();
   const [state, setState] = useState<'empty' | 'loading' | 'done'>('empty');
   const [inputValue, setInputValue] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const { inititializeGrid, getAllGrids, setCurrentGridId, deleteGrid } = useGridContext();
   const router = useRouter();
 
   const existingGrids = getAllGrids();
@@ -164,20 +128,12 @@ export default function Home() {
     }
   }
 
-  const suggestions = [
-    'Merged PRs in primer/design',
-    'Open issues in primer/design',
-    'The action list component in primer/react',
-    'Closed PRs in vercel/swr',
-    'Files from last merged PR in primer/react',
-  ];
-
   const selectedSuggestions = useMemo(() => {
-    return shuffleArray([...suggestions]).slice(0, 3);
-  }, [suggestions]);
+    return shuffleArray([...GRID_SUGGESTIONS]).slice(0, 3);
+  }, []);
 
   if (state === 'loading') {
-    return <GridLoading />;
+    return <Spinner />;
   }
 
   return (

@@ -24,7 +24,7 @@ const VirtualizedTable = React.memo(function VirtualizedTable({
 }: VirtualizedTableProps) {
   const [scrollTop, setScrollTop] = useState(0);
 
-  const totalHeight = rows.length * itemHeight;
+  const totalHeight = useMemo(() => rows.length * itemHeight, [rows.length, itemHeight]);
 
   const visibleRange = useMemo(() => {
     const startIndex = Math.floor(scrollTop / itemHeight);
@@ -46,7 +46,10 @@ const VirtualizedTable = React.memo(function VirtualizedTable({
   }, [rows, visibleRange.startIndex, visibleRange.endIndex]);
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      setScrollTop(e.currentTarget.scrollTop);
+    });
   }, []);
 
   // Only enable virtualization for large datasets
@@ -54,7 +57,7 @@ const VirtualizedTable = React.memo(function VirtualizedTable({
 
   if (!shouldVirtualize) {
     return (
-      <Box>
+      <Box className="grid-table">
         {rows.map(({ cell, index }) => (
           <Row
             key={`row-${index}`}
@@ -71,35 +74,42 @@ const VirtualizedTable = React.memo(function VirtualizedTable({
 
   return (
     <Box
+      className="virtualized-table scroll-container"
       onScroll={handleScroll}
       sx={{
         height: containerHeight,
         overflowY: 'auto',
         overflowX: 'hidden',
+        contain: 'strict',
+        willChange: 'scroll-position',
       }}
     >
       <Box
         sx={{
           height: totalHeight,
           position: 'relative',
+          contain: 'layout',
         }}
       >
         <Box
           sx={{
-            transform: `translateY(${visibleRange.offsetY}px)`,
+            transform: `translate3d(0, ${visibleRange.offsetY}px, 0)`,
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
+            willChange: 'transform',
           }}
         >
           {visibleRows.map(({ cell, index }) => (
             <Box
               key={`row-${index}`}
+              className="grid-row"
               sx={{
                 height: itemHeight,
                 display: 'flex',
                 alignItems: 'stretch',
+                contain: 'layout style',
               }}
             >
               <Row
