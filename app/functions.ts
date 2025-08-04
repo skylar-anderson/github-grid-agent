@@ -18,6 +18,7 @@ import updateIssue from './functions/updateIssue';
 import listDiscussions from './functions/listDiscussions';
 import getDiscussion from './functions/getDiscussion';
 import createPullRequestReview from './functions/createPullRequestReview';
+import listPullRequestReviews from './functions/listPullRequestReviews';
 import analyzeImage from './functions/analyzeImage';
 import { type Tool } from 'ai';
 
@@ -29,6 +30,7 @@ type FunctionModule = {
 export const availableFunctions: Record<string, FunctionModule> = {
   analyzeImage,
   createPullRequestReview,
+  listPullRequestReviews,
   listDiscussions,
   getDiscussion,
   createIssue,
@@ -88,6 +90,11 @@ export async function runFunction(name: string, args: any) {
         args['body'],
         args['event'],
         args['comments']
+      );
+    case 'listPullRequestReviews':
+      return await listPullRequestReviews.run(
+        args['repository'],
+        args['pullNumber']
       );
     case 'listDiscussions':
       return await listDiscussions.run(args['repository']);
