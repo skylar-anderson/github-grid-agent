@@ -1,39 +1,77 @@
-# Declarative Agent UI with GitHub Grid Agent
+# GitHub Grid Agent
 
-This prototype explores a declarative method of interacting with AI agents where the user merely describes the shape of a data grid and an agent with access to tools populates cell values instantaneously. The agent respects the expected structure of each cell, so the user can easily filter, group, and search against the grid data.
+A Next.js application for managing GitHub data in a customizable grid interface. Built with React, TypeScript, and GitHub's Octokit API.
 
-Here is an example of the grid triaging all open issues in primer/react, GitHub's design system.
+## Features
 
-https://github.com/user-attachments/assets/ee7c841d-0cd7-4b68-8100-e391d877ce6c
+- **Interactive Grid Interface**: Manage GitHub issues, pull requests, commits, and discussions in a spreadsheet-like view
+- **Multiple Column Types**: Support for text, boolean, file, commit, issue/PR, and user selection columns
+- **GitHub Integration**: Full integration with GitHub API for real-time data management
+- **AI-Powered Functions**: Includes AI capabilities for code search, image analysis, and pull request walkthroughs
+- **Customizable Views**: Create and save custom grid configurations for different workflows
 
-## Getting started
+## Tech Stack
 
-Run `npm install`
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **UI Components**: Primer React (GitHub's design system)
+- **Styling**: Tailwind CSS
+- **GitHub API**: Octokit
+- **AI Integration**: Anthropic SDK, OpenAI
+- **Testing**: Jest, React Testing Library
 
-Update `.env.local`:
-
-```bash
-# Credentials if you want to use OpenAI as your LLM
-OPENAI_API_KEY=
-
-# GitHub personal access token
-GITHUB_PAT=
-
-# Supabase credentials (only necessary when using semantic search skill)
-NEXT_PUBLIC_SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-DATABASE_PASSWORD=
-ANON_PUBLIC_KEY=
-SERVICE_ROLE_SECRET=
-```
-
-Or use [GitHub Models](https://docs.github.com/en/github-models/prototyping-with-ai-models) with the following `.env.local`:
+## Installation
 
 ```bash
-GITHUB_PAT=
-GITHUB_MODELS=1
+npm install
 ```
 
-Note, when using GitHub Models, a 5 second timeout is added to cell hydration in order to prevent rate limit errors.
+## Development
 
-Start your local dev server: `npm run dev`
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix linting issues
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+
+## Project Structure
+
+```
+app/
+├── columns/          # Column type implementations
+├── components/       # React components
+├── functions/        # GitHub API and AI functions
+├── grid/            # Grid page routing
+└── utils/           # Utility functions
+```
+
+## Key Components
+
+- **Grid System**: Flexible grid component for displaying and editing GitHub data
+- **Column Types**: Extensible column type system for different data formats
+- **GitHub Functions**: Comprehensive set of functions for interacting with GitHub API
+- **AI Functions**: Integration with AI services for enhanced functionality
+
+## Testing
+
+The project includes comprehensive test coverage for column types and components. Run tests with:
+
+```bash
+npm test
+```
+
+## License
+
+Private project
